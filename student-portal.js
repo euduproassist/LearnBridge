@@ -39,6 +39,7 @@ async function initPortal(uid) {
   $('openTutorSessions').onclick = () => { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadSessionsList(uid, 'tutor'); };
   $('openCounsellorSessions').onclick = () => { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadSessionsList(uid, 'counsellor'); };
   $('bookTutorQuick').onclick = () => openSearchAndBook('tutor');
+  $('bookCounsellorQuick').onclick = () => openSearchAndBook('counsellor');
   $('gotoTutorList').onclick = () => openSearchAndBook('tutor');
   $('gotoCounsellorList').onclick = () => openSearchAndBook('counsellor');
 
