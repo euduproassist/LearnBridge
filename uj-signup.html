@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UJ Signup - LearnBridge</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .popup{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ff4b4b;color:white;padding:12px 20px;border-radius:6px;display:none;font-weight:bold;z-index:9999}
+    .popup.success{background:#28a745}
+  </style>
+</head>
+<body class="login-page" style="background-image:url('assets/banners/uj-bg.jpg')">
+  <div id="popup" class="popup"></div>
+  <img src="assets/logos/uj.png" class="top-left-logo" alt="UJ Logo">
+  <div class="login-box">
+    <h2>Sign Up to LearnBridge 🎓</h2>
+
+    <input type="text" id="fullName" placeholder="Full Name"><br>
+    <input type="email" id="email" placeholder="Email (must end with @uj.ac.za)"><br>
+    <input type="password" id="password" placeholder="Password (8+ chars, number, _ )"><br>
+
+    <select id="role">
+      <option value="">Select role</option>
+      <option value="student">Student</option>
+      <option value="tutor">Tutor</option>
+      <option value="counsellor">Counsellor</option>
+    </select><br>
+
+    <input type="text" id="department" placeholder="Department (optional)"><br>
+
+    <button id="signupBtn">Sign Up</button>
+
+    <p>Already have an account? <a href="index.html">Login here</a></p>
+    <p class="footer">© 2025 University of Johannesburg | LearnBridge</p>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+    const popup = id => {
+      const p = document.getElementById('popup');
+      p.textContent = id.msg;
+      p.className = id.success ? 'popup success' : 'popup';
+      p.style.display = 'block';
+      setTimeout(()=> p.style.display='none', 3500);
+    };
+
+    document.getElementById('signupBtn').addEventListener('click', async ()=>{
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const department = document.getElementById('department').value.trim();
+
+      // Validation
+      if (!fullName) return popup({ msg: 'Enter full name' });
+      if (!email || !email.includes('@')) return popup({ msg: 'Enter a valid email' });
+      if (!email.endsWith('@uj.ac.za')) return popup({ msg: 'Email must end with @uj.ac.za' });
+      if (password.length < 8 || !/\d/.test(password) || !password.includes('_')) {
+        return popup({ msg: 'Password must be 8+ chars, include a number and underscore _' });
+      }
+      if (!role) return popup({ msg: 'Please select a role' });
+
+      try {
+        // Create user in Firebase Auth
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        // Save profile in Firestore
+        await setDoc(doc(db, 'users', userCred.user.uid), {
+          fullName, email, role, department, createdAt: new Date().toISOString(), approved: false
+        });
+        // Send verification email (user must click it)
+        await sendEmailVerification(userCred.user);
+        popup({ msg: 'Account created. Verification email sent. Check your inbox.', success: true });
+        // Redirect to login after short pause
+        setTimeout(()=> window.location.href = 'index.html', 2200);
+      } catch (err) {
+        console.error(err);
+        popup({ msg: err.message || 'Signup error' });
+      }
+    });
+  </script>
+</body>
+</html>
