@@ -55,10 +55,7 @@
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) {
           return popup('User profile not found. Contact support.');
-        }
-        const data = docSnap.data();
-        if (data.approved === false) {
-          return popup('Account pending admin approval.');
+   
         }
         // Redirect by role:
         if (data.role === 'student') window.location.href = 'uj-student.html';
