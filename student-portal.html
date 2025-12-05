@@ -5,25 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Portal — LearnBridge</title>
   <link rel="icon" type="image/png" href="assets/logos/uj.png" />
-
-  <!-- ======= UJ ORANGE–BLACK THEME ======= -->
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
-
     body {
       background: linear-gradient(135deg, #ff7a00 0%, #000 100%);
       display: flex;
       min-height: 100vh;
     }
-
-    /* WRAPPER */
-    .portal-wrapper {
-      display: flex;
-      width: 100%;
-      min-height: 100vh;
-    }
-
-    /* SIDEBAR */
+    .portal-wrapper { display: flex; width: 100%; min-height: 100vh; }
     .portal-sidebar {
       width: 250px;
       background: rgba(0,0,0,0.75);
@@ -35,131 +24,51 @@
       justify-content: space-between;
       box-shadow: 4px 0 20px rgba(0,0,0,0.4);
     }
-
-    .portal-sidebar img {
-      width: 70px;
-      margin-bottom: 10px;
-    }
-
-    .sidebar-header {
-      text-align: center;
-      color: #ff7a00;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .sidebar-menu ul {
-      list-style: none;
-      margin-top: 40px;
-    }
-
+    .portal-sidebar img { width: 70px; margin-bottom: 10px; }
+    .sidebar-header { text-align: center; color: #ff7a00; font-size: 20px; font-weight: bold; }
+    .sidebar-menu ul { list-style: none; margin-top: 30px; padding: 0; }
     .sidebar-menu li {
       padding: 12px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
       border-radius: 6px;
       margin-bottom: 10px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: 0.18s;
+      display:flex; justify-content:space-between; align-items:center;
     }
-
-    .sidebar-menu li:hover {
-      background: rgba(255,122,0,0.9);
-    }
-
-    .sidebar-footer {
-      font-size: 12px;
-      color: #ff7a00;
-      opacity: 0.8;
-      text-align: center;
-      margin-top: 40px;
-    }
-
-    /* MAIN */
-    .portal-main {
-      flex-grow: 1;
-      background: rgba(255,255,255,0.92);
-      padding: 30px;
-      overflow-y: auto;
-    }
-
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      background: rgba(0,0,0,0.1);
-      padding: 15px 20px;
-      border-radius: 12px;
-    }
-
-    .main-header h1 {
-      color: #ff7a00;
-      font-size: 26px;
-    }
-
-    .user-info {
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    /* SECTIONS */
-    h2 {
-      color: #ff7a00;
-      margin-bottom: 10px;
-    }
-
-    .dashboard-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
-    }
-
-    .dash-card {
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .dash-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-    }
-
-    /* PROFILE INPUTS */
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-bottom: 15px;
-    }
-
-    button {
-      background: #ff7a00;
-      color: white;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      width: 100%;
-    }
-
-    button:hover {
-      background: #f06800;
-    }
-
+    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(255,122,0,0.95); color: #fff; }
+    .sidebar-footer { font-size: 12px; color: #ff7a00; opacity: 0.9; text-align: center; margin-top: 20px; }
+    .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
+    .main-header h1 { color: #ff7a00; font-size: 26px; }
+    .user-info { font-size: 14px; font-weight: bold; }
+    h2 { color: #ff7a00; margin-bottom: 10px; }
+    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
+    .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+    input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 12px; }
+    button.btn { background: #ff7a00; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
+    button.btn.secondary { background: #ddd; color: #333; }
     .hidden { display: none; }
-
-    @media(max-width: 800px){
-      .portal-sidebar { width: 200px; }
-    }
+    .search-row { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+    .profiles-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .profile-card { background:#fff; border-radius:10px; padding:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    .profile-photo { width:72px; height:72px; border-radius:8px; object-fit:cover; background:#f0f0f0; }
+    .avail-dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px; }
+    .avail-green { background:#28a745; }
+    .avail-red { background:#d73a3a; }
+    .muted { color:#666; font-size:13px; }
+    table { width:100%; border-collapse: collapse; }
+    th,td { padding:8px; border-bottom: 1px solid #eee; text-align:left; }
+    .empty { text-align:center; padding:18px; border:2px dashed #eee; border-radius:10px; color:#666; }
+    /* modal */
+    .modal-back { position: fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:white; border-radius:10px; padding:16px; width: 480px; max-width:95%; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
+    .modal h3 { margin-bottom:8px; color:#ff7a00; }
+    .modal .row { display:flex; gap:8px; }
+    @media(max-width:800px){ .portal-sidebar { width:200px } .modal{ width: 92%; } }
   </style>
 </head>
-
 <body>
 <div class="portal-wrapper">
 
@@ -167,22 +76,26 @@
   <aside class="portal-sidebar">
     <div>
       <div class="sidebar-header">
-        <img src="assets/logos/uj.png" />
-        LearnBridge
+        <img src="assets/logos/uj.png" alt="UJ Logo">
+        <div>LearnBridge</div>
       </div>
 
       <nav class="sidebar-menu">
         <ul>
-          <li id="menuDashboard">🏠 Dashboard</li>
+          <li id="menuDashboard" class="active">🏠 Dashboard</li>
           <li id="menuSessions">📅 Upcoming Sessions</li>
+          <li id="menuBookTutor">📘 Request Tutor</li>
+          <li id="menuBookCounsellor">💬 Request Counsellor</li>
+          <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+          <li id="menuSupport">🆘 Support</li>
           <li id="menuProfile">👤 Profile</li>
         </ul>
       </nav>
     </div>
 
     <div class="sidebar-footer">
-      Student • University of Johannesburg  
-      <br>Logged in
+      Student • University of Johannesburg<br>
+      <small class="muted">Status: Logged in</small>
     </div>
   </aside>
 
@@ -198,6 +111,17 @@
     <!-- DASHBOARD -->
     <section id="dashboardSection">
       <h2>Dashboard</h2>
+
+      <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+        <div class="search-row" style="flex:1">
+          <input id="quickSearch" placeholder="Quick search tutors/counsellors by name, module, department...">
+          <button class="btn secondary" id="quickSearchBtn">Search</button>
+        </div>
+        <div style="width:220px;">
+          <button class="btn" id="bookTutorQuick">Book Tutor</button>
+        </div>
+      </div>
+
       <div class="dashboard-cards">
         <div class="dash-card" id="openProfile">
           <h3>Profile Summary</h3>
@@ -210,13 +134,36 @@
         <div class="dash-card" id="openTutorSessions">
           <h3>Tutor Sessions</h3>
           <p id="tutorSessionSummary">No upcoming tutor sessions.</p>
+          <div style="margin-top:12px"><button class="btn" id="gotoTutorList">View Tutors</button></div>
         </div>
 
         <div class="dash-card" id="openCounsellorSessions">
           <h3>Counsellor Sessions</h3>
           <p id="counsellorSessionSummary">No upcoming counsellor sessions.</p>
+          <div style="margin-top:12px"><button class="btn" id="gotoCounsellorList">View Counsellors</button></div>
         </div>
       </div>
+    </section>
+
+    <!-- SEARCH & LIST (for tutor/counsellor) -->
+    <section id="searchSection" class="hidden">
+      <h2 id="searchTitle">Search</h2>
+
+      <div style="margin-bottom:12px">
+        <div class="search-row">
+          <input id="searchInput" placeholder="Name, module, department, location..." style="flex:1">
+          <select id="filterRole">
+            <option value="">All</option>
+            <option value="tutor">Tutor</option>
+            <option value="counsellor">Counsellor</option>
+          </select>
+          <button class="btn" id="searchBtn">Search</button>
+          <button class="btn secondary" id="searchBackBtn">Back</button>
+        </div>
+      </div>
+
+      <div id="searchResults" class="profiles-grid"></div>
+      <div id="searchEmpty" class="empty hidden">No results found.</div>
     </section>
 
     <!-- SESSIONS -->
@@ -236,7 +183,13 @@
         <input id="profileNameInput" type="text">
 
         <label>Academic Year:</label>
-        <input id="profileYearInput" type="text">
+        <select id="profileYearInput">
+          <option value="">Select year</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
 
         <label>Department:</label>
         <input id="profileDepartmentInput" type="text">
@@ -247,8 +200,21 @@
         <label>Profile Picture URL:</label>
         <input id="profilePictureInput" type="text">
 
-        <button id="saveProfileBtn">Save Profile</button>
+        <button id="saveProfileBtn" class="btn">Save Profile</button>
       </div>
+    </section>
+
+    <!-- SUPPORT -->
+    <section id="supportSection" class="hidden">
+      <h2>Contact Support</h2>
+      <textarea id="supportMessage" rows="5" placeholder="Explain your issue..."></textarea>
+      <button id="sendSupportBtn" class="btn">Send to Support</button>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsSection" class="hidden">
+      <h2>Notifications</h2>
+      <div id="notificationsList" class="muted">Loading...</div>
     </section>
 
   </main>
@@ -256,13 +222,13 @@
 
 <script>
   setInterval(() => {
-    document.getElementById("currentTime").textContent =
-      new Date().toLocaleString();
+    document.getElementById("currentTime").textContent = new Date().toLocaleString();
   }, 1000);
 </script>
 
+<!-- load portal code -->
 <script type="module" src="student-portal.js"></script>
-
 </body>
 </html>
+
 
