@@ -69,7 +69,7 @@
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         // Save profile in Firestore
         await setDoc(doc(db, 'users', userCred.user.uid), {
-          fullName, email, role, department, createdAt: new Date().toISOString(), approved: false
+          fullName, email, role, department, createdAt: new Date().toISOString(), approved: true, emailVerified: false
         });
         // Send verification email (user must click it)
         await sendEmailVerification(userCred.user);
