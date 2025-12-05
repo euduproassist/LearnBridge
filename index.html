@@ -29,7 +29,8 @@
   <script type="module">
     import { auth, db } from './firebase-config.js';
     import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
 
     function popup(msg, success=false){
       const p = document.getElementById('popup');
@@ -49,19 +50,19 @@
         const user = cred.user;
         if (!user.emailVerified) {
           return popup('Please verify your email before logging in.');
-          await updateDoc(doc(db, "users", user.uid), {
-          emailVerified: true
-        });
 
         }
-        // read role/approved from Firestore
+ 
+        // Redirect by role:
+
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) {
-          return popup('User profile not found. Contact support.');
-   
+         return popup('User profile not found. Contact support.');
         }
-        // Redirect by role:
+        const data = docSnap.data();
+
+        
         if (data.role === 'student') window.location.href = 'uj-student.html';
         else if (data.role === 'tutor') window.location.href = 'uj-tutor.html';
         else if (data.role === 'counsellor') window.location.href = 'uj-counsellor.html';
