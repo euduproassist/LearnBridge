@@ -48,8 +48,8 @@
       try {
         const cred = await signInWithEmailAndPassword(auth, email, password);
         const user = cred.user;
-        if (!user.emailVerified) {
-          return popup('Please verify your email before logging in.');
+     if (user.emailVerified && !data.emailVerified) {
+     await updateDoc(doc(db, 'users', user.uid), { emailVerified: true });
 
         }
  
