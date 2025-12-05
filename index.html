@@ -49,6 +49,10 @@
         const user = cred.user;
         if (!user.emailVerified) {
           return popup('Please verify your email before logging in.');
+          await updateDoc(doc(db, "users", user.uid), {
+          emailVerified: true
+        });
+
         }
         // read role/approved from Firestore
         const docRef = doc(db, 'users', user.uid);
