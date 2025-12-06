@@ -37,6 +37,7 @@ async function initPortal(uid) {
   $('menuSupport').onclick = () => { setActiveMenu('menuSupport'); showSection('supportSection'); };
   $('menuNotifications').onclick = () => { setActiveMenu('menuNotifications'); showSection('notificationsSection'); loadNotifications(uid); };
   $('menuPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+  $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsList(uid); };
 
 
   // dashboard quick actions
@@ -49,11 +50,16 @@ async function initPortal(uid) {
   $('gotoCounsellorList').onclick = () => openSearchAndBook('counsellor');
   $('openPendingRequests').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
   $('gotoPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+  $('openRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsList(uid); };
+  $('gotoRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsList(uid); };
+
  
   // search handlers
   $('quickSearchBtn').onclick = () => { openSearchAndBook('', $('quickSearch').value.trim()); };
   $('searchBtn').onclick = () => { const v = $('searchInput').value.trim(); const role = $('filterRole').value; openSearchAndBook(role, v); };
   $('searchBackBtn').onclick = () => { setActiveMenu('menuDashboard'); showSection('dashboardSection'); };
+  $('ratingsSearchBtn').onclick = () => { loadRatingsList(uid, $('ratingsFilterRole').value, $('ratingsSearch').value.trim()); };
+
 
   // profile save
   $('saveProfileBtn').onclick = async () => { await saveProfile(uid); };
@@ -66,6 +72,8 @@ async function initPortal(uid) {
   await loadSessionSummaries(uid);
   await updateNotifBadge(uid);
   await loadPendingRequests(uid); 
+  await loadUserRatingsCount(uid);
+
 
   // show dashboard
   setActiveMenu('menuDashboard');
@@ -129,6 +137,21 @@ async function saveProfile(uid) {
     alert('Failed to save profile: ' + err.message);
   }
 }
+
+/* ---------- Load count of ratings submitted by this student ---------- */
+async function loadUserRatingsCount(uid) {
+  try {
+    const ratingsCol = collection(db, 'ratings');
+    const q = query(ratingsCol, where('studentId','==',uid));
+    const snap = await getDocs(q);
+    const count = snap.size || 0;
+    const el = $('ratingsCount');
+    if (el) el.textContent = String(count);
+  } catch (err) {
+    console.error('loadUserRatingsCount', err);
+  }
+}
+
 
 /* ---------- Notifications ---------- */
 async function updateNotifBadge(uid) {
@@ -255,6 +278,8 @@ function updatePendingUICounts(count) {
 }
 
 
+
+
 /* ---------- Session summaries & list ---------- */
 async function loadSessionSummaries(uid) {
   try {
@@ -337,6 +362,42 @@ async function loadSessionsList(uid, filterRole = null) {
   }
 }
 
+/* ---------- Load ratings list (student's own ratings) ---------- */
+async function loadRatingsList(uid, roleFilter = '', searchText = '') {
+  const container = $('ratingsList');
+  container.innerHTML = 'Loading ratings...';
+  try {
+    const ratingsCol = collection(db, 'ratings');
+    let q = query(ratingsCol, where('studentId','==',uid), orderBy('createdAt','desc'));
+    // Note: Firestore queries are limited; we do client-side filter for role/search if needed
+    const snap = await getDocs(q);
+    let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (roleFilter) docs = docs.filter(r => r.role === roleFilter);
+    if (searchText) docs = docs.filter(r => (r.personName||'').toLowerCase().includes(searchText.toLowerCase()));
+    if (docs.length === 0) {
+      container.innerHTML = '<div class="empty">You have not submitted any ratings yet.</div>';
+      return;
+    }
+    const rows = docs.map(r => {
+      return `
+        <div class="profile-card" style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between">
+            <div><strong>${escapeHtml(r.personName)}</strong> <span class="muted">(${escapeHtml(r.role)})</span></div>
+            <div>${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+          </div>
+          <div class="muted" style="font-size:13px">${new Date(r.createdAt).toLocaleString()}</div>
+          <div>${escapeHtml(r.comment || '')}</div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = rows;
+  } catch (err) {
+    console.error('loadRatingsList', err);
+    container.innerHTML = `<div class="empty">Failed to load ratings</div>`;
+  }
+}
+
+
 /* ---------- Search & Booking UI ---------- */
 
 /**
@@ -403,11 +464,14 @@ function renderSearchResults(list, role) {
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn" data-act="book">Book ${u.role === 'tutor' ? 'Tutor' : 'Counsellor'}</button>
         <button class="btn secondary" data-act="view">View profile</button>
+        <button class="btn secondary" data-act="rate">Rate</button>
       </div>
     `;
     out.appendChild(card);
     card.querySelector('[data-act="book"]').onclick = () => openBookingModal(u.role, u);
     card.querySelector('[data-act="view"]').onclick = () => alert(`Profile:\n\n${u.name}\n\n${u.bio||'No bio'}\n\nModules: ${u.modules||'—'}`);
+    card.querySelector('[data-act="rate"]').onclick = () => openRatingModal(u);
+
   });
 }
 
@@ -493,6 +557,69 @@ async function openBookingModal(role, person) {
     await createSessionDoc(role, person, desiredISO, null, mode, note);
     alert('Booking created (status: pending). You will be notified.');
     modal.remove();
+  };
+}
+
+/* ---------- Ratings modal ---------- */
+async function openRatingModal(person) {
+  // person: user object with id, name, role
+  const modal = document.createElement('div'); modal.className = 'modal-back';
+  modal.innerHTML = `
+    <div class="modal">
+      <h3>Rate ${escapeHtml(person.name || '')}</h3>
+      <div>
+        <label>Stars (0-5)</label>
+        <div id="ratingStars" style="font-size:22px;margin:8px 0;cursor:pointer">
+          <span data-star="1">☆</span><span data-star="2">☆</span><span data-star="3">☆</span><span data-star="4">☆</span><span data-star="5">☆</span>
+        </div>
+        <textarea id="ratingComment" rows="3" style="width:100%;margin-bottom:8px" placeholder="Optional comments..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="ratingSend">Send to Admin</button>
+          <button class="btn secondary" id="ratingCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // star selection logic
+  let selected = 5; // default 5 — you can set default 0 if you prefer
+  const starsEl = modal.querySelector('#ratingStars');
+  function renderStars(n) {
+    starsEl.querySelectorAll('span').forEach(span => {
+      const s = Number(span.getAttribute('data-star'));
+      span.textContent = s <= n ? '★' : '☆';
+    });
+  }
+  renderStars(selected);
+  starsEl.querySelectorAll('span').forEach(span => {
+    span.addEventListener('click', () => {
+      selected = Number(span.getAttribute('data-star'));
+      renderStars(selected);
+    });
+  });
+
+  modal.querySelector('#ratingCancel').onclick = () => modal.remove();
+  modal.querySelector('#ratingSend').onclick = async () => {
+    const comment = modal.querySelector('#ratingComment').value.trim();
+    try {
+      await saveRating({
+        personId: person.id || person.uid || person.userId,
+        personName: person.name || '',
+        role: person.role || '',
+        stars: selected,
+        comment
+      });
+      alert('Thanks — your rating was submitted.');
+      modal.remove();
+      // update UI counts
+      const uid = auth.currentUser.uid;
+      await loadUserRatingsCount(uid);
+      await loadRatingsList(uid); // refresh user list
+    } catch (err) {
+      console.error('saveRating error', err);
+      alert('Failed to submit rating: ' + err.message);
+    }
   };
 }
 
@@ -588,6 +715,25 @@ async function createSessionDoc(role, person, desiredISO, suggestedISO, mode, no
     throw err;
   }
 }
+
+/* ---------- Save rating to Firestore ---------- */
+async function saveRating({ personId, personName, role, stars, comment }) {
+  if (!auth.currentUser) throw new Error('Not signed in');
+  const studentId = auth.currentUser.uid;
+  const ratingsCol = collection(db, 'ratings');
+  const payload = {
+    studentId,
+    personId,
+    personName: personName || '',
+    role: role || '',
+    stars: Number(stars) || 0,
+    comment: comment || '',
+    createdAt: new Date().toISOString()
+  };
+  const docRef = await addDoc(ratingsCol, payload);
+  return docRef.id;
+}
+
 
 /* Google calendar link */
 function generateGoogleCalendarLink({ title, details, location, start, end }) {
