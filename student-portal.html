@@ -86,6 +86,7 @@
           <li id="menuSessions">📅 Upcoming Sessions</li>
           <li id="menuBookTutor">📘 Request Tutor</li>
           <li id="menuBookCounsellor">💬 Request Counsellor</li>
+          <li id="menuRatings">⭐ Ratings & Feedback</li>
           <li id="menuPending">📨 Pending Requests <span id="pendingBadge" style="display:none;background:#ff7a00;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
           <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
           <li id="menuSupport">🆘 Support</li>
@@ -234,6 +235,33 @@
   <div id="pendingList">Loading pending requests...</div>
   <div id="pendingEmpty" class="empty hidden">No pending requests.</div>
 </section>
+
+    <!-- RATINGS & FEEDBACK -->
+<section id="ratingsSection" class="hidden">
+  <h2>Ratings & Feedback</h2>
+
+  <div id="ratingsList"></div>
+
+  <div id="ratingsEmpty" class="empty hidden">
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" class="empty-icon" style="width:80px;margin-bottom:12px">
+    <h3>No Feedback Yet</h3>
+    <p>Your ratings for tutors & counselors will appear here.</p>
+  </div>
+</section>
+
+<!-- RATING MODAL -->
+<div id="rateModal" class="modal-back hidden">
+  <div class="modal">
+    <h3>Rate Session</h3>
+    <div id="starContainer" class="stars" style="margin:10px 0;"></div>
+    <textarea id="ratingComment" placeholder="Optional comment..." rows="3" style="width:100%;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" id="sendRatingBtn">Send to Admin</button>
+      <button class="btn secondary" id="cancelRatingBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
 
     
