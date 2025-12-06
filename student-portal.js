@@ -249,7 +249,7 @@ function updatePendingUICounts(count) {
   }
   if (pendingCountText) pendingCountText.textContent = count;
 }
-}
+
 
 /* ---------- Session summaries & list ---------- */
 async function loadSessionSummaries(uid) {
