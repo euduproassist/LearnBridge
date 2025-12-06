@@ -88,6 +88,7 @@
           <li id="menuBookCounsellor">💬 Request Counsellor</li>
           <li id="menuPending">📨 Pending Requests <span id="pendingBadge" style="display:none;background:#ff7a00;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
           <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+          <li id="menuRatings">⭐ Ratings & Feedback</li>
           <li id="menuSupport">🆘 Support</li>
           <li id="menuProfile">👤 Profile</li>
         </ul>
@@ -153,7 +154,14 @@
         <div style="margin-top:12px"><button class="btn" id="gotoPending">View Pending Requests</button></div>
         </div>
 
-        
+       <!-- Ratings & Feedback card (paste into dashboard-cards) -->
+       <div class="dash-card" id="openRatings">
+       <h3>Ratings & Feedback</h3>
+       <p>You have submitted <strong id="ratingsCount">0</strong> rating(s).</p>
+       <div style="margin-top:12px"><button class="btn" id="gotoRatings">View Ratings</button></div>
+       </div>
+
+
       </div>
     </section>
 
@@ -235,6 +243,27 @@
   <div id="pendingList">Loading pending requests...</div>
   <div id="pendingEmpty" class="empty hidden">No pending requests.</div>
 </section>
+
+    <!-- RATINGS -->
+<section id="ratingsSection" class="hidden">
+  <h2>Ratings & Feedback</h2>
+
+  <!-- Search inside ratings page (optional) -->
+  <div style="margin-bottom:12px">
+    <div class="search-row">
+      <input id="ratingsSearch" placeholder="Search tutors/counsellors by name, module... " style="flex:1">
+      <select id="ratingsFilterRole">
+        <option value="">All</option>
+        <option value="tutor">Tutor</option>
+        <option value="counsellor">Counsellor</option>
+      </select>
+      <button class="btn" id="ratingsSearchBtn">Search</button>
+    </div>
+  </div>
+
+  <div id="ratingsList">Loading your ratings...</div>
+</section>
+
 
   
     
