@@ -374,10 +374,19 @@ async function loadRatingsList(uid, roleFilter = '', searchText = '') {
     let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (roleFilter) docs = docs.filter(r => r.role === roleFilter);
     if (searchText) docs = docs.filter(r => (r.personName||'').toLowerCase().includes(searchText.toLowerCase()));
-    if (docs.length === 0) {
-      container.innerHTML = '<div class="empty">You have not submitted any ratings yet.</div>';
-      return;
-    }
+const emptyEl = $('ratingsEmpty');
+if (docs.length === 0) {
+  emptyEl.textContent = roleFilter || searchText
+    ? 'No ratings match your filter/search.'
+    : 'You have not submitted any ratings yet.';
+  emptyEl.classList.remove('hidden');
+  container.innerHTML = '';
+  return;
+} else {
+  emptyEl.classList.add('hidden');
+}
+
+
     const rows = docs.map(r => {
       return `
         <div class="profile-card" style="display:flex;flex-direction:column;gap:6px">
@@ -438,9 +447,10 @@ async function openSearchAndBook(type = '', q = '') {
 /* renderSearchResults */
 function renderSearchResults(list, role) {
   const out = $('searchResults'); out.innerHTML = '';
+  const emptyEl = $('searchEmpty');
   if (!list || list.length === 0) {
-    $('searchEmpty').classList.remove('hidden'); return;
-  } else $('searchEmpty').classList.add('hidden');
+     emptyEl.classList.remove('hidden'); return;
+  } else     emptyEl.classList.add('hidden');
   list.forEach(u => {
     const photo = u.profilePic || 'assets/logos/uj.png';
     // availability: we check u.availability boolean or schedule object; fallback to unavailable
