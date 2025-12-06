@@ -14,66 +14,7 @@ const setActiveMenu = (id) => {
   const el = $(id); if(el) el.classList.add('active');
 };
 
-import { serverTimestamp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js"; // if not already imported
 
-async function submitRating() {
-  const rating = Number($('starContainer').dataset.value);
-  const comment = $('ratingComment').value;
-  const studentId = auth.currentUser.uid;
-
-  if (!currentRatingTarget) {
-    alert("Error: No tutor selected.");
-    return;
-  }
-  if (!rating) {
-    alert("Please select a star rating.");
-    return;
-  }
-
-  try {
-    await addDoc(collection(db, "ratings"), {
-      tutorId: currentRatingTarget.id,
-      tutorName: currentRatingTarget.name,
-      studentId,
-      rating,
-      comment,
-      timestamp: serverTimestamp()
-    });
-    closeRateModal();
-    loadRatings();
-    alert("Rating submitted successfully!");
-  } catch(err) {
-    console.error(err);
-    alert("Failed to submit rating: " + err.message);
-  }
-}
-
-async function loadRatings() {
-  const uid = auth.currentUser.uid;
-  const q = query(collection(db, "ratings"), where("studentId", "==", uid));
-  const snap = await getDocs(q);
-
-  const list = $('ratingsList');
-  const empty = $('ratingsEmpty');
-  list.innerHTML = '';
-
-  if (snap.empty) {
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-
-  snap.forEach(doc => {
-    const d = doc.data();
-    list.innerHTML += `
-      <div class="rating-card" style="padding:10px;border:1px solid #eee;border-radius:8px;margin-bottom:8px;">
-        <div><strong>${d.tutorName}</strong></div>
-        <div>${"⭐".repeat(d.rating)}${"☆".repeat(5 - d.rating)}</div>
-        <div class="comment">${d.comment || "(No comment)"}</div>
-        <small style="color:#666;">${d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString() : ""}</small>
-      </div>`;
-  });
-}
 
 
 /* ---------- Auth init ---------- */
