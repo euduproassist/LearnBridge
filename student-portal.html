@@ -86,6 +86,7 @@
           <li id="menuSessions">📅 Upcoming Sessions</li>
           <li id="menuBookTutor">📘 Request Tutor</li>
           <li id="menuBookCounsellor">💬 Request Counsellor</li>
+          <li id="menuPending">📨 Pending Requests <span id="pendingBadge" style="display:none;background:#ff7a00;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
           <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
           <li id="menuSupport">🆘 Support</li>
           <li id="menuProfile">👤 Profile</li>
@@ -145,6 +146,13 @@
           <p id="counsellorSessionSummary">No upcoming counsellor sessions.</p>
           <div style="margin-top:12px"><button class="btn" id="gotoCounsellorList">View Counsellors</button></div>
         </div>
+
+        <div class="dash-card" id="openPendingRequests">
+        <h3>Pending Requests</h3>
+        <p id="pendingSummary">You have <strong id="pendingCount">0</strong> pending request(s).</p>
+        <div style="margin-top:12px"><button class="btn" id="gotoPending">View Pending Requests</button></div>
+        </div>
+
       </div>
     </section>
 
@@ -220,6 +228,15 @@
       <div id="notificationsList" class="muted">Loading...</div>
     </section>
 
+    <!-- PENDING REQUESTS -->
+<section id="pendingSection" class="hidden">
+  <h2>Pending Requests</h2>
+  <div id="pendingList">Loading pending requests...</div>
+  <div id="pendingEmpty" class="empty hidden">No pending requests.</div>
+</section>
+
+
+    
   </main>
 </div>
 
