@@ -109,6 +109,31 @@ async function initPortal(uid) {
   $('gotoCounsellorList').onclick = () => openSearchAndBook('counsellor');
   $('openPendingRequests').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
   $('gotoPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+  // RATE BUTTONS ON DASHBOARD
+document.querySelectorAll('[data-act="rate"]').forEach(btn => {
+  btn.onclick = () => {
+    // Choose who to rate: for example, the next upcoming tutor or counsellor session
+    let target = null;
+
+    const tutorText = $('tutorSessionSummary').textContent;
+    const counText = $('counsellorSessionSummary').textContent;
+
+    if (tutorText && tutorText !== 'No upcoming tutor sessions.') {
+      // pick tutor from summary
+      const tutorName = tutorText.split(' — ')[0]; // extract name
+      const tutorId = 'ID_OF_TUTOR'; // REPLACE with real tutorId from session object
+      target = { id: tutorId, name: tutorName };
+    } else if (counText && counText !== 'No upcoming counsellor sessions.') {
+      const counName = counText.split(' — ')[0];
+      const counId = 'ID_OF_COUNSELLOR'; // REPLACE with real counsellorId from session object
+      target = { id: counId, name: counName };
+    }
+
+    if (!target) return alert('No session to rate yet.');
+    openRateModal(target.id, target.name);
+  };
+});
+
 
 
   // search handlers
