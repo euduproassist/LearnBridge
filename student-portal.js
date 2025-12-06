@@ -376,15 +376,13 @@ async function loadRatingsList(uid, roleFilter = '', searchText = '') {
     if (searchText) docs = docs.filter(r => (r.personName||'').toLowerCase().includes(searchText.toLowerCase()));
 const emptyEl = $('ratingsEmpty');
 if (docs.length === 0) {
-  emptyEl.textContent = roleFilter || searchText
-    ? 'No ratings match your filter/search.'
-    : 'You have not submitted any ratings yet.';
   emptyEl.classList.remove('hidden');
   container.innerHTML = '';
   return;
 } else {
   emptyEl.classList.add('hidden');
 }
+
 
 
     const rows = docs.map(r => {
