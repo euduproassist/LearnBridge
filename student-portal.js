@@ -33,6 +33,8 @@ async function initPortal(uid) {
   $('menuProfile').onclick = () => { setActiveMenu('menuProfile'); showSection('profileSection'); loadProfile(uid); };
   $('menuSupport').onclick = () => { setActiveMenu('menuSupport'); showSection('supportSection'); };
   $('menuNotifications').onclick = () => { setActiveMenu('menuNotifications'); showSection('notificationsSection'); loadNotifications(uid); };
+  $('menuPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+
 
   // dashboard quick actions
   $('openProfile').onclick = () => { setActiveMenu('menuProfile'); showSection('profileSection'); loadProfile(uid); };
@@ -42,6 +44,9 @@ async function initPortal(uid) {
   $('bookCounsellorQuick').onclick = () => openSearchAndBook('counsellor');
   $('gotoTutorList').onclick = () => openSearchAndBook('tutor');
   $('gotoCounsellorList').onclick = () => openSearchAndBook('counsellor');
+  $('openPendingRequests').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+  $('gotoPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
+
 
   // search handlers
   $('quickSearchBtn').onclick = () => { openSearchAndBook('', $('quickSearch').value.trim()); };
@@ -58,10 +63,12 @@ async function initPortal(uid) {
   await loadProfile(uid);
   await loadSessionSummaries(uid);
   await updateNotifBadge(uid);
+  await loadPendingRequests(uid); 
 
   // show dashboard
   setActiveMenu('menuDashboard');
   showSection('dashboardSection');
+
 }
 
 /* ---------- Section toggling ---------- */
@@ -154,6 +161,94 @@ async function loadNotifications(uid) {
     console.error('loadNotifications', err);
     $('notificationsList').innerHTML = '<div class="empty">Failed to load notifications</div>';
   }
+}
+
+/* ---------- Pending requests ---------- */
+async function loadPendingRequests(uid) {
+  const container = $('pendingList');
+  const emptyEl = $('pendingEmpty');
+  container.innerHTML = 'Loading pending requests...';
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    const q = query(sessionsCol, where('studentId','==',uid), where('status','==','pending'), orderBy('datetime','asc'));
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // update dashboard + badge
+    updatePendingUICounts(sessions.length);
+
+    if (sessions.length === 0) {
+      container.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+    emptyEl.classList.add('hidden');
+
+    const rows = sessions.map(s => {
+      const datetime = s.datetime ? new Date(s.datetime).toLocaleString() : '—';
+      return `<tr data-id="${s.id}">
+        <td>${escapeHtml(s.personName || '—')}</td>
+        <td>${escapeHtml(datetime)}</td>
+        <td>${escapeHtml(s.role || '—')}</td>
+        <td>${escapeHtml(s.mode || '—')}</td>
+        <td>
+          <button class="cancel-pending btn secondary">Cancel</button>
+          <button class="update-pending btn">Update</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    container.innerHTML = `<table><thead><tr><th>Person</th><th>Date & Time</th><th>Role</th><th>Mode</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+    // attach handlers
+    container.querySelectorAll('.cancel-pending').forEach(btn => {
+      btn.addEventListener('click', async (ev) => {
+        const id = ev.target.closest('tr').dataset.id;
+        if (!confirm('Cancel this pending request?')) return;
+        try {
+          await updateDoc(doc(db,'sessions',id), { status: 'cancelled' });
+          alert('Request cancelled.');
+          await loadPendingRequests(uid);
+          await loadSessionSummaries(uid);
+          await updateNotifBadge(uid);
+        } catch (err) { console.error(err); alert('Failed to cancel: ' + err.message); }
+      });
+    });
+
+    container.querySelectorAll('.update-pending').forEach(btn => {
+      btn.addEventListener('click', async (ev) => {
+        const id = ev.target.closest('tr').dataset.id;
+        // Ask for new date/time and optionally notes/mode
+        const newISO = prompt('Enter new date & time (YYYY-MM-DDTHH:MM) e.g. 2025-12-10T14:00');
+        if (!newISO) return;
+        if (isNaN(new Date(newISO))) { alert('Invalid date'); return; }
+        const newMode = prompt('Enter new mode (online / in-person)', 'online');
+        if (!newMode) return;
+        const newNotes = prompt('Update notes (optional)', '') || '';
+        try {
+          await updateDoc(doc(db,'sessions',id), { datetime: new Date(newISO).toISOString(), mode: newMode, notes: newNotes });
+          alert('Request updated.');
+          await loadPendingRequests(uid);
+          await loadSessionSummaries(uid);
+        } catch (err) { console.error(err); alert('Failed to update: ' + err.message); }
+      });
+    });
+
+  } catch (err) {
+    console.error('loadPendingRequests', err);
+    container.innerHTML = `<div class="empty">Failed to load pending requests</div>`;
+  }
+}
+
+/* helper to update pending count UI on dashboard and sidebar badge */
+function updatePendingUICounts(count) {
+  const badge = $('pendingBadge');
+  const pendingCountText = $('pendingCount');
+  if (badge) {
+    if (count > 0) { badge.style.display = 'inline-block'; badge.textContent = count; }
+    else { badge.style.display = 'none'; }
+  }
+  if (pendingCountText) pendingCountText.textContent = count;
+}
 }
 
 /* ---------- Session summaries & list ---------- */
