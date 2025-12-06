@@ -73,7 +73,7 @@ async function initPortal(uid) {
 
 /* ---------- Section toggling ---------- */
 function showSection(idToShow) {
-  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection'];
+  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection', 'pendingSection'];
   sections.forEach(s => {
     const el = $(s);
     if (!el) return;
