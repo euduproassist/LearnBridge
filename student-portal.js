@@ -37,7 +37,6 @@ async function initPortal(uid) {
   $('menuSupport').onclick = () => { setActiveMenu('menuSupport'); showSection('supportSection'); };
   $('menuNotifications').onclick = () => { setActiveMenu('menuNotifications'); showSection('notificationsSection'); loadNotifications(uid); };
   $('menuPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
-  $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatings(); };
 
 
   // dashboard quick actions
@@ -50,33 +49,7 @@ async function initPortal(uid) {
   $('gotoCounsellorList').onclick = () => openSearchAndBook('counsellor');
   $('openPendingRequests').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
   $('gotoPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
-  // RATE BUTTONS ON DASHBOARD
-document.querySelectorAll('[data-act="rate"]').forEach(btn => {
-  btn.onclick = () => {
-    // Choose who to rate: for example, the next upcoming tutor or counsellor session
-    let target = null;
-
-    const tutorText = $('tutorSessionSummary').textContent;
-    const counText = $('counsellorSessionSummary').textContent;
-
-    if (tutorText && tutorText !== 'No upcoming tutor sessions.') {
-      // pick tutor from summary
-      const tutorName = tutorText.split(' — ')[0]; // extract name
-      const tutorId = 'ID_OF_TUTOR'; // REPLACE with real tutorId from session object
-      target = { id: tutorId, name: tutorName };
-    } else if (counText && counText !== 'No upcoming counsellor sessions.') {
-      const counName = counText.split(' — ')[0];
-      const counId = 'ID_OF_COUNSELLOR'; // REPLACE with real counsellorId from session object
-      target = { id: counId, name: counName };
-    }
-
-    if (!target) return alert('No session to rate yet.');
-    openRateModal(target.id, target.name);
-  };
-});
-
-
-
+ 
   // search handlers
   $('quickSearchBtn').onclick = () => { openSearchAndBook('', $('quickSearch').value.trim()); };
   $('searchBtn').onclick = () => { const v = $('searchInput').value.trim(); const role = $('filterRole').value; openSearchAndBook(role, v); };
@@ -100,41 +73,11 @@ document.querySelectorAll('[data-act="rate"]').forEach(btn => {
 
 }
 
-let currentRatingTarget = null;
-
-function openRateModal(id, name) {
-  currentRatingTarget = { id, name };
-  showStars(0); 
-  $('ratingComment').value = "";
-  $('rateModal').classList.remove('hidden');
-}
-
-function closeRateModal() {
-  $('rateModal').classList.add('hidden');
-}
-
-function showStars(selected = 0) {
-  const container = $('starContainer');
-  container.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const star = document.createElement('span');
-    star.textContent = i <= selected ? '⭐' : '☆';
-    star.style.fontSize = '30px';
-    star.style.cursor = 'pointer';
-    star.onclick = () => showStars(i);
-    container.appendChild(star);
-  }
-  container.setAttribute('data-value', selected);
-}
-
-// handle buttons
-$('sendRatingBtn').onclick = submitRating;
-$('cancelRatingBtn').onclick = closeRateModal;
 
 
 /* ---------- Section toggling ---------- */
 function showSection(idToShow) {
-  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection','ratingsSection'];
+  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection'];
   sections.forEach(s => {
     const el = $(s);
     if (!el) return;
