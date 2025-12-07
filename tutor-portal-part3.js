@@ -1,4 +1,4 @@
-// tutor-portal.part3.js — PART 3 of 3
+// tutor-portal-part3.js — PART 3 of 3
 // Final helpers, calendar integration, final wiring and cleanup
 
 import { auth, db } from './firebase-config.js';
