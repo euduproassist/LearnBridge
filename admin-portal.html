@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal — LearnBridge</title>
+  <link rel="icon" type="image/png" href="assets/logos/uj.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
+    body {
+      background: linear-gradient(135deg, #ff7a00 0%, #000 100%);
+      display: flex;
+      min-height: 100vh;
+    }
+    .portal-wrapper { display: flex; width: 100%; min-height: 100vh; }
+    .portal-sidebar {
+      width: 260px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(14px);
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    .portal-sidebar img { width: 70px; margin-bottom: 10px; }
+    .sidebar-header { text-align: center; color: #ff7a00; font-size: 20px; font-weight: bold; }
+    .sidebar-menu ul { list-style: none; margin-top: 30px; padding: 0; }
+    .sidebar-menu li {
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.18s;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(255,122,0,0.95); color: #fff; }
+    .sidebar-footer { font-size: 12px; color: #ff7a00; opacity: 0.9; text-align: center; margin-top: 20px; }
+    .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
+    .main-header h1 { color: #ff7a00; font-size: 26px; }
+    h2 { color: #ff7a00; margin-bottom: 10px; }
+    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
+    .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+    .chart-box { background:#fff; padding:20px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); margin-bottom:20px; }
+    table { width:100%; border-collapse: collapse; }
+    th,td { padding:8px; border-bottom: 1px solid #eee; text-align:left; }
+    .empty { text-align:center; padding:18px; border:2px dashed #eee; border-radius:10px; color:#666; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="portal-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="portal-sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="assets/logos/uj.png" alt="UJ Logo">
+        <div>LearnBridge Admin</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="active" id="menuDashboard">🏠 Dashboard</li>
+          <li id="menuUsers">👥 Manage Users</li>
+          <li id="menuSessions">📅 Session Management</li>
+          <li id="menuBookings">📨 Booking Requests</li>
+          <li id="menuIssues">🚨 Issues & Reports</li>
+          <li id="menuRatings">⭐ Ratings & Performance</li>
+          <li id="menuUniversity">🏛 University Settings</li>
+          <li id="menuNotifications">🔔 Notifications Control</li>
+          <li id="menuContent">📰 Content Management</li>
+          <li id="menuReports">📊 Reports & Audit Logs</li>
+          <li id="menuAdminProfile">👤 Admin Profile</li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      Admin • University of Johannesburg<br>
+      <small>Status: Logged in</small>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="portal-main">
+    <header class="main-header">
+      <h1>Admin Portal</h1>
+      <div id="currentTime"></div>
+    </header>
+
+    <!-- DASHBOARD SECTION -->
+    <section id="dashboardSection">
+      <h2>System Overview</h2>
+
+      <div class="dashboard-cards">
+        <div class="dash-card">Total Student Accounts</div>
+        <div class="dash-card">Total Tutor/Counsellor Accounts</div>
+        <div class="dash-card">New Sign Ups</div>
+        <div class="dash-card">Pending Tutor Approvals</div>
+        <div class="dash-card">Pending Booking Requests</div>
+        <div class="dash-card">Sessions Today</div>
+        <div class="dash-card">Sessions In Progress</div>
+        <div class="dash-card">Issues Reported Today</div>
+        <div class="dash-card">Average Tutor Rating</div>
+      </div>
+
+      <br>
+
+      <div class="chart-box">Calendar of All Sessions</div>
+      <div class="chart-box">Weekly Sessions (Line Chart)</div>
+      <div class="chart-box">Top Performing Tutors (Bar Chart)</div>
+      <div class="chart-box">Online vs In-Person (Pie Chart)</div>
+
+      <h2>Quick Actions</h2>
+      <div class="dashboard-cards">
+        <div class="dash-card">Approve Tutors</div>
+        <div class="dash-card">View All Issues</div>
+        <div class="dash-card">Manage Modules/Departments</div>
+        <div class="dash-card">Send Announcement</div>
+        <div class="dash-card">University Settings</div>
+        <div class="dash-card">Open Analytics Panel</div>
+      </div>
+    </section>
+
+    <!-- MANAGE USERS -->
+    <section id="usersSection" class="hidden">
+      <h2>Manage Users</h2>
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Status</th><th>Last Login</th><th>Sessions</th><th>Rating</th></tr></thead>
+        <tbody id="userTable"></tbody>
+      </table>
+    </section>
+
+    <!-- SESSIONS MANAGEMENT -->
+    <section id="sessionsSection" class="hidden">
+      <h2>All Sessions</h2>
+      <div id="allSessions">Loading...</div>
+    </section>
+
+    <!-- BOOKING REQUESTS -->
+    <section id="bookingsSection" class="hidden">
+      <h2>Booking Requests</h2>
+      <div id="bookingList">Loading...</div>
+    </section>
+
+    <!-- ISSUES -->
+    <section id="issuesSection" class="hidden">
+      <h2>Issues & Reports Center</h2>
+      <div id="issuesList">Loading...</div>
+    </section>
+
+    <!-- RATINGS -->
+    <section id="ratingsSection" class="hidden">
+      <h2>Ratings & Performance Analytics</h2>
+      <div id="ratingsAnalytics">Loading...</div>
+    </section>
+
+    <!-- UNIVERSITY SETTINGS -->
+    <section id="universitySection" class="hidden">
+      <h2>University Settings</h2>
+      <div id="uniSettings">Loading...</div>
+    </section>
+
+    <!-- NOTIFICATION CONTROL -->
+    <section id="notificationsSection" class="hidden">
+      <h2>Notifications Control Panel</h2>
+      <div id="notifPanel">Loading...</div>
+    </section>
+
+    <!-- CONTENT MANAGEMENT -->
+    <section id="contentSection" class="hidden">
+      <h2>Content Management</h2>
+      <div id="contentPanel">Loading...</div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="reportsSection" class="hidden">
+      <h2>Reports & Audit Logs</h2>
+      <div id="reportsPanel">Loading...</div>
+    </section>
+
+    <!-- ADMIN PROFILE -->
+    <section id="adminProfileSection" class="hidden">
+      <h2>Admin Profile & Security</h2>
+      <div id="adminProfile">Loading...</div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  setInterval(() => {
+    document.getElementById("currentTime").textContent = new Date().toLocaleString();
+  }, 1000);
+</script>
+
+<script type="module" src="admin-portal.js"></script>
+</body>
+</html>
