@@ -1,4 +1,4 @@
-// tutor-portal.part1.js  — PART 1 of 3
+// tutor-portal-part1.js  — PART 1 of 3
 // Tutor Portal (keeps structure/style of student-portal.js)
 // NOTE: Replace existing student-portal.js import paths to point to this file when ready.
 
