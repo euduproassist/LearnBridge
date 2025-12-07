@@ -4,166 +4,264 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UJ Tutor Portal</title>
-  <link rel="icon" type="image/png" href="assets/logos/uj.png" />
-  <link rel="stylesheet" href="assets/css/portal.css">
+  <link rel="icon" type="image/png" href="assets/logos/uj.png">
   <style>
-    /* Minimal styling to match student portal layout, keep existing structure */
-    body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
-    .portal-container { display:flex; min-height:100vh; }
-    .sidebar { width:220px; background:#0077ff; color:#fff; padding:20px; display:flex; flex-direction:column; }
-    .sidebar h2 { font-size:18px; margin-bottom:20px; }
-    .sidebar-menu li { list-style:none; margin-bottom:10px; cursor:pointer; padding:6px 10px; border-radius:4px; }
-    .sidebar-menu li.active, .sidebar-menu li:hover { background:#005bbb; }
-    .content { flex:1; padding:20px; overflow-y:auto; }
-    section { display:none; }
-    section.visible { display:block; }
-    .hidden { display:none; }
-    .btn { padding:6px 12px; border:none; cursor:pointer; border-radius:4px; background:#0077ff; color:#fff; }
-    .btn.secondary { background:#ccc; color:#000; }
-    .profile-card { background:#fff; padding:12px; margin-bottom:12px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
-    .profile-photo { width:50px; height:50px; border-radius:50%; object-fit:cover; }
-    table { width:100%; border-collapse:collapse; margin-top:12px; }
-    th, td { padding:8px; text-align:left; border-bottom:1px solid #ddd; }
-    .muted { color:#666; font-size:12px; }
-    .avail-green { color:green; }
-    .avail-red { color:red; }
-    .modal-back { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:#fff; padding:20px; border-radius:8px; width:400px; max-width:90%; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
+    body {
+      background: linear-gradient(135deg, #0077ff 0%, #000 100%);
+      display: flex;
+      min-height: 100vh;
+    }
+    .portal-wrapper { display: flex; width: 100%; min-height: 100vh; }
+    .portal-sidebar {
+      width: 250px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(14px);
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    .portal-sidebar img { width: 70px; margin-bottom: 10px; }
+    .sidebar-header { text-align: center; color: #ff7a00; font-size: 20px; font-weight: bold; }
+    .sidebar-menu ul { list-style: none; margin-top: 30px; padding: 0; }
+    .sidebar-menu li {
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.18s;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(255,122,0,0.95); color: #fff; }
+    .sidebar-footer { font-size: 12px; color: #ff7a00; opacity: 0.9; text-align: center; margin-top: 20px; }
+    .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
+    .main-header h1 { color: #ff7a00; font-size: 26px; }
+    .user-info { font-size: 14px; font-weight: bold; }
+    h2 { color: #ff7a00; margin-bottom: 10px; }
+    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
+    .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 12px; }
+    button.btn { background: #ff7a00; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
+    button.btn.secondary { background: #ddd; color: #333; }
+    .hidden { display: none; }
+    .search-row { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+    .profiles-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .profile-card { background:#fff; border-radius:10px; padding:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    .profile-photo { width:72px; height:72px; border-radius:8px; object-fit:cover; background:#f0f0f0; }
+    .avail-dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px; }
+    .avail-green { background:#28a745; }
+    .avail-red { background:#d73a3a; }
+    .muted { color:#666; font-size:13px; }
+    table { width:100%; border-collapse: collapse; }
+    th,td { padding:8px; border-bottom: 1px solid #eee; text-align:left; }
+    .empty { text-align:center; padding:18px; border:2px dashed #eee; border-radius:10px; color:#666; }
+    .modal-back { position: fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:white; border-radius:10px; padding:16px; width: 480px; max-width:95%; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
+    .modal h3 { margin-bottom:8px; color:#ff7a00; }
+    .modal .row { display:flex; gap:8px; }
+    @media(max-width:800px){ .portal-sidebar { width:200px } .modal{ width: 92%; } }
   </style>
 </head>
 <body>
-  <div class="portal-container">
-    <div class="sidebar">
-      <h2>UJ Tutor Portal</h2>
-      <ul class="sidebar-menu">
-        <li id="menuDashboard">Dashboard</li>
-        <li id="menuSessions">Upcoming Sessions</li>
-        <li id="menuPending">Incoming Requests</li>
-        <li id="menuAvailability">Manage Availability</li>
-        <li id="menuChat">Chat</li>
-        <li id="menuNotifications">Notifications</li>
-        <li id="menuRatings">Ratings & Feedback</li>
-        <li id="menuReport">Report Issue</li>
-        <li id="menuProfile">Profile</li>
-        <li id="menuSupport">Support</li>
-        <li id="menuLogout">Logout</li>
-      </ul>
-    </div>
-    <div class="content">
-      
-      <!-- Dashboard -->
-      <section id="dashboardSection" class="visible">
-        <h2>Dashboard</h2>
-        <div>Total Sessions This Week: <span id="statTotalSessions">0</span></div>
-        <div>Upcoming Sessions: <span id="statUpcomingSessions">0</span></div>
-        <div>Pending Requests: <span id="statPendingRequests">0</span></div>
-        <div>Average Rating: <span id="statAvgRating">0</span></div>
-        <div>Completed Sessions: <span id="statCompletedSessions">0</span></div>
-        <div>New Notifications: <span id="notifBadge" style="display:none;"></span></div>
 
-        <div style="margin-top:20px;">
+<div class="portal-wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="portal-sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="assets/logos/uj.png" alt="UJ Logo">
+        <div>UJ Tutor Portal</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <ul>
+          <li id="menuDashboard" class="active">🏠 Dashboard</li>
+          <li id="menuSessions">📅 Upcoming Sessions</li>
+          <li id="menuPending">📨 Incoming Requests <span id="pendingBadge" style="display:none;background:#ff7a00;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+          <li id="menuAvailability">📆 Manage Availability</li>
+          <li id="menuChat">💬 Chat</li>
+          <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+          <li id="menuRatings">⭐ Ratings & Feedback</li>
+          <li id="menuReport">📝 Report Issue</li>
+          <li id="menuProfile">👤 Profile</li>
+          <li id="menuSupport">🆘 Support</li>
+          <li id="menuLogout">🚪 Logout</li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      Tutor • University of Johannesburg<br>
+      <small class="muted">Status: Logged in</small>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="portal-main">
+    <header class="main-header">
+      <h1>UJ Tutor Portal</h1>
+      <div class="user-info">
+        UJ • <span id="currentTime"></span>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section id="dashboardSection">
+      <h2>Dashboard</h2>
+
+      <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+        <div style="flex:1">
           <button class="btn" id="quickUpdateAvailability">Update Availability</button>
           <button class="btn" id="quickViewRequests">View Requests</button>
           <button class="btn" id="quickStartChat">Start Chat</button>
           <button class="btn" id="quickUpdateProfile">Update Profile</button>
           <button class="btn" id="quickReportIssue">Report Issue</button>
         </div>
-      </section>
+      </div>
 
-      <!-- Upcoming Sessions -->
-      <section id="sessionsSection">
-        <h2>Upcoming Sessions</h2>
-        <div id="sessionList">Loading sessions...</div>
-      </section>
-
-      <!-- Incoming Requests -->
-      <section id="pendingSection">
-        <h2>Incoming Requests</h2>
-        <div id="pendingList">Loading requests...</div>
-        <div id="pendingEmpty" class="empty hidden">No incoming requests.</div>
-      </section>
-
-      <!-- Manage Availability -->
-      <section id="availabilitySection">
-        <h2>Manage Availability</h2>
-        <div id="availabilityContainer">Loading availability...</div>
-        <button class="btn" id="availabilityAddSlot">Add Slot</button>
-      </section>
-
-      <!-- Chat -->
-      <section id="chatSection">
-        <h2>Chat</h2>
-        <div id="chatList">Select a conversation...</div>
-        <div>
-          <input type="text" id="chatMessageInput" placeholder="Type a message..." style="width:80%;">
-          <button class="btn" id="chatSendBtn">Send</button>
+      <div class="dashboard-cards">
+        <div class="dash-card">
+          <h3>Total Sessions This Week</h3>
+          <p id="statTotalSessions">0</p>
         </div>
-      </section>
+        <div class="dash-card">
+          <h3>Upcoming Sessions</h3>
+          <p id="statUpcomingSessions">0</p>
+        </div>
+        <div class="dash-card">
+          <h3>Pending Requests</h3>
+          <p id="statPendingRequests">0</p>
+        </div>
+        <div class="dash-card">
+          <h3>Average Rating</h3>
+          <p id="statAvgRating">0</p>
+        </div>
+        <div class="dash-card">
+          <h3>Completed Sessions</h3>
+          <p id="statCompletedSessions">0</p>
+        </div>
+      </div>
+    </section>
 
-      <!-- Notifications -->
-      <section id="notificationsSection">
-        <h2>Notifications</h2>
-        <div id="notificationsList"></div>
-      </section>
+    <!-- UPCOMING SESSIONS -->
+    <section id="sessionsSection" class="hidden">
+      <h2>Upcoming Sessions</h2>
+      <div id="sessionList">Loading sessions...</div>
+    </section>
 
-      <!-- Ratings & Feedback -->
-      <section id="ratingsSection">
-        <h2>Ratings & Feedback</h2>
-        <div id="ratingsList">Loading ratings...</div>
-        <div id="ratingsEmpty" class="empty hidden">No ratings yet.</div>
+    <!-- PENDING REQUESTS -->
+    <section id="pendingSection" class="hidden">
+      <h2>Incoming Requests</h2>
+      <div id="pendingList">Loading requests...</div>
+      <div id="pendingEmpty" class="empty hidden">No incoming requests.</div>
+    </section>
+
+    <!-- MANAGE AVAILABILITY -->
+    <section id="availabilitySection" class="hidden">
+      <h2>Manage Availability</h2>
+      <div id="availabilityContainer">Loading availability...</div>
+      <button class="btn" id="availabilityAddSlot">Add Slot</button>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chatSection" class="hidden">
+      <h2>Chat</h2>
+      <div id="chatList">Select a conversation...</div>
+      <div class="search-row">
+        <input type="text" id="chatMessageInput" placeholder="Type a message...">
+        <button class="btn" id="chatSendBtn">Send</button>
+      </div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="notificationsSection" class="hidden">
+      <h2>Notifications</h2>
+      <div id="notificationsList" class="muted">Loading...</div>
+    </section>
+
+    <!-- RATINGS -->
+    <section id="ratingsSection" class="hidden">
+      <h2>Ratings & Feedback</h2>
+      <div class="search-row">
+        <input type="text" id="ratingsSearch" placeholder="Search by name">
         <select id="ratingsFilterRole">
           <option value="">All</option>
           <option value="tutor">Tutor</option>
           <option value="counsellor">Counsellor</option>
         </select>
-        <input type="text" id="ratingsSearch" placeholder="Search by name">
         <button class="btn" id="ratingsSearchBtn">Search</button>
-      </section>
+      </div>
+      <div id="ratingsList">Loading ratings...</div>
+      <div id="ratingsEmpty" class="empty hidden">No ratings yet.</div>
+    </section>
 
-      <!-- Report Issue -->
-      <section id="reportSection">
-        <h2>Report an Issue</h2>
-        <input type="text" id="issueTitle" placeholder="Issue Title" style="width:100%; margin-bottom:6px;">
-        <textarea id="issueDescription" rows="4" placeholder="Full description..." style="width:100%; margin-bottom:6px;"></textarea>
-        <select id="issuePriority">
-          <option value="Normal">Normal</option>
-          <option value="Urgent">Urgent</option>
-        </select>
-        <select id="issueCategory">
-          <option value="Technical">Technical</option>
-          <option value="Student Behavior">Student Behavior</option>
-          <option value="Scheduling">Scheduling</option>
-          <option value="Other">Other</option>
-        </select>
-        <button class="btn" id="sendIssueBtn">Submit Issue</button>
-      </section>
+    <!-- REPORT ISSUE -->
+    <section id="reportSection" class="hidden">
+      <h2>Report an Issue</h2>
+      <input type="text" id="issueTitle" placeholder="Issue Title">
+      <textarea id="issueDescription" rows="4" placeholder="Full description..."></textarea>
+      <select id="issuePriority">
+        <option value="Normal">Normal</option>
+        <option value="Urgent">Urgent</option>
+      </select>
+      <select id="issueCategory">
+        <option value="Technical">Technical</option>
+        <option value="Student Behavior">Student Behavior</option>
+        <option value="Scheduling">Scheduling</option>
+        <option value="Other">Other</option>
+      </select>
+      <button class="btn" id="sendIssueBtn">Submit Issue</button>
+    </section>
 
-      <!-- Profile -->
-      <section id="profileSection">
-        <h2>Profile</h2>
-        <div>Email: <span id="profileEmail"></span></div>
-        <div>Name: <input id="profileNameInput" type="text"></div>
-        <div>Department: <input id="profileDepartmentInput" type="text"></div>
-        <div>Modules: <input id="profileModulesInput" type="text"></div>
-        <div>Bio: <textarea id="profileBioInput" rows="3"></textarea></div>
-        <div>Location: <input id="profileLocationInput" type="text"></div>
-        <div>Profile Picture URL: <input id="profilePictureInput" type="text"></div>
+    <!-- PROFILE -->
+    <section id="profileSection" class="hidden">
+      <h2>Profile</h2>
+      <div class="profile-card">
+        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+        <label>Name:</label>
+        <input id="profileNameInput" type="text">
+        <label>Department:</label>
+        <input id="profileDepartmentInput" type="text">
+        <label>Modules:</label>
+        <input id="profileModulesInput" type="text">
+        <label>Bio:</label>
+        <textarea id="profileBioInput" rows="3"></textarea>
+        <label>Location:</label>
+        <input id="profileLocationInput" type="text">
+        <label>Profile Picture URL:</label>
+        <input id="profilePictureInput" type="text">
         <button class="btn" id="saveProfileBtn">Save Profile</button>
-      </section>
+      </div>
+    </section>
 
-      <!-- Support -->
-      <section id="supportSection">
-        <h2>Support</h2>
-        <textarea id="supportMessage" rows="4" placeholder="Describe your issue..." style="width:100%;"></textarea>
-        <button class="btn" id="sendSupportBtn">Send</button>
-      </section>
+    <!-- SUPPORT -->
+    <section id="supportSection" class="hidden">
+      <h2>Support</h2>
+      <textarea id="supportMessage" rows="4" placeholder="Describe your issue..."></textarea>
+      <button class="btn" id="sendSupportBtn">Send</button>
+    </section>
 
-    </div>
-  </div>
+  </main>
+</div>
 
-  <script type="module" src="tutor-portal.part1.js"></script>
-  <script type="module" src="tutor-portal.part2.js"></script>
-  <script type="module" src="tutor-portal.part3.js"></script>
+<script>
+  setInterval(() => {
+    document.getElementById("currentTime").textContent = new Date().toLocaleString();
+  }, 1000);
+</script>
+
+<script type="module" src="tutor-portal.part1.js"></script>
+<script type="module" src="tutor-portal.part2.js"></script>
+<script type="module" src="tutor-portal.part3.js"></script>
+
 </body>
 </html>
+
 
