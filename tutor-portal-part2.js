@@ -1,4 +1,4 @@
-// tutor-portal.part2.js — PART 2 of 3
+// tutor-portal-part2.js — PART 2 of 3
 // Chat, Notifications, Ratings respond, Report Issue, Forgot-password OTP helpers
 
 import { auth, db } from './firebase-config.js';
