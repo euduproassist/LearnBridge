@@ -40,48 +40,7 @@ onAuthStateChanged(auth, async user => {
   await initPortal(user.uid);
 });
 
-/* ---------- Init Portal ---------- */
-async function initPortal(uid) {
-  // Menu wiring (FIXED IDs)
-  $('menuDashboard').onclick = () => { setActiveMenu('menuDashboard'); showSection('dashboardSection'); loadDashboard(uid); };
-  $('menuSessions').onclick = () => { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadUpcomingSessions(uid); };
-  $('menuIncoming').onclick = () => { setActiveMenu('menuIncoming'); showSection('incomingSection'); loadIncomingRequests(uid); };
-  $('menuAvailability').onclick = () => { setActiveMenu('menuAvailability'); showSection('availabilitySection'); openAvailabilityEditor(uid); };
-  $('menuChat').onclick = () => { setActiveMenu('menuChat'); showSection('chatSection'); openChatSelector(uid); };
-  $('menuNotifications').onclick = () => { setActiveMenu('menuNotifications'); showSection('notificationsSection'); loadNotifications(uid); };
-  $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadTutorRatings(uid); };
-  $('menuReport').onclick = () => { setActiveMenu('menuReport'); showSection('reportSection'); };
-  $('menuProfile').onclick = () => { setActiveMenu('menuProfile'); showSection('profileSection'); loadProfile(uid); };
 
-  // Quick actions on dashboard (FIXED IDs)
-  $('updateAvailabilityQuick').onclick = () => { setActiveMenu('menuAvailability'); showSection('availabilitySection'); openAvailabilityEditor(uid); };
-  $('viewIncomingQuick').onclick = () => { setActiveMenu('menuIncoming'); showSection('incomingSection'); loadIncomingRequests(uid); };
-  $('quickChatBtn').onclick = () => { setActiveMenu('menuChat'); showSection('chatSection'); openChatSelector(uid); };
-  $('quickReportBtn').onclick = () => { setActiveMenu('menuReport'); showSection('reportSection'); };
-
-  // Profile/Report wiring (FIXED IDs)
-  $('saveProfileBtn').onclick = async () => { await saveProfile(uid); };
-  $('resetPasswordBtn').onclick = async () => { await requestPasswordResetModal(auth.currentUser.email); };
-  $('sendReportBtn').onclick = async () => { await sendIssueAsTutor(uid); };
-  $('clearReportBtn').onclick = () => { $('reportTitle').value = ''; $('reportDesc').value = ''; };
-
-  // Ratings wiring (FIXED IDs)
-  $('ratingsFilterBtn').onclick = () => { loadTutorRatings(uid, $('ratingsFilter').value.trim() || ''); };
-  
-  // Logout
-  $('logoutBtn').onclick = async () => { if (!confirm('Sign out?')) return; cleanupAllChatListeners(); await signOut(auth); window.location.href = 'index.html'; };
-
-
-  // initial loads
-  await loadProfile(uid);
-  await loadDashboard(uid);
-  // Real-time listener for notifications and pending counts
-  setupRealTimeListeners(uid);
-
-  // show dashboard
-  setActiveMenu('menuDashboard');
-  showSection('dashboardSection');
-}
 
 /* ---------- Setup Real-time Listeners for Badges & Quick Stats ---------- */
 function setupRealTimeListeners(uid) {
