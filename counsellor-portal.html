@@ -1,264 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Counsellor Portal — LearnBridge</title>
-  <link rel="icon" type="image/png" href="assets/logos/uj.png" />
-  <style>
-    /* Styling remains the same, assuming UJ/LearBridge context */
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
-    body {
-      background: linear-gradient(135deg, #ff7a00 0%, #000 100%); 
-      display: flex;
-      min-height: 100vh;
-    }
-    .portal-wrapper { display: flex; width: 100%; min-height: 100vh; }
-    .portal-sidebar {
-      width: 250px;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(14px);
-      color: white;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
-    }
-    .portal-sidebar img { width: 70px; margin-bottom: 10px; }
-    .sidebar-header { text-align: center; color: #ff7a00; font-size: 20px; font-weight: bold; } /* Changed color */
-    .sidebar-menu ul { list-style: none; margin-top: 30px; padding: 0; }
-    .sidebar-menu li {
-      padding: 12px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: 0.18s;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(255,122,0,0.95); color: #fff; } 
-    .sidebar-footer { font-size: 12px; color: #ffa00; opacity: 0.9; text-align: center; margin-top: 20px; } 
-    .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
-    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
-    .main-header h1 { color: #ff700; font-size: 26px; }
-    .user-info { font-size: 14px; font-weight: bold; }
-    h2 { color: #ff7a00; margin-bottom: 10px; } 
-    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-    .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
-    .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
-    input, textarea, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 12px; }
-    button.btn { background: #ffa700; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
-    button.btn.secondary { background: #ddd; color: #333; }
-    .hidden { display: none; }
-    .search-row { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
-    .profiles-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
-    .profile-card { background:#fff; border-radius:10px; padding:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
-    .profile-photo { width:72px; height:72px; border-radius:8px; object-fit:cover; background:#f0f0f0; }
-    .avail-dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px; }
-    .avail-green { background:#28a745; }
-    .avail-red { background:#d73a3a; }
-    .muted { color:#666; font-size:13px; }
-    table { width:100%; border-collapse: collapse; }
-    th,td { padding:8px; border-bottom: 1px solid #eee; text-align:left; }
-    .empty { text-align:center; padding:18px; border:2px dashed #eee; border-radius:10px; color:#666; }
-    .badge { background: #0070a0; color:#fff; padding:4px 8px; border-radius:8px; font-size:12px; } /* Changed color */
-    /* modal */
-    .modal-back { position: fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:white; border-radius:10px; padding:16px; width: 560px; max-width:95%; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
-    .modal h3 { margin-bottom:8px; color:#ff7a700; }
-    .modal .row { display:flex; gap:8px; }
-    .urgent { border-left:4px solid #d73a3a; padding-left:10px; }
-    @media(max-width:800px){ .portal-sidebar { width:200px } .modal{ width: 92%; } }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Portal — LearnBridge</title>
+  <link rel="icon" type="image/png" href="assets/logos/uj.png" />
+  <style>
+    /* Styling remains the same, assuming UJ/LearBridge context */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
+    body {
+      /* Changed background color to a UJ-themed blue/white/black gradient */
+      background: linear-gradient(135deg, #004d99 0%, #000 100%);
+      display: flex;
+      min-height: 100vh;
+    }
+    .portal-wrapper { display: flex; width: 100%; min-height: 100vh; }
+    .portal-sidebar {
+      width: 250px;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(14px);
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+    }
+    .portal-sidebar img { width: 70px; margin-bottom: 10px; }
+    .sidebar-header { text-align: center; color: #004d99; font-size: 20px; font-weight: bold; } /* Changed color for Tutor/UJ theme */
+    .sidebar-menu ul { list-style: none; margin-top: 30px; padding: 0; }
+    .sidebar-menu li {
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.18s;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    /* Changed active/hover color for Tutor/UJ theme */
+    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(0,77,153,0.95); color: #fff; }
+    .sidebar-footer { font-size: 12px; color: #004d99; opacity: 0.9; text-align: center; margin-top: 20px; }
+    .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
+    /* Changed header color for Tutor/UJ theme */
+    .main-header h1 { color: #004d99; font-size: 26px; }
+    .user-info { font-size: 14px; font-weight: bold; }
+    /* Changed section header color for Tutor/UJ theme */
+    h2 { color: #004d99; margin-bottom: 10px; }
+    .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
+    .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+    input, textarea, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 12px; }
+    /* Changed button color for Tutor/UJ theme */
+    button.btn { background: #004d99; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
+    button.btn.secondary { background: #ddd; color: #333; }
+    .hidden { display: none; }
+    .search-row { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+    .profiles-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .profile-card { background:#fff; border-radius:10px; padding:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    .profile-photo { width:72px; height:72px; border-radius:8px; object-fit:cover; background:#f0f0f0; }
+    .avail-dot { width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px; }
+    .avail-green { background:#28a745; }
+    .avail-red { background:#d73a3a; }
+    .muted { color:#666; font-size:13px; }
+    table { width:100%; border-collapse: collapse; }
+    th,td { padding:8px; border-bottom: 1px solid #eee; text-align:left; }
+    .empty { text-align:center; padding:18px; border:2px dashed #eee; border-radius:10px; color:#666; }
+    /* Changed badge color to fit Tutor/UJ theme */
+    .badge { background: #0099cc; color:#fff; padding:4px 8px; border-radius:8px; font-size:12px; }
+    /* modal */
+    .modal-back { position: fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:white; border-radius:10px; padding:16px; width: 560px; max-width:95%; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
+    /* Changed modal header color to fit Tutor/UJ theme */
+    .modal h3 { margin-bottom:8px; color:#004d99; }
+    .modal .row { display:flex; gap:8px; }
+    .urgent { border-left:4px solid #d73a3a; padding-left:10px; }
+    @media(max-width:800px){ .portal-sidebar { width:200px } .modal{ width: 92%; } }
+  </style>
 </head>
 <body>
 <div class="portal-wrapper">
 
-  <aside class="portal-sidebar">
-    <div>
-      <div class="sidebar-header">
-        <img src="assets/logos/uj.png" alt="UJ Logo">
-        <div>LearnBridge</div>
-      </div>
+  <aside class="portal-sidebar">
+    <div>
+      <div class="sidebar-header">
+        <img src="assets/logos/uj.png" alt="UJ Logo">
+        <div>LearnBridge</div>
+      </div>
 
-      <nav class="sidebar-menu">
-        <ul>
-          <li id="menuDashboard" class="active">🏠 Dashboard</li>
-          <li id="menuSessions">📅 Upcoming Appointments</li> <li id="menuIncoming">📨 Client Requests <span id="incomingBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li> <li id="menuAvailability">🕒 Manage Availability</li>
-          <li id="menuChat">💬 Chat</li>
-          <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
-          <li id="menuRatings">✨ Feedback & Notes</li> <li id="menuReport">📝 Report Issue</li>
-          <li id="menuProfile">👤 Profile</li>
-          <li id="logoutBtn">🚪 Log Out</li>
-        </ul>
-      </nav>
-    </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li id="menuDashboard" class="active">🏠 Dashboard</li>
+                    <li id="menuSessions">📅 Upcoming Tutoring Sessions</li>
+                    <li id="menuIncoming">📨 Student Requests <span id="incomingBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+          <li id="menuAvailability">🕒 Manage Availability</li>
+          <li id="menuChat">💬 Chat</li>
+          <li id="menuNotifications">🔔 Notifications <span id="notifBadge" style="display:none;background:#d73a3a;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;margin-left:8px">0</span></li>
+                    <li id="menuRatings">✨ Student Feedback & Notes</li>
+          <li id="menuReport">📝 Report Issue</li>
+          <li id="menuProfile">👤 Profile</li>
+          <li id="logoutBtn">🚪 Log Out</li>
+        </ul>
+      </nav>
+    </div>
 
-    <div class="sidebar-footer">
-      Counsellor • University of Johannesburg<br> <small class="muted">Status: Logged in</small>
-    </div>
-  </aside>
+    <div class="sidebar-footer">
+      Tutor • University of Johannesburg<br> <small class="muted">Status: Logged in</small>
+    </div>
+  </aside>
 
-  <main class="portal-main">
-    <header class="main-header">
-      <h1>Counsellor Portal</h1> <div class="user-info">
-        UJ • <span id="currentTime"></span>
-      </div>
-    </header>
+  <main class="portal-main">
+    <header class="main-header">
+            <h1>Tutor Portal</h1> <div class="user-info">
+        UJ • <span id="currentTime"></span>
+      </div>
+    </header>
 
-    <section id="dashboardSection">
-      <h2>Dashboard</h2>
+    <section id="dashboardSection">
+      <h2>Dashboard</h2>
 
-      <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
-        <div class="search-row" style="flex:1">
-          <input id="quickSearch" placeholder="Search clients, services..."> <button class="btn secondary" id="quickSearchBtn">Search</button>
-        </div>
-        
-        <div style="width:240px; display:flex; flex-direction:column; gap:10px;">
-          <button class="btn" id="updateAvailabilityQuick">Update Availability</button>
-          <button class="btn" id="viewIncomingQuick">View Client Requests</button> </div>
-      </div>
+      <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+        <div class="search-row" style="flex:1">
+                    <input id="quickSearch" placeholder="Search students, modules..."> <button class="btn secondary" id="quickSearchBtn">Search</button>
+        </div>
+        
+        <div style="width:240px; display:flex; flex-direction:column; gap:10px;">
+          <button class="btn" id="updateAvailabilityQuick">Update Availability</button>
+                    <button class="btn" id="viewIncomingQuick">View Student Requests</button>
+        </div>
+      </div>
 
-      <div class="dashboard-cards">
-        <div class="dash-card" id="openStats">
-          <h3>Quick Stats</h3>
-          <p>Total Appointments This Week: <strong id="statThisWeek">0</strong></p> <p>Upcoming Appointments: <strong id="statUpcoming">0</strong></p> <p>Pending Requests: <strong id="statPending">0</strong></p>
-          <p>Average Feedback Score: <strong id="statRating">—</strong></p> </div>
+      <div class="dashboard-cards">
+        <div class="dash-card" id="openStats">
+          <h3>Quick Stats</h3>
+                    <p>Total Sessions This Week: <strong id="statThisWeek">0</strong></p>
+          <p>Upcoming Sessions: <strong id="statUpcoming">0</strong></p>
+          <p>Pending Requests: <strong id="statPending">0</strong></p>
+          <p>Average Feedback Score: <strong id="statRating">—</strong></p>
+        </div>
 
-        <div class="dash-card" id="openToday">
-          <h3>Today's Schedule</h3>
-          <div id="todayList">No appointments today.</div> </div>
+        <div class="dash-card" id="openToday">
+          <h3>Today's Schedule</h3>
+                    <div id="todayList">No tutoring sessions today.</div>
+        </div>
 
-        <div class="dash-card" id="openNotifications">
-          <h3>Notifications</h3>
-          <div id="dashNotifs" class="muted">Loading...</div>
-        </div>
+        <div class="dash-card" id="openNotifications">
+          <h3>Notifications</h3>
+          <div id="dashNotifs" class="muted">Loading...</div>
+        </div>
 
-        <div class="dash-card" id="openActions">
-          <h3>Quick Actions</h3>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn" id="quickChatBtn">Start Chat</button>
-            <button class="btn secondary" id="quickReportBtn">Report Issue</button>
-          </div>
-        </div>
-      </div>
-    </section>
+        <div class="dash-card" id="openActions">
+          <h3>Quick Actions</h3>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn" id="quickChatBtn">Start Chat</button>
+            <button class="btn secondary" id="quickReportBtn">Report Issue</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <section id="sessionsSection" class="hidden">
-      <h2>Upcoming Appointments</h2> <div id="sessionList">Loading appointments...</div>
-    </section>
+    <section id="sessionsSection" class="hidden">
+            <h2>Upcoming Tutoring Sessions</h2>
+            <div id="sessionList">Loading tutoring sessions...</div>
+    </section>
 
-    <section id="incomingSection" class="hidden">
-      <h2>Incoming Client Requests</h2> <div id="incomingList">Loading incoming requests...</div>
-      <div id="incomingEmpty" class="empty hidden">No incoming client requests.</div> </section>
+    <section id="incomingSection" class="hidden">
+            <h2>Incoming Student Requests</h2>
+            <div id="incomingList">Loading incoming requests...</div>
+      <div id="incomingEmpty" class="empty hidden">No incoming student requests.</div>
+    </section>
 
-    <section id="availabilitySection" class="hidden">
-      <h2>Manage Availability</h2>
-      <div style="margin-bottom:12px; display:flex; gap:8px;">
-        <button class="btn" id="presetAllWeek">Available All Week</button>
-        <button class="btn" id="presetEvenings">Only Evenings</button>
-        <button class="btn" id="presetWeekend">Weekend Only</button>
-      </div>
-      <div id="availabilityEditor" class="profile-card">
-        <div id="availabilityTable">Loading availability...</div>
-        <div style="margin-top:10px; display:flex; gap:8px;">
-          <button class="btn" id="saveAvailabilityBtn">Save Availability</button>
-          <button class="btn secondary" id="toggleAvailableNowBtn">Toggle Available Now</button>
-          <button class="btn secondary" id="offlineModeBtn">Offline Mode</button>
-        </div>
-      </div>
-    </section>
+    <section id="availabilitySection" class="hidden">
+      <h2>Manage Availability</h2>
+      <div style="margin-bottom:12px; display:flex; gap:8px;">
+        <button class="btn" id="presetAllWeek">Available All Week</button>
+        <button class="btn" id="presetEvenings">Only Evenings</button>
+        <button class="btn" id="presetWeekend">Weekend Only</button>
+      </div>
+      <div id="availabilityEditor" class="profile-card">
+        <div id="availabilityTable">Loading availability...</div>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn" id="saveAvailabilityBtn">Save Availability</button>
+          <button class="btn secondary" id="toggleAvailableNowBtn">Toggle Available Now</button>
+          <button class="btn secondary" id="offlineModeBtn">Offline Mode</button>
+        </div>
+      </div>
+    </section>
 
-    <section id="chatSection" class="hidden">
-      <h2>Chat</h2>
-      <div style="display:flex;gap:12px">
-        <div style="width:300px">
-          <input id="chatSearch" placeholder="Search conversations..." style="width:100%;margin-bottom:8px">
-          <div id="convoList" class="profiles-grid"></div>
-        </div>
-        <div style="flex:1">
-          <div id="chatWindow" class="profile-card">Select a conversation to chat.</div>
-        </div>
-      </div>
-    </section>
+    <section id="chatSection" class="hidden">
+      <h2>Chat</h2>
+      <div style="display:flex;gap:12px">
+        <div style="width:300px">
+          <input id="chatSearch" placeholder="Search conversations..." style="width:100%;margin-bottom:8px">
+          <div id="convoList" class="profiles-grid"></div>
+        </div>
+        <div style="flex:1">
+          <div id="chatWindow" class="profile-card">Select a conversation to chat.</div>
+        </div>
+      </div>
+    </section>
 
-    <section id="notificationsSection" class="hidden">
-      <h2>Notifications</h2>
-      <div id="notificationsList" class="muted">Loading...</div>
-    </section>
+    <section id="notificationsSection" class="hidden">
+      <h2>Notifications</h2>
+      <div id="notificationsList" class="muted">Loading...</div>
+    </section>
 
-    <section id="ratingsSection" class="hidden">
-      <h2>Client Feedback & Notes</h2> <div style="margin-bottom:12px">
-        <div class="search-row">
-          <input id="ratingsFilter" placeholder="Filter (Urgent, Low, by service)..." style="flex:1">
-          <button class="btn" id="ratingsFilterBtn">Filter</button>
-        </div>
-      </div>
-      <div id="ratingsList">Loading feedback...</div>
-      <div id="ratingsEmpty" class="empty hidden">No feedback yet.</div>
-    </section>
+    <section id="ratingsSection" class="hidden">
+            <h2>Student Feedback & Notes</h2>
+      <div style="margin-bottom:12px">
+        <div class="search-row">
+                    <input id="ratingsFilter" placeholder="Filter (Urgent, Low, by module)..." style="flex:1">
+          <button class="btn" id="ratingsFilterBtn">Filter</button>
+        </div>
+      </div>
+      <div id="ratingsList">Loading feedback...</div>
+      <div id="ratingsEmpty" class="empty hidden">No feedback yet.</div>
+    </section>
 
-    <section id="reportSection" class="hidden">
-      <h2>Report an Issue</h2>
-      <div class="profile-card">
-        <label>Issue Title</label>
-        <input id="reportTitle">
-        <label>Category</label>
-        <select id="reportCategory">
-          <option>Technical</option><option>Client Behavior</option><option>Scheduling</option><option>Other</option>
-        </select>
-        <label>Priority</label>
-        <select id="reportPriority"><option>Normal</option><option>Urgent</option></select>
-        <label>Description</label>
-        <textarea id="reportDesc" rows="5"></textarea>
-        <div style="margin-top:8px; display:flex; gap:8px;">
-          <button class="btn" id="sendReportBtn">Send to Admin</button>
-          <button class="btn secondary" id="clearReportBtn">Clear</button>
-        </div>
-      </div>
-    </section>
+    <section id="reportSection" class="hidden">
+      <h2>Report an Issue</h2>
+      <div class="profile-card">
+        <label>Issue Title</label>
+        <input id="reportTitle">
+        <label>Category</label>
+        <select id="reportCategory">
+                    <option>Technical</option><option>Student Behavior</option><option>Scheduling</option><option>Other</option>
+        </select>
+        <label>Priority</label>
+        <select id="reportPriority"><option>Normal</option><option>Urgent</option></select>
+        <label>Description</label>
+        <textarea id="reportDesc" rows="5"></textarea>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button class="btn" id="sendReportBtn">Send to Admin</button>
+          <button class="btn secondary" id="clearReportBtn">Clear</button>
+        </div>
+      </div>
+    </section>
 
-    <section id="profileSection" class="hidden">
-      <h2>Counsellor Profile</h2> <div class="profile-card">
-        <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
+    <section id="profileSection" class="hidden">
+            <h2>Tutor Profile</h2>
+      <div class="profile-card">
+        <p><strong>Email:</strong> <span id="profileEmail">—</span></p>
 
-        <label>Name:</label>
-        <input id="profileNameInput" type="text">
+        <label>Name:</label>
+        <input id="profileNameInput" type="text">
 
-        <label>Bio (Focus Areas):</label> <textarea id="profileBioInput" rows="3"></textarea>
+                <label>Bio (Tutoring Subjects/Topics):</label> <textarea id="profileBioInput" rows="3"></textarea>
 
-        <label>Services Offered (e.g., CBT, Group Therapy):</label> <input id="profileModulesInput" type="text">
+                <label>Modules Taught (e.g., Mathematics I, Comp Sci 2B):</label> <input id="profileModulesInput" type="text">
 
-        <label>Department:</label>
-        <input id="profileDepartmentInput" type="text">
+        <label>Department:</label>
+        <input id="profileDepartmentInput" type="text">
 
-        <label>Certifications/Licenses:</label> <input id="profileQualificationsInput" type="text">
+                <label>Academic Qualifications:</label> <input id="profileQualificationsInput" type="text">
 
-        <label>Profile Picture URL:</label>
-        <input id="profilePictureInput" type="text">
+        <label>Profile Picture URL:</label>
+        <input id="profilePictureInput" type="text">
 
-        <label>Location (Office & Campus):</label> <input id="profileLocationInput" type="text">
+        <label>Location (Office & Campus):</label> <input id="profileLocationInput" type="text">
 
-        <label>Session Fee (optional):</label> <input id="profileRateInput" type="text">
+                <label>Tutoring Rate (optional):</label> <input id="profileRateInput" type="text">
 
-        <div style="margin-top:8px; display:flex; gap:8px">
-          <button id="saveProfileBtn" class="btn">Save Profile</button>
-          <button id="resetPasswordBtn" class="btn secondary">Reset Password</button>
-        </div>
-      </div>
-    </section>
+        <div style="margin-top:8px; display:flex; gap:8px">
+          <button id="saveProfileBtn" class="btn">Save Profile</button>
+          <button id="resetPasswordBtn" class="btn secondary">Reset Password</button>
+        </div>
+      </div>
+    </section>
 
-  </main>
+  </main>
 </div>
 
 <script>
-  setInterval(() => {
-    document.getElementById("currentTime").textContent = new Date().toLocaleString();
-  }, 1000);
+  setInterval(() => {
+    document.getElementById("currentTime").textContent = new Date().toLocaleString();
+  }, 1000);
 </script>
 
-<script type="module" src="counsellor-portal.js"></script>
+<script type="module" src=tutor-portal.js"></script>
 
 </body>
 </html>
