@@ -9,7 +9,7 @@
     /* Styling remains the same, assuming UJ/LearBridge context */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Inter","Segoe UI",sans-serif; }
     body {
-      background: linear-gradient(135deg, #ff7a00 0%, #000 100%); /* Changed background color to blue/dark theme */
+      background: linear-gradient(135deg, #ff7a00 0%, #000 100%); 
       display: flex;
       min-height: 100vh;
     }
@@ -37,18 +37,18 @@
       transition: 0.18s;
       display:flex; justify-content:space-between; align-items:center;
     }
-    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(0,112,160,0.95); color: #fff; } /* Changed color */
-    .sidebar-footer { font-size: 12px; color: #0070a0; opacity: 0.9; text-align: center; margin-top: 20px; } /* Changed color */
+    .sidebar-menu li.active, .sidebar-menu li:hover { background: rgba(255,122,0,0.95); color: #fff; } 
+    .sidebar-footer { font-size: 12px; color: #ffa00; opacity: 0.9; text-align: center; margin-top: 20px; } 
     .portal-main { flex-grow: 1; background: rgba(255,255,255,0.94); padding: 30px; overflow-y: auto; }
     .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: rgba(0,0,0,0.06); padding: 15px 20px; border-radius: 12px; }
-    .main-header h1 { color: #0070a0; font-size: 26px; } /* Changed color */
+    .main-header h1 { color: #ff700; font-size: 26px; }
     .user-info { font-size: 14px; font-weight: bold; }
-    h2 { color: #0070a0; margin-bottom: 10px; } /* Changed color */
+    h2 { color: #ff7a00; margin-bottom: 10px; } 
     .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
     .dash-card { padding: 20px; background: white; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; transition: 0.2s; }
     .dash-card:hover { transform: scale(1.03); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
     input, textarea, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 12px; }
-    button.btn { background: #0070a0; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; } /* Changed color */
+    button.btn { background: #ffa700; color: white; padding: 10px 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
     button.btn.secondary { background: #ddd; color: #333; }
     .hidden { display: none; }
     .search-row { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
@@ -66,7 +66,7 @@
     /* modal */
     .modal-back { position: fixed; inset:0; background: rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:9999; }
     .modal { background:white; border-radius:10px; padding:16px; width: 560px; max-width:95%; box-shadow:0 10px 40px rgba(0,0,0,0.3); }
-    .modal h3 { margin-bottom:8px; color:#0070a0; } /* Changed color */
+    .modal h3 { margin-bottom:8px; color:#ff7a700; }
     .modal .row { display:flex; gap:8px; }
     .urgent { border-left:4px solid #d73a3a; padding-left:10px; }
     @media(max-width:800px){ .portal-sidebar { width:200px } .modal{ width: 92%; } }
