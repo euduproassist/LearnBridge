@@ -1,1 +1,97 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UJ Login - LearnBridge</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .popup{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ff4b4b;color:white;padding:12px 20px;border-radius:6px;display:none;font-weight:bold;z-index:9999}
+    .popup.success{background:#28a745}
+  </style>
+</head>
+<body class="login-page" style="background-image:url('assets/banners/uj-bg.jpg')">
+  <div id="popup" class="popup"></div>
+  <img src="assets/logos/uj.png" class="top-left-logo" alt="UJ Logo">
+
+  <div class="login-box">
+    <h2>LearnBridge 🎓</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+
+    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    <p><a href="#" id="forgotLink" class="forgot">Forgot Password?</a></p>
+    <p class="footer">© 2025 University of Johannesburg | LearnBridge</p>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+
+    function popup(msg, success=false){
+      const p = document.getElementById('popup');
+      p.textContent = msg;
+      p.className = success ? 'popup success' : 'popup';
+      p.style.display = 'block';
+      setTimeout(()=> p.style.display='none', 3000);
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async ()=>{
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (!email || !password) return popup('Enter email and password');
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const user = cred.user;
+
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) {
+            // Log out user who somehow bypassed signup process
+            await auth.signOut(); 
+            return popup('User profile not found. Please sign up or contact support.');
+        }
+        
+        const data = docSnap.data();
+        
+        // Update email verification status if it was verified outside this session
+        if (user.emailVerified && !data.emailVerified) {
+            await updateDoc(docRef, { emailVerified: true });
+        }
+ 
+        // 🔑 CORRECT REDIRECT BY ROLE (FIXED TYPOS HERE)
+        if (data.role === 'student') window.location.href = 'student-portal.html';
+        else if (data.role === 'tutor') window.location.href = 'tutor-portal.html';
+        else if (data.role === 'counsellor') window.location.href = 'counsellor-portal.html';
+        else if (data.role === 'admin') window.location.href = 'admin-portal.html'; // Assuming a generic 'admin' role
+        else window.location.href = 'student-portal.html'; // Default safe redirect
+        
+      } catch (err) {
+        let msg = err.code === 'auth/user-not-found' ? 'User not found or incorrect password.' : (err.message || 'Login failed.');
+        popup('Login failed: ' + msg);
+      }
+    });
+
+    // Forgot password: prompt for email, then send reset link
+    document.getElementById('forgotLink').addEventListener('click', async (e)=>{
+      e.preventDefault();
+      const email = prompt('Enter your registered university email:');
+      if (!email) return;
+      if (!email.endsWith('@uj.ac.za')) { alert('Email must end with @uj.ac.za'); return; }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert('Password reset email sent. Check your inbox.');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
 
