@@ -702,6 +702,93 @@ async function handleViewEditUser(uid) {
 /* -------------------------------------------
  * 9. Session Management (All Sessions)
  * ------------------------------------------- */
+/**
+ * Loads all sessions based on filters and renders them in a list/table format.
+ */
+async function loadAllSessions() {
+  const container = $('sessionList');
+  const emptyEl = $('sessionEmpty');
+  if (!container || !emptyEl) return;
+  container.innerHTML = 'Loading all sessions...';
+  hide('sessionEmpty');
+  
+  try {
+    const sessionsRef = collection(db, 'sessions');
+    
+    // --- Apply Filters ---
+    const statusFilter = $('sessionFilterStatus').value;
+    const dateFilter = $('sessionFilterDate').value; // New: Get date filter value
+    const search = $('sessionSearchInput').value.trim().toLowerCase(); // New: Get search input value
+
+    const queryConstraints = [];
+    if (statusFilter) queryConstraints.push(where('status', '==', statusFilter));
+    
+    // Date Filtering Logic
+    const now = new Date();
+    
+    if (dateFilter === 'upcoming') {
+        // Find sessions starting after the current moment
+        // Requires a composite index on (status, datetime) if statusFilter is used.
+        queryConstraints.push(where('datetime', '>=', now));
+    } else if (dateFilter === 'past') {
+        // Find sessions that have already occurred
+        queryConstraints.push(where('datetime', '<', now));
+    }
+    
+    // Default sorting by datetime. Use 'desc' for past, 'asc' for upcoming/default.
+    const sortDirection = dateFilter === 'past' ? 'desc' : 'asc';
+
+    // Rebuild the query with combined constraints
+    let q = query(sessionsRef, ...queryConstraints, orderBy('datetime', sortDirection), limit(100));
+
+    const snap = await getDocs(q);
+    let sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // --- Client-Side Search (Temporary for name/module) ---
+    if (search) {
+        sessions = sessions.filter(s => 
+            (s.studentName && s.studentName.toLowerCase().includes(search)) ||
+            (s.personName && s.personName.toLowerCase().includes(search)) ||
+            (s.module && s.module.toLowerCase().includes(search))
+        );
+    }
+    
+    if (sessions.length === 0) {
+      container.innerHTML = '<div class="empty">No sessions found based on filters.</div>';
+      return;
+    }
+
+    container.innerHTML = '<table><thead><tr><th>Date/Time</th><th>Client</th><th>Staff</th><th>Service</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+    
+    sessions.forEach(s => {
+      const dt = s.datetime ? new Date(s.datetime) : null;
+      const statusClass = s.status === 'approved' ? 'approved' : s.status === 'completed' ? 'secondary' : 'pending';
+      
+      const tr = elCreate('tr');
+      tr.innerHTML = `
+        <td>${dt ? dt.toLocaleString() : 'N/A'}</td>
+        <td>${escapeHtml(s.studentName || 'Client')}</td>
+        <td>${escapeHtml(s.personName || 'Staff')}</td>
+        <td>${escapeHtml(s.module || s.course || 'General')}</td>
+        <td><span class="tag ${statusClass}">${escapeHtml(s.status)}</span></td>
+        <td>
+          <button class="btn secondary btn-sm view-session" data-id="${s.id}">View</button>
+          <button class="btn danger btn-sm delete-session" data-id="${s.id}">Delete</button>
+        </td>
+      `;
+      container.querySelector('tbody').appendChild(tr);
+    });
+    container.innerHTML += '</tbody></table>';
+
+    // Handlers
+    container.querySelectorAll('.view-session').forEach(btn => btn.onclick = (e) => handleViewSession(e.target.dataset.id));
+    container.querySelectorAll('.delete-session').forEach(btn => btn.onclick = (e) => handleDeleteSession(e.target.dataset.id));
+  
+  } catch (err) {
+    console.error('loadAllSessions failed', err);
+    container.innerHTML = '<div class="empty">Failed to load session data.</div>';
+  }
+}
 
 
 /**
