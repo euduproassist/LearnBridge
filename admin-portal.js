@@ -1152,6 +1152,52 @@ async function loadOverallAnalytics() {
 /* -------------------------------------------
  * 13. University Settings (Modules/Departments)
  * ------------------------------------------- */
+/**
+ * Loads and renders the University Settings data (Departments, Modules).
+ */
+async function loadUniversitySettings() {
+  const containerDept = $('departmentList');
+  const containerModule = $('moduleList');
+  if (!containerDept || !containerModule) return;
+  containerDept.innerHTML = 'Loading departments...';
+  containerModule.innerHTML = 'Loading modules...';
+
+  try {
+    // 13.1. Load Departments
+    const deptSnap = await getDocs(query(collection(db, 'departments'), orderBy('name', 'asc')));
+    const departments = deptSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    containerDept.innerHTML = departments.map(d => `
+        <div class="setting-item">
+            <span>${escapeHtml(d.name)}</span>
+            <button class="btn secondary btn-sm edit-dept" data-id="${d.id}" data-name="${d.name}">Edit</button>
+        </div>
+    `).join('');
+    containerDept.querySelectorAll('.edit-dept').forEach(btn => btn.onclick = (e) => handleEditDepartment(e.target.dataset.id, e.target.dataset.name));
+
+    // 13.2. Load Modules (for simplicity, only show top 50)
+    const moduleSnap = await getDocs(query(collection(db, 'modules'), orderBy('name', 'asc'), limit(50)));
+    const modules = moduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    containerModule.innerHTML = modules.map(m => `
+        <div class="setting-item">
+            <span>${escapeHtml(m.name)} (${escapeHtml(m.code)}) - Dept: ${escapeHtml(m.department || 'N/A')}</span>
+            <div style="display:flex;gap:5px;">
+                <button class="btn secondary btn-sm edit-module" data-id="${m.id}" data-name="${m.name}" data-code="${m.code}">Edit</button>
+                <button class="btn danger btn-sm delete-module" data-id="${m.id}">Delete</button>
+            </div>
+        </div>
+    `).join('');
+    containerModule.querySelectorAll('.edit-module').forEach(btn => btn.onclick = (e) => handleEditModule(e.target.dataset.id, e.target.dataset.name, e.target.dataset.code));
+    // NEW: Delete module listener
+    containerModule.querySelectorAll('.delete-module').forEach(btn => btn.onclick = (e) => handleDeleteModule(e.target.dataset.id));
+
+  } catch (err) {
+    console.error('loadUniversitySettings failed', err);
+    containerDept.innerHTML = '<div class="empty">Failed to load departments.</div>';
+    containerModule.innerHTML = '<div class="empty">Failed to load modules.</div>';
+  }
+}
 
 
 /**
