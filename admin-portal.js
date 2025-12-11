@@ -930,9 +930,6 @@ async function handleAdminRejectRequest(reqId) {
   }
 }
 
-// Attach listeners for Booking Requests section
-if ($('menuBookingRequests')) $('menuBookingRequests').onclick = () => { setActiveMenu('menuBookingRequests'); showSection('bookingRequestsSection'); loadAllPendingRequests(); };
-
 
 /* -------------------------------------------
  * 11. Issues and Reports
