@@ -465,23 +465,7 @@ function renderUserTable(users, container) {
   setupBulkActionHandlers(container);
 }
 
-/**
- * Sets up listeners for the Search, Filter, and Bulk action buttons.
- */
-function setupUserManagementListeners() {
-  const refreshUsers = () => loadAllUsers();
-  
-  if ($('userSearchBtn')) $('userSearchBtn').onclick = refreshUsers;
-  if ($('userFilterRole')) $('userFilterRole').onchange = refreshUsers;
-  if ($('userFilterStatus')) $('userFilterStatus').onchange = refreshUsers;
-  if ($('userExportBtn')) $('userExportBtn').onclick = () => alert('CSV Export feature coming soon!');
 
-  // Initial call to load users when the section is entered
-  const menuManageUsers = $('menuManageUsers');
-  if (menuManageUsers) {
-    menuManageUsers.onclick = () => { setActiveMenu('menuManageUsers'); showSection('manageUsersSection'); loadAllUsers(); };
-  }
-}
 
 
 /* -------------------------------------------
