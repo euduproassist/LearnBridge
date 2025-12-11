@@ -1,952 +1,1240 @@
-// ---------- admin-portal.part1.js ----------
-// Put this at the top of admin-portal.js
+// admin-portal.js
+// Firebase-backed Admin Portal Logic for LearnBridge University System
+
 import { auth, db } from './firebase-config.js';
-import { onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 import {
-  collection, query, where, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, orderBy, limit, startAt, endAt
+  collection, query, where, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, orderBy, limit, onSnapshot,
+  getCountFromServer, writeBatch, startAt, endAt
 } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
-/* ---------- Small DOM helpers ---------- */
+/* -------------------------------------------
+ * 1. Small DOM Helpers
+ * ------------------------------------------- */
 const $ = id => document.getElementById(id);
 const show = id => { const el = $(id); if (el) el.classList.remove('hidden'); };
 const hide = id => { const el = $(id); if (el) el.classList.add('hidden'); };
+
+/**
+ * Sets the active state for a sidebar menu item.
+ * @param {string} id - The ID of the menu <li> element.
+ */
 const setActiveMenu = (id) => {
   document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
   const el = $(id);
   if (el) el.classList.add('active');
 };
-function escapeHtml(s) {
-  if (s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/**
+ * Creates a DOM element with attributes and optional inner HTML.
+ * @param {string} tag - The tag name (e.g., 'div', 'button').
+ * @param {Object} [attrs={}] - Attributes to assign to the element.
+ * @param {string} [html=''] - Inner HTML content.
+ * @returns {HTMLElement} The created element.
+ */
+const elCreate = (tag, attrs = {}, html = '') => { 
+  const e = document.createElement(tag); 
+  Object.assign(e, attrs); 
+  if (html) e.innerHTML = html; 
+  return e; 
+};
+
+/**
+ * Sanitizes string for safe HTML insertion.
+ * @param {string} s - The string to escape.
+ * @returns {string} The escaped string.
+ */
+function escapeHtml(s) { 
+  if (s === undefined || s === null) return ''; 
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&quot;',"'":'&#39;'}[c])); 
 }
 
-/* ---------- Admin Auth check ---------- */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = 'index.html';
-    return;
-  }
-  try {
-    // check users collection for admin role
-    const uDoc = await getDoc(doc(db, 'users', user.uid));
-    const uData = uDoc.exists() ? uDoc.data() : null;
-    if (!uData || uData.role !== 'admin') {
-      alert('Access denied — admin role required.');
-      await auth.signOut();
-      window.location.href = 'index.html';
-      return;
-    }
-    // init portal
-    await initAdminPortal(user.uid);
-  } catch (err) {
-    console.error('admin init error', err);
-    alert('Failed to load admin portal: ' + err.message);
-  }
-});
+/* -------------------------------------------
+ * 2. Global State & Initialization
+ * ------------------------------------------- */
+const STATE = {
+  uid: null,
+  profile: null,
+  isLoaded: false,
+};
 
+// List of all section IDs for easy toggling
+const ALL_SECTION_IDS = [
+  'dashboardSection', 'manageUsersSection', 'sessionManagementSection', 
+  'bookingRequestsSection', 'issuesReportsSection', 'ratingsAnalyticsSection', 
+  'universitySettingsSection', 'notificationsControlSection', 'reportsAuditSection', 
+  'adminProfileSection'
+];
 
-/* ---------- Init Admin Portal ---------- */
-async function initAdminPortal(adminUid) {
-
-  // menu wiring
-  $('menuDashboard').onclick = () => { setActiveMenu('menuDashboard'); showSection('dashboardSection'); loadDashboardMetrics(); };
-  $('menuUsers').onclick = () => { setActiveMenu('menuUsers'); showSection('usersSection'); loadUsersTable(); };
-  $('menuSessions').onclick = () => { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadAllSessions(); };
-  $('menuBookings').onclick = () => { setActiveMenu('menuBookings'); showSection('bookingsSection'); loadBookingRequests(); };
-  $('menuIssues').onclick = () => { setActiveMenu('menuIssues'); showSection('issuesSection'); loadIssues(); };
-  $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsAnalytics(); };
-  $('menuUniversity').onclick = () => { setActiveMenu('menuUniversity'); showSection('universitySection'); loadUniversitySettings(); };
-  $('menuNotifications').onclick = () => { setActiveMenu('menuNotifications'); showSection('notificationsSection'); loadNotificationsPanel(); };
-  $('menuContent').onclick = () => { setActiveMenu('menuContent'); showSection('contentSection'); loadContentPanel(); };
-  $('menuReports').onclick = () => { setActiveMenu('menuReports'); showSection('reportsSection'); loadReportsPanel(); };
-  $('menuAdminProfile').onclick = () => { setActiveMenu('menuAdminProfile'); showSection('adminProfileSection'); loadAdminProfile(adminUid); };
-
-  // clickable dashboard cards (makes all .dash-card clickable to route to intended menu)
-  document.querySelectorAll('.dash-card').forEach(card => {
-    card.style.cursor = 'pointer';
-  });
-  // Map card text to actions - uses contains for simple mapping
-  document.querySelectorAll('.dash-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const txt = card.textContent || '';
-      if (/Student/i.test(txt)) { setActiveMenu('menuUsers'); showSection('usersSection'); loadUsersTable('student'); }
-      else if (/Tutor/i.test(txt) || /Counselor|Counsellor/i.test(txt)) { setActiveMenu('menuUsers'); showSection('usersSection'); loadUsersTable('tutor'); }
-      else if (/Pending Tutor/i.test(txt)) { setActiveMenu('menuUsers'); showSection('usersSection'); loadUsersTable('', { onlyPendingTutors: true }); }
-      else if (/Booking Requests/i.test(txt) || /Pending/i.test(txt)) { setActiveMenu('menuBookings'); showSection('bookingsSection'); loadBookingRequests(); }
-      else if (/Sessions Today/i.test(txt) || /Sessions In Progress/i.test(txt)) { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadAllSessions(); }
-      else if (/Issues/i.test(txt)) { setActiveMenu('menuIssues'); showSection('issuesSection'); loadIssues(); }
-      else if (/Rating/i.test(txt)) { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsAnalytics(); }
-      else { /* fallback */ setActiveMenu('menuDashboard'); showSection('dashboardSection'); loadDashboardMetrics(); }
-    });
-  });
-
-  // initial loads
-  await loadDashboardMetrics();
-  // show dashboard
-  setActiveMenu('menuDashboard');
-  showSection('dashboardSection');
-}
-
-/* ---------- Section toggling ---------- */
+/**
+ * Handles all navigation and visibility logic.
+ * @param {string} idToShow - The ID of the section to show (e.g., 'dashboardSection').
+ */
 function showSection(idToShow) {
-  const sections = ['dashboardSection','usersSection','sessionsSection','bookingsSection','issuesSection','ratingsSection','universitySection','notificationsSection','contentSection','reportsSection','adminProfileSection'];
-  sections.forEach(s => {
+  ALL_SECTION_IDS.forEach(s => {
     const el = $(s);
     if (!el) return;
     el.classList.toggle('hidden', s !== idToShow);
   });
-}
+  
+  // Re-hide empty states until data fetch confirms emptiness
+  ['userEmpty', 'sessionEmpty', 'requestsEmpty', 'issuesEmpty', 'auditLogEmpty'].forEach(hide);
 
-/* ---------- Simple CSV export helper ---------- */
-function exportToCSV(filename, rows) {
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
-/* ---------- Basic notification helper (write to notifications collection) ---------- */
-async function pushNotification({ title, message, target = 'all', meta = {} }) {
-  try {
-    await addDoc(collection(db, 'notifications'), {
-      title, message, target, meta, createdAt: new Date().toISOString(), fromAdmin: true
-    });
-    return true;
-  } catch (err) {
-    console.error('pushNotification', err);
-    return false;
+  // Trigger specific load function after showing section
+  switch(idToShow) {
+    case 'dashboardSection':
+      loadDashboardMetrics();
+      break;
+    case 'manageUsersSection':
+      loadAllUsers();
+      break;
+    case 'sessionManagementSection':
+      loadAllSessions();
+      break;
+    case 'bookingRequestsSection':
+      loadAllPendingRequests();
+      break;
+    case 'issuesReportsSection':
+      loadAllIssues();
+      break;
+    case 'ratingsAnalyticsSection':
+      loadOverallAnalytics();
+      break;
+    case 'universitySettingsSection':
+      loadUniversitySettings();
+      break;
+    case 'adminProfileSection':
+      loadAdminProfile(STATE.uid);
+      break;
+    // Other sections (Reports, Notifications) will have their own dedicated load functions
   }
 }
-// ---------- admin-portal.part2.js ----------
-/* ---------- DASHBOARD METRICS & simple analytics ---------- */
+
+/* -------------------------------------------
+ * 3. Authentication & Entry
+ * ------------------------------------------- */
+
+// Listener to check authentication state on page load
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    // If not signed in, redirect to the login page (assuming 'index.html' is login)
+    window.location.href = 'index.html'; 
+    return;
+  }
+
+  STATE.uid = user.uid;
+  if (!STATE.isLoaded) {
+    await initAdminPortal(user.uid);
+    STATE.isLoaded = true;
+  }
+});
+
+/**
+ * Initializes the portal by fetching profile, wiring menus, and loading initial data.
+ * @param {string} uid - The Firebase User ID.
+ */
+async function initAdminPortal(uid) {
+  console.log('Admin Portal Initializing for UID:', uid);
+  
+  // --- 3.1. Menu Wiring ---
+  // Using generic click handlers defined in the HTML script block, but we re-wire the logout button.
+  $('menuLogout').onclick = async () => { 
+    if (!confirm('Are you sure you want to sign out?')) return; 
+    try {
+      await signOut(auth); 
+      window.location.href = 'index.html'; // Redirect to login
+    } catch (err) {
+      console.error('Logout failed:', err);
+      alert('Logout failed. Please try again.');
+    }
+  };
+
+  // --- 3.2. Quick Action Wiring ---
+  $('quickApproveTutors').onclick = () => showSection('manageUsersSection');
+  $('quickViewIssues').onclick = () => showSection('issuesReportsSection');
+  $('quickManageModules').onclick = () => showSection('universitySettingsSection');
+  $('quickSendAnnouncement').onclick = () => showSection('notificationsControlSection');
+  $('quickOpenSettings').onclick = () => showSection('universitySettingsSection');
+  $('quickAnalyticsPanel').onclick = () => showSection('ratingsAnalyticsSection');
+  
+  // --- 3.3. Initial Data Load & Display ---
+  await loadAdminProfile(uid);
+  await loadDashboardMetrics();
+  
+  // Default to Dashboard
+  setActiveMenu('menuDashboard');
+  showSection('dashboardSection');
+}
+
+
+/* -------------------------------------------
+ * 4. Admin Profile Management
+ * ------------------------------------------- */
+
+/**
+ * Loads the current Admin's profile and populates the profile section fields.
+ * @param {string} uid - The Firebase User ID.
+ */
+async function loadAdminProfile(uid) {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.exists() ? snap.data() : null;
+    
+    // Crucial check: If the user exists but is not an admin, log them out (Security measure)
+    if (profile && profile.role !== 'admin') {
+      alert("Access Denied: Your account role is not 'admin'.");
+      await signOut(auth);
+      return;
+    }
+    
+    STATE.profile = profile || {};
+    
+    // Update main header info
+    const displayName = profile?.name || 'Admin User';
+    $('.user-info').querySelector('span').previousSibling.textContent = `Admin: ${displayName} • `;
+
+    // Populate profile section
+    if (profile) {
+      $('adminName').value = profile.name || '';
+      $('adminRole').value = profile.title || 'System Administrator';
+      $('adminEmail').value = profile.email || (auth.currentUser && auth.currentUser.email) || '';
+    }
+  } catch (err) {
+    console.error('loadAdminProfile failed', err);
+  }
+}
+
+/**
+ * Saves the Admin's profile changes (Name, Title, Email).
+ */
+async function saveAdminProfile() {
+  const uid = STATE.uid;
+  if (!uid) return alert('Error: Admin user not identified.');
+
+  try {
+    const payload = {
+      name: $('adminName').value.trim(),
+      title: $('adminRole').value.trim(),
+      email: $('adminEmail').value.trim(),
+      // role should never be updated here, only title/name
+      updatedAt: new Date().toISOString()
+    };
+    // Note: Email changes require Firebase Auth logic, handled separately.
+    await updateDoc(doc(db, 'users', uid), payload);
+    alert('Profile saved successfully.');
+    await loadAdminProfile(uid); // Refresh display
+  } catch (err) {
+    console.error('saveAdminProfile failed', err);
+    alert('Failed to save profile: ' + err.message);
+  }
+}
+
+// Attach Save Profile handler
+if ($('saveAdminProfileBtn')) {
+    $('saveAdminProfileBtn').onclick = saveAdminProfile;
+}
+
+
+/* -------------------------------------------
+ * 5. Dashboard Loading and Metrics
+ * ------------------------------------------- */
+
+/**
+ * Fetches and aggregates all core system metrics for the dashboard cards.
+ */
 async function loadDashboardMetrics() {
   try {
-    // Counts
-    const usersCol = collection(db, 'users');
-    const studentsQ = query(usersCol, where('role','==','student'));
-    const tutorsQ = query(usersCol, where('role','in',['tutor','counsellor']));
-    const [stSnap, tSnap] = await Promise.all([getDocs(studentsQ), getDocs(tutorsQ)]);
-    const totalStudents = stSnap.size;
-    const totalTutors = tSnap.size;
+    // --- 5.1. User Counts ---
+    const userRef = collection(db, 'users');
+    const qStudents = query(userRef, where('role', '==', 'student'));
+    const qStaff = query(userRef, where('role', 'in', ['tutor', 'counsellor']));
+    const qNewToday = query(userRef, where('createdAt', '>=', new Date(new Date().setHours(0,0,0,0)).toISOString()));
+    const qPendingTutors = query(userRef, where('role', '==', 'tutor'), where('status', '==', 'pending'));
+    
+    const snapStudents = await getCountFromServer(qStudents);
+    const snapStaff = await getCountFromServer(qStaff);
+    const snapNewToday = await getCountFromServer(qNewToday);
+    const snapPendingTutors = await getCountFromServer(qPendingTutors);
+    
+    // Update dashboard cards
+    $('totalStudents').textContent = snapStudents.data().count;
+    $('totalStaff').textContent = snapStaff.data().count;
+    $('newSignupsToday').textContent = snapNewToday.data().count;
+    $('pendingApprovals').textContent = snapPendingTutors.data().count;
+    // Update quick action button badge
+    document.querySelector('#quickApproveTutors span').textContent = snapPendingTutors.data().count;
 
-    // sign-ups today / week (by createdAt on users)
-    let newToday = 0, newWeek = 0;
-    const allUsersSnap = await getDocs(query(usersCol, orderBy('createdAt', 'desc'), limit(1000)));
-    const now = new Date();
-    allUsersSnap.forEach(d => {
-      const u = d.data();
-      if (!u.createdAt) return;
-      const created = new Date(u.createdAt);
-      const diff = now - created;
-      if (diff <= 1000*60*60*24) newToday++;
-      if (diff <= 1000*60*60*24*7) newWeek++;
-    });
+    // --- 5.2. Session Counts ---
+    const sessionsRef = collection(db, 'sessions');
+    const qPendingBookings = query(sessionsRef, where('status', '==', 'pending'));
+    const qSessionsToday = query(sessionsRef, 
+      where('datetime', '>=', new Date(new Date().setHours(0,0,0,0)).toISOString()), 
+      where('datetime', '<', new Date(new Date().setHours(23,59,59,999)).toISOString()), 
+      where('status', 'in', ['approved', 'in-progress'])
+    );
+    const qLiveSessions = query(sessionsRef, where('status', '==', 'in-progress'));
+    
+    const snapPendingBookings = await getCountFromServer(qPendingBookings);
+    const snapSessionsToday = await getCountFromServer(qSessionsToday);
+    const snapLiveSessions = await getCountFromServer(qLiveSessions);
 
-    // pending tutor approvals
-    const pendingTutorsSnap = await getDocs(query(usersCol, where('role','==','tutor'), where('status','==','pending')));
-    const pendingTutors = pendingTutorsSnap.size;
+    // Update dashboard cards
+    $('pendingBookings').textContent = snapPendingBookings.data().count;
+    $('sessionsToday').textContent = snapSessionsToday.data().count;
+    $('liveSessions').textContent = snapLiveSessions.data().count;
 
-    // pending booking requests
-    const sessionsCol = collection(db, 'sessions');
-    const pendingRequestsSnap = await getDocs(query(sessionsCol, where('status','==','pending')));
-    const pendingRequests = pendingRequestsSnap.size;
+    // --- 5.3. Issues & Reports ---
+    const issuesRef = collection(db, 'issues');
+    const qIssuesToday = query(issuesRef, 
+      where('createdAt', '>=', new Date(new Date().setHours(0,0,0,0)).toISOString()),
+      where('status', '==', 'open')
+    );
+    const snapIssuesToday = await getCountFromServer(qIssuesToday);
+    
+    // Update dashboard cards
+    $('issuesToday').textContent = snapIssuesToday.data().count;
+    // Update quick action button badge
+    document.querySelector('#quickViewIssues span').textContent = snapIssuesToday.data().count;
 
-    // sessions today & in-progress (approx)
-    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-    const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
-    const qToday = query(sessionsCol, where('datetime','>=', todayStart.toISOString()), where('datetime','<=', todayEnd.toISOString()));
-    // note: Firestore may not support range queries on string ISO easily if stored as strings; if datetime stored as ISO strings this still works lexicographically. If stored as timestamps adapt accordingly.
-    const todaySnap = await getDocs(qToday);
-    const sessionsToday = todaySnap.size;
-    // in-progress: status 'in-progress'
-    const inProgressSnap = await getDocs(query(sessionsCol, where('status','==','in-progress')));
-    const sessionsInProgress = inProgressSnap.size;
-
-    // issues today
-    const issuesCol = collection(db, 'issues');
-    const issuesTodaySnap = await getDocs(query(issuesCol, where('createdAt','>=', todayStart.toISOString()), where('createdAt','<=', todayEnd.toISOString())));
-    const issuesToday = issuesTodaySnap.size;
-
-    // average tutor rating
-    const ratingsCol = collection(db, 'ratings');
-    const ratingsSnap = await getDocs(ratingsCol);
-    let avgRating = 0;
-    if (ratingsSnap.size > 0) {
-      let s = 0; ratingsSnap.forEach(d => s += Number(d.data().stars || 0));
-      avgRating = (s / ratingsSnap.size).toFixed(2);
-    }
-
-    // Fill dashboard cards — find card nodes by approximate text content and update them
-    document.querySelectorAll('.dash-card').forEach(card => {
-      const txt = card.textContent || '';
-      if (/Total Student/i.test(txt)) card.textContent = `Total Student Accounts — ${totalStudents}`;
-      else if (/Tutor\/Counselor/i.test(txt)) card.textContent = `Total Tutor/Counsellor Accounts — ${totalTutors}`;
-      else if (/New Sign/i.test(txt)) card.textContent = `New Sign-Ups — Today: ${newToday} / This Week: ${newWeek}`;
-      else if (/Pending Tutor Approvals/i.test(txt)) card.textContent = `Pending Tutor Approvals — ${pendingTutors}`;
-      else if (/Booking Requests/i.test(txt)) card.textContent = `Pending Booking Requests — ${pendingRequests}`;
-      else if (/Sessions Today/i.test(txt)) card.textContent = `Sessions Today — ${sessionsToday}`;
-      else if (/Sessions In Progress/i.test(txt)) card.textContent = `Sessions In Progress — ${sessionsInProgress}`;
-      else if (/Issues Reported Today/i.test(txt)) card.textContent = `Issues Reported Today — ${issuesToday}`;
-      else if (/Average Tutor Rating/i.test(txt)) card.textContent = `Average Tutor Rating — ${avgRating}`;
-    });
-
-    // Minimal visual analytics placeholders: write counts into chart boxes
-    $('').textContent = ''; // safe noop if future
-    // TODO: plug charting library here for real charts — left as placeholders so core functionality is working
-
-  } catch (err) {
-    console.error('loadDashboardMetrics', err);
-  }
-}
-
-/* ---------- MANAGE USERS ---------- */
-/**
- * loadUsersTable(roleFilter, opts)
- * roleFilter = 'student'|'tutor'|'counsellor'|'' (all)
- * opts = { onlyPendingTutors: boolean }
- */
-async function loadUsersTable(roleFilter = '', opts = {}) {
-  try {
-    const tbody = $('userTable');
-    tbody.innerHTML = '<tr><td colspan="7">Loading users...</td></tr>';
-    const usersCol = collection(db, 'users');
-    let q;
-    if (roleFilter) q = query(usersCol, where('role','==',roleFilter), orderBy('name','asc'));
-    else q = query(usersCol, orderBy('name','asc'));
-    const snap = await getDocs(q);
-    let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (opts.onlyPendingTutors) users = users.filter(u => u.role === 'tutor' && u.status === 'pending');
-
-    if (users.length === 0) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty">No users found</div></td></tr>'; return; }
-
-    // Create rows
-    const rows = users.map(u => {
-      const status = u.status || 'active';
-      const lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : '-';
-      const sessions = u.totalSessions || 0;
-      const rating = u.avgRating ? Number(u.avgRating).toFixed(2) : (u.role === 'tutor' ? '—' : '-');
-      return `<tr data-id="${u.id}">
-        <td>${escapeHtml(u.name || '')}</td>
-        <td>${escapeHtml(u.role || '')}</td>
-        <td>${escapeHtml(u.email || '')}</td>
-        <td>${escapeHtml(status)}</td>
-        <td>${escapeHtml(lastLogin)}</td>
-        <td>${escapeHtml(sessions)}</td>
-        <td>${escapeHtml(rating)}</td>
-      </tr>`;
-    }).join('');
-    tbody.innerHTML = rows;
-
-    // attach click handlers (row-level actions open a small action modal)
-    tbody.querySelectorAll('tr').forEach(tr => {
-      tr.addEventListener('click', async () => {
-        const id = tr.dataset.id;
-        const ud = users.find(x => x.id === id);
-        openUserActionsModal(ud);
-      });
-    });
-
-    // Add bulk action UI: (simple prompt-based)
-    addUsersBulkControls(users);
-  } catch (err) {
-    console.error('loadUsersTable', err);
-    $('userTable').innerHTML = '<tr><td colspan="7"><div class="empty">Failed to load users</div></td></tr>';
-  }
-}
-
-/* bulk actions area (simple): place a floating toolbar for bulk operations */
-function addUsersBulkControls(users) {
-  // remove existing
-  const existing = document.getElementById('bulkUsersToolbar');
-  if (existing) existing.remove();
-  if (!users || users.length === 0) return;
-  const toolbar = document.createElement('div');
-  toolbar.id = 'bulkUsersToolbar';
-  toolbar.style.position = 'fixed';
-  toolbar.style.bottom = '20px';
-  toolbar.style.left = '300px';
-  toolbar.style.background = 'white';
-  toolbar.style.padding = '10px';
-  toolbar.style.borderRadius = '8px';
-  toolbar.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
-  toolbar.innerHTML = `
-    <button id="bulkApproveTutors" class="btn">Approve Pending Tutors</button>
-    <button id="bulkSuspendUsers" class="btn secondary">Suspend Selected</button>
-    <button id="bulkExportCSV" class="btn">Export CSV</button>
-  `;
-  document.body.appendChild(toolbar);
-
-  document.getElementById('bulkApproveTutors').onclick = async () => {
-    if (!confirm('Approve all pending tutors?')) return;
-    const usersCol = collection(db, 'users');
-    const pending = users.filter(u => u.role === 'tutor' && u.status === 'pending');
-    for (const u of pending) {
-      await updateDoc(doc(db, 'users', u.id), { status: 'active', approvedAt: new Date().toISOString() });
-    }
-    alert(`Approved ${pending.length} tutors.`);
-    await loadUsersTable();
-  };
-
-  document.getElementById('bulkSuspendUsers').onclick = async () => {
-    const email = prompt('Enter comma-separated user emails to suspend (quick method)') || '';
-    if (!email) return;
-    const emails = email.split(',').map(s=>s.trim()).filter(Boolean);
-    const usersCol = collection(db,'users');
-    for (const em of emails) {
-      const q = query(usersCol, where('email','==', em));
-      const snap = await getDocs(q);
-      snap.forEach(async d => {
-        await updateDoc(doc(db,'users', d.id), { status: 'suspended' });
-      });
-    }
-    alert('Requested suspend executed (if users found).');
-    await loadUsersTable();
-  };
-
-  document.getElementById('bulkExportCSV').onclick = () => {
-    const rows = [['Name','Role','Email','Status','Last Login','Sessions','Rating']];
-    users.forEach(u => rows.push([u.name||'', u.role||'', u.email||'', u.status||'', u.lastLogin||'', u.totalSessions||0, u.avgRating||'']));
-    exportToCSV('users-export.csv', rows);
-  };
-}
-
-/* User actions modal (quick prompt based) */
-function openUserActionsModal(u) {
-  const modal = document.createElement('div'); modal.className = 'modal-back';
-  modal.innerHTML = `
-    <div class="modal">
-      <h3>${escapeHtml(u.name || 'User')}</h3>
-      <div style="margin-bottom:8px"><strong>Role:</strong> ${escapeHtml(u.role||'')}</div>
-      <div style="margin-bottom:8px"><strong>Email:</strong> ${escapeHtml(u.email||'')}</div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button id="actApprove" class="btn">Approve</button>
-        <button id="actSuspend" class="btn secondary">Suspend</button>
-        <button id="actResetPwd" class="btn">Reset Password (email)</button>
-        <button id="actEdit" class="btn">Edit Info</button>
-        <button id="actViewProfile" class="btn secondary">View Profile</button>
-        <button id="actDelete" class="btn secondary">Delete</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  modal.querySelector('#actApprove').onclick = async () => {
-    try {
-      await updateDoc(doc(db,'users', u.id), { status: 'active', approvedAt: new Date().toISOString() });
-      alert('User approved.');
-      modal.remove();
-      await loadUsersTable();
-    } catch (err) { console.error(err); alert('Failed to approve: '+err.message); }
-  };
-  modal.querySelector('#actSuspend').onclick = async () => {
-    if (!confirm('Suspend this user?')) return;
-    try {
-      await updateDoc(doc(db,'users', u.id), { status: 'suspended' });
-      alert('User suspended.');
-      modal.remove();
-      await loadUsersTable();
-    } catch (err) { console.error(err); alert('Failed to suspend: '+err.message); }
-  };
-  modal.querySelector('#actResetPwd').onclick = async () => {
-    try {
-      await sendPasswordResetEmail(auth, u.email);
-      alert('Password reset email sent to ' + u.email);
-    } catch (err) { console.error(err); alert('Failed to send reset: '+err.message); }
-  };
-  modal.querySelector('#actEdit').onclick = async () => {
-    modal.remove();
-    openUserEditModal(u);
-  };
-  modal.querySelector('#actViewProfile').onclick = () => {
-    alert(JSON.stringify(u, null, 2));
-  };
-  modal.querySelector('#actDelete').onclick = async () => {
-    if (!confirm('Delete this user and all related data? This is irreversible.')) return;
-    try {
-      await deleteDoc(doc(db,'users', u.id));
-      alert('User deleted (doc removed). You may need to remove auth account via Firebase console.');
-      modal.remove();
-      await loadUsersTable();
-    } catch (err) { console.error(err); alert('Failed to delete: '+err.message); }
-  };
-}
-
-/* User edit modal (basic fields) */
-function openUserEditModal(u) {
-  const modal = document.createElement('div'); modal.className = 'modal-back';
-  modal.innerHTML = `
-    <div class="modal">
-      <h3>Edit ${escapeHtml(u.name || '')}</h3>
-      <div>
-        <label>Name</label><input id="editName" value="${escapeHtml(u.name||'')}" style="width:100%;margin-bottom:8px"/>
-        <label>Role</label><input id="editRole" value="${escapeHtml(u.role||'')}" style="width:100%;margin-bottom:8px"/>
-        <label>Department / Modules</label><input id="editDept" value="${escapeHtml(u.department||'')}" style="width:100%;margin-bottom:8px"/>
-        <label>Status</label><select id="editStatus" style="width:100%;margin-bottom:8px"><option value="active">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option></select>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button id="saveUser" class="btn">Save</button>
-          <button id="cancelUser" class="btn secondary">Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  $('#editStatus').value = u.status || 'active';
-
-  $('#cancelUser').onclick = () => modal.remove();
-  $('#saveUser').onclick = async () => {
-    const payload = {
-      name: $('#editName').value.trim(),
-      role: $('#editRole').value.trim(),
-      department: $('#editDept').value.trim(),
-      status: $('#editStatus').value
-    };
-    try {
-      await setDoc(doc(db,'users', u.id), payload, { merge: true });
-      alert('User saved.');
-      modal.remove();
-      await loadUsersTable();
-    } catch (err) { console.error(err); alert('Failed to save: '+err.message); }
-  };
-}
-
-// ---------- admin-portal.part3.js ----------
-/* ---------- SESSIONS MANAGEMENT ---------- */
-async function loadAllSessions() {
-  try {
-    const container = $('allSessions');
-    container.innerHTML = 'Loading sessions...';
-    const sessionsCol = collection(db, 'sessions');
-    const snap = await getDocs(query(sessionsCol, orderBy('datetime', 'asc'), limit(1000)));
-    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (sessions.length === 0) { container.innerHTML = '<div class="empty">No sessions found.</div>'; return; }
-
-    const rows = sessions.map(s => {
-      const dt = s.datetime ? new Date(s.datetime).toLocaleString() : '-';
-      const status = s.status || 'pending';
-      return `<div class="dash-card" style="margin-bottom:10px" data-id="${s.id}">
-        <div style="display:flex;justify-content:space-between">
-          <div><strong>${escapeHtml(s.personName || s.tutorName || '—')}</strong> with <strong>${escapeHtml(s.studentName || s.studentId || '—')}</strong></div>
-          <div>${escapeHtml(status)} • ${escapeHtml(s.role || '')}</div>
-        </div>
-        <div style="margin-top:6px">${escapeHtml(dt)} • ${escapeHtml(s.mode || '')} ${s.location ? '• ' + escapeHtml(s.location) : ''}</div>
-        <div style="margin-top:8px">${escapeHtml(s.notes || '')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn approve-session">Approve</button>
-          <button class="btn secondary cancel-session">Cancel</button>
-          <button class="btn" data-action="force-reschedule">Force Reschedule</button>
-          <button class="btn secondary" data-action="reassign">Reassign</button>
-        </div>
-      </div>`;
-    }).join('');
-    container.innerHTML = rows;
-
-    // attach handlers
-    container.querySelectorAll('.approve-session').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        if (!confirm('Approve this session?')) return;
-        try { await updateDoc(doc(db,'sessions', id), { status: 'approved' }); alert('Approved'); await loadAllSessions(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-    container.querySelectorAll('.cancel-session').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        if (!confirm('Cancel this session?')) return;
-        try { await updateDoc(doc(db,'sessions', id), { status: 'cancelled' }); alert('Cancelled'); await loadAllSessions(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-    container.querySelectorAll('[data-action="force-reschedule"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const newISO = prompt('Enter new datetime (YYYY-MM-DDTHH:MM)', '');
-        if (!newISO) return;
-        try { await updateDoc(doc(db,'sessions',id), { datetime: new Date(newISO).toISOString(), status: 'approved' }); alert('Rescheduled'); await loadAllSessions(); } catch (err) { console.error(err); alert('Failed: '+err.message); }
-      });
-    });
-    container.querySelectorAll('[data-action="reassign"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const tutorEmail = prompt('Enter new tutor email to assign', '');
-        if (!tutorEmail) return;
-        // find tutor by email
-        const usersCol = collection(db,'users');
-        const q = query(usersCol, where('email','==', tutorEmail), where('role','in',['tutor','counsellor']));
-        const snap = await getDocs(q);
-        if (snap.empty) { alert('Tutor not found'); return; }
-        const tDoc = snap.docs[0];
-        try {
-          await updateDoc(doc(db,'sessions',id), { personId: tDoc.id, personName: tDoc.data().name, tutorId: tDoc.id });
-          alert('Reassigned');
-          await loadAllSessions();
-        } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-
-  } catch (err) {
-    console.error('loadAllSessions', err);
-    $('allSessions').innerHTML = '<div class="empty">Failed to load sessions.</div>';
-  }
-}
-
-/* ---------- BOOKING REQUESTS (Approval Center) ---------- */
-async function loadBookingRequests() {
-  try {
-    const container = $('bookingList');
-    container.innerHTML = 'Loading booking requests...';
-    const snap = await getDocs(query(collection(db,'sessions'), where('status','==','pending'), orderBy('createdAt','asc')));
-    const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (reqs.length === 0) { container.innerHTML = '<div class="empty">No pending booking requests.</div>'; return; }
-    const rows = reqs.map(r => {
-      const dt = r.datetime ? new Date(r.datetime).toLocaleString() : '-';
-      return `<div class="dash-card" data-id="${r.id}">
-        <div style="display:flex;justify-content:space-between"><div><strong>${escapeHtml(r.studentName||r.studentId||'—')}</strong> requested <strong>${escapeHtml(r.personName||'—')}</strong></div><div>${escapeHtml(dt)}</div></div>
-        <div style="margin-top:6px">${escapeHtml(r.notes||'')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn approve-req">Approve</button>
-          <button class="btn secondary reject-req">Reject</button>
-          <button class="btn" data-action="suggest">Suggest Time</button>
-          <button class="btn secondary" data-action="recommend">Recommend Tutor</button>
-        </div>
-      </div>`;
-    }).join('');
-    container.innerHTML = rows;
-
-    container.querySelectorAll('.approve-req').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        if (!confirm('Approve request?')) return;
-        try { await updateDoc(doc(db,'sessions', id), { status: 'approved' }); alert('Approved'); await loadBookingRequests(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-    container.querySelectorAll('.reject-req').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const reason = prompt('Reason for rejection (optional)', '') || '';
-        try { await updateDoc(doc(db,'sessions', id), { status: 'rejected', adminNote: reason }); alert('Rejected'); await loadBookingRequests(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-    container.querySelectorAll('[data-action="suggest"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const newISO = prompt('Enter suggested datetime (YYYY-MM-DDTHH:MM)', '');
-        if (!newISO) return;
-        try { await updateDoc(doc(db,'sessions', id), { datetime: new Date(newISO).toISOString(), adminNote: 'Suggested new time by admin' }); alert('Suggested time saved.'); await loadBookingRequests(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-    container.querySelectorAll('[data-action="recommend"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const tutorEmail = prompt('Enter recommended tutor email', '');
-        if (!tutorEmail) return;
-        const usersCol = collection(db,'users');
-        const q = query(usersCol, where('email','==', tutorEmail), where('role','in',['tutor','counsellor']));
-        const snap = await getDocs(q);
-        if (snap.empty) { alert('Tutor not found'); return; }
-        const tDoc = snap.docs[0];
-        try { await updateDoc(doc(db,'sessions', id), { recommendedTutorId: tDoc.id, adminNote: 'Recommended tutor by admin' }); alert('Recommended recorded'); await loadBookingRequests(); } catch (err) { console.error(err); alert(err.message); }
-      });
-    });
-
-  } catch (err) {
-    console.error('loadBookingRequests', err);
-    $('bookingList').innerHTML = '<div class="empty">Failed to load booking requests</div>';
-  }
-}
-
-/* ---------- ISSUES & TICKETS ---------- */
-async function loadIssues() {
-  try {
-    const container = $('issuesList');
-    container.innerHTML = 'Loading issues...';
-    const snap = await getDocs(query(collection(db,'issues'), orderBy('createdAt','desc'), limit(500)));
-    const issues = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (issues.length === 0) { container.innerHTML = '<div class="empty">No issues reported.</div>'; return; }
-    const rows = issues.map(it => {
-      return `<div class="dash-card" data-id="${it.id}">
-        <div style="display:flex;justify-content:space-between"><div><strong>${escapeHtml(it.issueType || 'Issue')}</strong> • ${escapeHtml(it.priority || 'Normal')}</div><div>${escapeHtml(it.reporterName || it.reporterId || '')}</div></div>
-        <div style="margin-top:6px">${escapeHtml(it.description || '')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn assign-issue">Assign</button>
-          <button class="btn secondary progress-issue">Mark In Progress</button>
-          <button class="btn" data-action="resolve">Resolve</button>
-          <button class="btn secondary" data-action="notes">Add Note</button>
-        </div>
-      </div>`;
-    }).join('');
-    container.innerHTML = rows;
-
-    container.querySelectorAll('.assign-issue').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const staff = prompt('Assign to staff (email)', '') || '';
-        if (!staff) return;
-        await updateDoc(doc(db,'issues', id), { assignedTo: staff, status: 'assigned' });
-        alert('Assigned');
-        await loadIssues();
-      });
-    });
-    container.querySelectorAll('.progress-issue').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        await updateDoc(doc(db,'issues', id), { status: 'in-progress' });
-        alert('Marked in progress'); await loadIssues();
-      });
-    });
-    container.querySelectorAll('[data-action="resolve"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        await updateDoc(doc(db,'issues', id), { status: 'resolved', resolvedAt: new Date().toISOString() });
-        alert('Resolved'); await loadIssues();
-      });
-    });
-    container.querySelectorAll('[data-action="notes"]').forEach(btn => {
-      btn.addEventListener('click', async ev => {
-        const id = ev.target.closest('[data-id]').dataset.id;
-        const note = prompt('Enter internal note', '');
-        if (!note) return;
-        const issueRef = doc(db,'issues', id);
-        const snap = await getDoc(issueRef);
-        const cur = snap.exists() ? snap.data() : {};
-        const notes = cur.internalNotes || [];
-        notes.push({ note, by: 'admin', at: new Date().toISOString() });
-        await updateDoc(issueRef, { internalNotes: notes });
-        alert('Note added'); await loadIssues();
-      });
-    });
-
-  } catch (err) {
-    console.error('loadIssues', err);
-    $('issuesList').innerHTML = '<div class="empty">Failed to load issues.</div>';
-  }
-}
-
-/* ---------- RATINGS & PERFORMANCE ---------- */
-async function loadRatingsAnalytics() {
-  try {
-    const container = $('ratingsAnalytics');
-    container.innerHTML = 'Loading ratings...';
-    const snap = await getDocs(query(collection(db,'ratings'), orderBy('createdAt','desc'), limit(1000)));
-    const ratings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (ratings.length === 0) { container.innerHTML = '<div class="empty">No ratings yet</div>'; return; }
-
-    // compute summary
-    const byTutor = {};
-    ratings.forEach(r => {
-      const pid = r.personId || 'unknown';
-      byTutor[pid] = byTutor[pid] || { name: r.personName || pid, count: 0, total: 0, feedback: [] };
-      byTutor[pid].count++;
-      byTutor[pid].total += Number(r.stars || 0);
-      byTutor[pid].feedback.push(r);
-    });
-    const summary = Object.keys(byTutor).map(k => ({ id: k, name: byTutor[k].name, avg: (byTutor[k].total / byTutor[k].count).toFixed(2), count: byTutor[k].count, feedback: byTutor[k].feedback }));
-    summary.sort((a,b)=> b.avg - a.avg);
-
-    // render top 10 and lowest 10
-    const top = summary.slice(0,10);
-    const low = summary.slice(-10).reverse();
-    const html = `<h3>Top Rated Tutors</h3>${top.map(t=>`<div style="padding:8px;border-bottom:1px solid #eee"><strong>${escapeHtml(t.name)}</strong> — ${t.avg} (${t.count} ratings)</div>`).join('')}
-      <h3 style="margin-top:12px">Lowest Rated Tutors</h3>${low.map(t=>`<div style="padding:8px;border-bottom:1px solid #eee"><strong>${escapeHtml(t.name)}</strong> — ${t.avg} (${t.count} ratings)</div>`).join('')}
-      <div style="margin-top:12px"><button id="exportRatingsCSV" class="btn">Export Ratings CSV</button></div>`;
-    container.innerHTML = html;
-
-    $('#exportRatingsCSV').onclick = () => {
-      const rows = [['Tutor','AvgRating','Count']];
-      summary.forEach(s => rows.push([s.name, s.avg, s.count]));
-      exportToCSV('ratings-summary.csv', rows);
-    };
-
-  } catch (err) {
-    console.error('loadRatingsAnalytics', err);
-    $('ratingsAnalytics').innerHTML = '<div class="empty">Failed to load ratings</div>';
-  }
-}
-
-/* ---------- UNIVERSITY SETTINGS (Departments & Modules) ---------- */
-async function loadUniversitySettings() {
-  try {
-    const container = $('uniSettings');
-    container.innerHTML = 'Loading settings...';
-    // departments collection
-    const snap = await getDocs(query(collection(db,'departments'), orderBy('name','asc')));
-    const depts = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    let html = `<div style="margin-bottom:12px"><button id="addDept" class="btn">Add Department</button></div>`;
-    if (depts.length === 0) html += `<div class="empty">No departments yet</div>`;
-    else {
-      html += '<table><thead><tr><th>Department</th><th>Actions</th></tr></thead><tbody>';
-      depts.forEach(d => {
-        html += `<tr data-id="${d.id}"><td>${escapeHtml(d.name)}</td><td><button class="btn editDept">Edit</button> <button class="btn secondary delDept">Delete</button></td></tr>`;
-      });
-      html += '</tbody></table>';
-    }
-    container.innerHTML = html;
-    $('#addDept').onclick = async () => {
-      const name = prompt('Department name', '');
-      if (!name) return;
-      await addDoc(collection(db,'departments'), { name, createdAt: new Date().toISOString() });
-      await loadUniversitySettings();
-    };
-    document.querySelectorAll('.editDept').forEach(btn=> btn.onclick = async ev => {
-      const id = ev.target.closest('tr').dataset.id;
-      const dDoc = await getDoc(doc(db,'departments', id));
-      const cur = dDoc.exists() ? dDoc.data() : {};
-      const name = prompt('New name', cur.name || '');
-      if (!name) return;
-      await updateDoc(doc(db,'departments', id), { name });
-      await loadUniversitySettings();
-    });
-    document.querySelectorAll('.delDept').forEach(btn=> btn.onclick = async ev => {
-      const id = ev.target.closest('tr').dataset.id;
-      if (!confirm('Delete this department?')) return;
-      await deleteDoc(doc(db,'departments', id));
-      await loadUniversitySettings();
-    });
-
-  } catch (err) {
-    console.error('loadUniversitySettings', err);
-    $('uniSettings').innerHTML = '<div class="empty">Failed to load university settings</div>';
-  }
-}
-
-/* ---------- NOTIFICATIONS CONTROL PANEL ---------- */
-async function loadNotificationsPanel() {
-  try {
-    const container = $('notifPanel');
-    container.innerHTML = `
-      <div>
-        <label>Title</label><input id="notifTitle" style="width:100%;margin-bottom:6px"/>
-        <label>Message</label><textarea id="notifMessage" rows="3" style="width:100%"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="sendNotifAll" class="btn">Send to All</button>
-          <button id="sendNotifTutors" class="btn">Send to Tutors</button>
-          <button id="sendNotifStudents" class="btn">Send to Students</button>
-        </div>
-      </div>
-    `;
-    $('#sendNotifAll').onclick = async () => {
-      const t = $('#notifTitle').value.trim(); const m = $('#notifMessage').value.trim();
-      if (!t || !m) return alert('Enter title and message');
-      await pushNotification({ title: t, message: m, target: 'all' });
-      alert('Notification queued (written to DB).');
-    };
-    $('#sendNotifTutors').onclick = async () => {
-      const t = $('#notifTitle').value.trim(); const m = $('#notifMessage').value.trim();
-      if (!t || !m) return alert('Enter title and message');
-      await pushNotification({ title: t, message: m, target: 'tutors' });
-      alert('Notification queued to tutors');
-    };
-    $('#sendNotifStudents').onclick = async () => {
-      const t = $('#notifTitle').value.trim(); const m = $('#notifMessage').value.trim();
-      if (!t || !m) return alert('Enter title and message');
-      await pushNotification({ title: t, message: m, target: 'students' });
-      alert('Notification queued to students');
-    };
-  } catch (err) {
-    console.error('loadNotificationsPanel', err);
-    $('notifPanel').innerHTML = '<div class="empty">Failed to load notifications panel</div>';
-  }
-}
-
-/* ---------- CONTENT MANAGEMENT ---------- */
-async function loadContentPanel() {
-  try {
-    const container = $('contentPanel');
-    const snap = await getDocs(query(collection(db,'content'), orderBy('createdAt','desc')));
-    const items = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    let html = `<div style="margin-bottom:12px"><button id="addContent" class="btn">Add Content Block</button></div>`;
-    if (items.length === 0) html += '<div class="empty">No content</div>';
-    else {
-      html += items.map(it => `<div class="dash-card" data-id="${it.id}"><div><strong>${escapeHtml(it.title||'Untitled')}</strong></div><div style="margin-top:6px">${escapeHtml(it.body || '').slice(0,200)}</div><div style="margin-top:8px"><button class="btn editContent">Edit</button> <button class="btn secondary delContent">Delete</button></div></div>`).join('');
-    }
-    container.innerHTML = html;
-    $('#addContent').onclick = async () => {
-      const title = prompt('Title', 'Announcement');
-      const body = prompt('Body', '');
-      if (!title || !body) return;
-      await addDoc(collection(db,'content'), { title, body, createdAt: new Date().toISOString() });
-      await loadContentPanel();
-    };
-    document.querySelectorAll('.editContent').forEach(btn=> btn.onclick = async ev => {
-      const id = ev.target.closest('[data-id]').dataset.id;
-      const docRef = doc(db,'content', id);
-      const snap = await getDoc(docRef);
-      const cur = snap.exists() ? snap.data() : {};
-      const title = prompt('Title', cur.title || '');
-      const body = prompt('Body', cur.body || '');
-      if (!title || !body) return;
-      await updateDoc(docRef, { title, body });
-      await loadContentPanel();
-    });
-    document.querySelectorAll('.delContent').forEach(btn=> btn.onclick = async ev => {
-      const id = ev.target.closest('[data-id]').dataset.id;
-      if (!confirm('Delete content?')) return;
-      await deleteDoc(doc(db,'content', id));
-      await loadContentPanel();
-    });
-
-  } catch (err) {
-    console.error('loadContentPanel', err);
-    $('contentPanel').innerHTML = '<div class="empty">Failed to load content</div>';
-  }
-}
-
-/* ---------- REPORTS & AUDIT LOGS (basic) ---------- */
-async function loadReportsPanel() {
-  try {
-    const container = $('reportsPanel');
-    container.innerHTML = `
-      <div style="display:flex;gap:8px">
-        <button id="expAttendance" class="btn">Export Attendance CSV</button>
-        <button id="expBookings" class="btn">Export Bookings CSV</button>
-        <button id="expAudit" class="btn">Export Audit Log</button>
-      </div>
-      <div id="reportsResult" style="margin-top:12px"></div>
-    `;
-    $('#expBookings').onclick = async () => {
-      const snap = await getDocs(query(collection(db,'sessions'), orderBy('createdAt','desc'), limit(2000)));
-      const rows = [['SessionId','Student','Tutor','Datetime','Mode','Status','Notes']];
-      snap.docs.forEach(d => {
-        const s = d.data();
-        rows.push([d.id, s.studentName||s.studentId||'', s.personName||'', s.datetime||'', s.mode||'', s.status||'', s.notes||'']);
-      });
-      exportToCSV('bookings-export.csv', rows);
-    };
-    $('#expAudit').onclick = async () => {
-      const snap = await getDocs(query(collection(db,'audit'), orderBy('ts','desc'), limit(2000)));
-      const rows = [['ts','actor','action','detail']];
-      snap.docs.forEach(d => {
-        const a = d.data();
-        rows.push([a.ts||'', a.actor||'', a.action||'', JSON.stringify(a.detail||'')]);
-      });
-      exportToCSV('audit-export.csv', rows);
-    };
-    $('#expAttendance').onclick = async () => {
-      // simplistic: count approved sessions per student
-      const snap = await getDocs(query(collection(db,'sessions'), where('status','==','approved'), limit(5000)));
-      const map = {};
-      snap.docs.forEach(d => {
-        const s = d.data();
-        const sid = s.studentId || 'unknown';
-        map[sid] = map[sid] || { student: s.studentName || sid, count: 0 };
-        map[sid].count++;
-      });
-      const rows = [['Student','Count']];
-      Object.values(map).forEach(r => rows.push([r.student, r.count]));
-      exportToCSV('attendance-report.csv', rows);
-    };
-
-  } catch (err) {
-    console.error('loadReportsPanel', err);
-    $('reportsPanel').innerHTML = '<div class="empty">Failed to load reports panel</div>';
-  }
-}
-
-/* ---------- ADMIN PROFILE ---------- */
-async function loadAdminProfile(adminUid) {
-  try {
-    const container = $('adminProfile');
-    const snap = await getDoc(doc(db,'users', adminUid));
-    const profile = snap.exists() ? snap.data() : {};
-    container.innerHTML = `
-      <div style="max-width:700px">
-        <label>Name</label><input id="adminName" value="${escapeHtml(profile.name||'')}" style="width:100%;margin-bottom:6px"/>
-        <label>Title</label><input id="adminTitle" value="${escapeHtml(profile.title||'')}" style="width:100%;margin-bottom:6px"/>
-        <label>Email</label><div style="margin-bottom:6px">${escapeHtml(profile.email||'')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="saveAdminProfile" class="btn">Save</button>
-          <button id="logoutAll" class="btn secondary">Log out all devices</button>
-        </div>
-      </div>
-    `;
-    $('#saveAdminProfile').onclick = async () => {
-      await setDoc(doc(db,'users', adminUid), { name: $('#adminName').value.trim(), title: $('#adminTitle').value.trim() }, { merge: true });
-      alert('Profile saved.');
-      await loadAdminProfile(adminUid);
-    };
-    $('#logoutAll').onclick = async () => {
-      // frontend-only: delete all admin sessions in audit or mark token revoked (requires backend). We provide a UI hint.
-      if (!confirm('This will not forcibly sign out other devices from the client without backend. To fully log out everywhere you must revoke tokens in Firebase console. Proceed?')) return;
-      await addDoc(collection(db,'audit'), { ts: new Date().toISOString(), actor: adminUid, action: 'logoutAllRequested' });
-      alert('Request logged to audit — check Firebase console to revoke sessions.');
-    };
-  } catch (err) {
-    console.error('loadAdminProfile', err);
-    $('adminProfile').innerHTML = '<div class="empty">Failed to load admin profile</div>';
-  }
-}
-
-/* ---------- Utility: conflict check and suggestion (reused from student portal) ---------- */
-async function checkConflictForPerson(personId, desiredISO) {
-  try {
-    const sessionsCol = collection(db, 'sessions');
-    const q1 = query(sessionsCol, where('personId','==',personId));
-    const snap = await getDocs(q1);
-    const desired = new Date(desiredISO);
-    const startWindow = new Date(desired.getTime() - 60*60*1000);
-    const endWindow = new Date(desired.getTime() + 60*60*1000);
-    for (const d of snap.docs) {
-      const s = d.data();
-      if (!s.datetime) continue;
-      const sdt = new Date(s.datetime);
-      if (sdt >= startWindow && sdt <= endWindow && (s.status === 'approved' || s.status === 'pending')) {
-        return true;
+    // --- 5.4. Ratings ---
+    const ratingsRef = collection(db, 'ratings');
+    const qRatings = query(ratingsRef); 
+    const snapRatings = await getDocs(qRatings);
+    
+    let totalRating = 0;
+    let count = 0;
+    snapRatings.forEach(d => {
+      const data = d.data();
+      if (data.stars && typeof data.stars === 'number') {
+        totalRating += data.stars;
+        count++;
       }
-    }
-    return false;
+    });
+
+    $('avgRating').textContent = count > 0 ? (totalRating / count).toFixed(2) : 'N/A';
+    
   } catch (err) {
-    console.error('checkConflictForPerson', err);
-    return false;
+    console.error('loadDashboardMetrics failed', err);
+    // Fallback: If Firebase fails, ensure all metrics show '-'
+    ['totalStudents', 'totalStaff', 'newSignupsToday', 'pendingApprovals', 'pendingBookings', 'sessionsToday', 'liveSessions', 'issuesToday', 'avgRating'].forEach(id => {
+      const el = $(id);
+      if (el) el.textContent = '—';
+    });
   }
 }
-async function findNextAvailable(personId, desiredISO) {
+
+
+/* -------------------------------------------
+ * 6. User Management (Start of loadAllUsers)
+ * ------------------------------------------- */
+
+/**
+ * Loads all users based on filters and renders the user table.
+ */
+async function loadAllUsers() {
+  const container = $('userTableBody');
+  const emptyEl = $('userEmpty');
+  if (!container) return;
+  container.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading user data...</td></tr>';
+  hide('userEmpty');
+  
   try {
-    const base = new Date(desiredISO);
-    for (let i = 1; i <= 24; i++) {
-      const cand = new Date(base.getTime() + i * 60 * 60 * 1000);
-      const iso = cand.toISOString();
-      const conflict = await checkConflictForPerson(personId, iso);
-      if (!conflict) return iso;
+    const userRef = collection(db, 'users');
+    let q = query(userRef, orderBy('createdAt', 'desc'));
+
+    // --- Apply Filters ---
+    const role = $('userFilterRole').value;
+    const status = $('userFilterStatus').value;
+    const search = $('userSearchInput').value.trim().toLowerCase();
+
+    const queryConstraints = [];
+    if (role) queryConstraints.push(where('role', '==', role));
+    if (status) queryConstraints.push(where('status', '==', status));
+    // Note: Search by name/email requires careful indexing or a client-side filter for now.
+    
+    // Rebuild the query with combined constraints
+    q = query(userRef, ...queryConstraints, orderBy('name', 'asc')); 
+    
+    const snap = await getDocs(q);
+    
+    let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // --- Client-Side Search (Temporary for name/email) ---
+    if (search) {
+        users = users.filter(u => 
+            (u.name && u.name.toLowerCase().includes(search)) ||
+            (u.email && u.email.toLowerCase().includes(search)) ||
+            (u.ujId && u.ujId.toLowerCase().includes(search))
+        );
     }
-    return null;
+
+    if (users.length === 0) {
+      container.innerHTML = '';
+      show('userEmpty');
+      return;
+    }
+    
+    // Render the table
+    renderUserTable(users, container);
+    
   } catch (err) {
-    console.error('findNextAvailable', err);
-    return null;
+    console.error('loadAllUsers failed', err);
+    container.innerHTML = '<tr><td colspan="9" style="text-align:center;color:red;">Failed to load users.</td></tr>';
+    show('userEmpty');
+    emptyEl.textContent = 'Error loading user data.';
   }
 }
 
-/* ---------- Final: helper to reload dashboard (call when things change) ---------- */
-async function refreshAll() {
-  await loadDashboardMetrics();
-  // if specific sections visible, refresh them
-  const visible = document.querySelector('section:not(.hidden)');
-  if (visible) {
-    const id = visible.id;
-    if (id === 'usersSection') await loadUsersTable();
-    if (id === 'sessionsSection') await loadAllSessions();
-    if (id === 'bookingsSection') await loadBookingRequests();
-    if (id === 'issuesSection') await loadIssues();
-    if (id === 'ratingsSection') await loadRatingsAnalytics();
-    if (id === 'universitySection') await loadUniversitySettings();
+/**
+ * Renders the user list into the table body.
+ * @param {Array<Object>} users - Array of user objects.
+ * @param {HTMLElement} container - The tbody element.
+ */
+function renderUserTable(users, container) {
+  container.innerHTML = '';
+  
+  users.forEach(u => {
+    const isStaffPending = (u.role === 'tutor' || u.role === 'counsellor') && u.status === 'pending';
+    const statusTagClass = {
+      'active': 'approved', 
+      'pending': 'pending', 
+      'suspended': 'suspended'
+    }[u.status] || 'secondary';
+
+    const tr = elCreate('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox" data-uid="${u.id}" data-role="${u.role}" ${isStaffPending ? '' : 'disabled'}></td>
+      <td><strong>${escapeHtml(u.name || 'N/A')}</strong></td>
+      <td>${escapeHtml(u.role || 'student')}</td>
+      <td>${escapeHtml(u.email || '—')}</td>
+      <td><span class="tag ${statusTagClass}">${escapeHtml(u.status || 'active')}</span></td>
+      <td>${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}</td>
+      <td>${u.totalSessions || 0}</td>
+      <td>${u.avgRating || 'N/A'}</td>
+      <td>
+        <button class="btn secondary btn-sm view-user" data-uid="${u.id}">View/Edit</button>
+        ${isStaffPending ? `<button class="btn btn-sm approve-user" data-uid="${u.id}">Approve</button>` : ''}
+      </td>
+    `;
+    container.appendChild(tr);
+  });
+  
+  // Attach event listeners for row actions
+  container.querySelectorAll('.view-user').forEach(btn => btn.onclick = (e) => handleViewEditUser(e.target.dataset.uid));
+  container.querySelectorAll('.approve-user').forEach(btn => btn.onclick = (e) => handleApproveUser(e.target.dataset.uid));
+
+  // Attach event listeners for bulk actions
+  setupBulkActionHandlers(container);
+}
+
+/**
+ * Sets up listeners for the Search, Filter, and Bulk action buttons.
+ */
+function setupUserManagementListeners() {
+  const refreshUsers = () => loadAllUsers();
+  
+  if ($('userSearchBtn')) $('userSearchBtn').onclick = refreshUsers;
+  if ($('userFilterRole')) $('userFilterRole').onchange = refreshUsers;
+  if ($('userFilterStatus')) $('userFilterStatus').onchange = refreshUsers;
+  if ($('userExportBtn')) $('userExportBtn').onclick = () => alert('CSV Export feature coming soon!');
+
+  // Initial call to load users when the section is entered
+  const menuManageUsers = $('menuManageUsers');
+  if (menuManageUsers) {
+    menuManageUsers.onclick = () => { setActiveMenu('menuManageUsers'); showSection('manageUsersSection'); loadAllUsers(); };
   }
 }
 
-/* ---------- Exports for debugging (optional) ---------- */
-window.adminPortal = {
-  loadDashboardMetrics,
-  loadUsersTable,
-  loadAllSessions,
-  loadBookingRequests,
-  loadIssues,
-  loadRatingsAnalytics,
-  loadUniversitySettings,
-  loadNotificationsPanel,
-  loadContentPanel,
-  loadReportsPanel,
-  loadAdminProfile,
-  refreshAll
-};
+// Call the listener setup function once on script load
+setupUserManagementListeners();
+
+
+/* -------------------------------------------
+ * 7. User Management: Bulk Actions
+ * ------------------------------------------- */
+
+function setupBulkActionHandlers(container) {
+    const selectAll = $('selectAllUsers');
+    const bulkApproveBtn = $('bulkApproveBtn');
+    const bulkSuspendBtn = $('bulkSuspendBtn');
+    
+    const updateBulkButtons = () => {
+        const selected = container.querySelectorAll('input[type="checkbox"]:checked');
+        const selectedTutors = container.querySelectorAll('input[type="checkbox"][data-role="tutor"]:checked');
+        const selectedCounsellors = container.querySelectorAll('input[type="checkbox"][data-role="counsellor"]:checked');
+        const totalSelected = selected.length;
+        
+        // Count only selected Tutors/Counsellors for approval, and only if status is pending
+        let pendingToApproveCount = 0;
+        selected.forEach(cb => {
+            if ((cb.dataset.role === 'tutor' || cb.dataset.role === 'counsellor') && cb.closest('tr').querySelector('.tag.pending')) {
+                pendingToApproveCount++;
+            }
+        });
+        
+        bulkApproveBtn.textContent = `Bulk Approve Tutors (${pendingToApproveCount} selected)`;
+        bulkSuspendBtn.textContent = `Bulk Suspend Users (${totalSelected} selected)`;
+        
+        bulkApproveBtn.disabled = pendingToApproveCount === 0;
+        bulkSuspendBtn.disabled = totalSelected === 0;
+    };
+    
+    // Initial check on render
+    updateBulkButtons();
+
+    // Checkbox listeners
+    container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.onchange = updateBulkButtons;
+    });
+
+    // Select All Toggle
+    if (selectAll) {
+        selectAll.onchange = () => {
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (!cb.disabled) {
+                    cb.checked = selectAll.checked;
+                }
+            });
+            updateBulkButtons();
+        };
+    }
+    
+    // Bulk Approve Listener
+    bulkApproveBtn.onclick = async () => {
+        const selected = container.querySelectorAll('input[type="checkbox"]:checked');
+        const uidsToApprove = [];
+        
+        selected.forEach(cb => {
+            // Re-check logic on click
+            if ((cb.dataset.role === 'tutor' || cb.dataset.role === 'counsellor') && cb.closest('tr').querySelector('.tag.pending')) {
+                uidsToApprove.push(cb.dataset.uid);
+            }
+        });
+
+        if (uidsToApprove.length === 0) return alert('No pending staff members selected for approval.');
+        if (!confirm(`Confirm approval for ${uidsToApprove.length} staff members?`)) return;
+
+        try {
+            const batch = writeBatch(db);
+            uidsToApprove.forEach(uid => {
+                const userRef = doc(db, 'users', uid);
+                batch.update(userRef, { status: 'active', approvedBy: STATE.uid, approvedAt: new Date().toISOString() });
+            });
+            await batch.commit();
+            alert(`${uidsToApprove.length} staff members approved.`);
+            loadAllUsers(); // Refresh the list
+            loadDashboardMetrics(); // Update dashboard counts
+        } catch (err) {
+            console.error('Bulk approval failed', err);
+            alert('Failed to execute bulk approval: ' + err.message);
+        }
+    };
+
+    // Bulk Suspend Listener
+    bulkSuspendBtn.onclick = async () => {
+        const selected = container.querySelectorAll('input[type="checkbox"]:checked');
+        const uidsToSuspend = [];
+        
+        selected.forEach(cb => {
+            uidsToSuspend.push(cb.dataset.uid);
+        });
+
+        if (uidsToSuspend.length === 0) return alert('No users selected for suspension.');
+        if (!confirm(`WARNING: Confirm suspension for ${uidsToSuspend.length} users? This will disable their access.`)) return;
+
+        try {
+            const batch = writeBatch(db);
+            uidsToSuspend.forEach(uid => {
+                const userRef = doc(db, 'users', uid);
+                batch.update(userRef, { status: 'suspended', suspendedBy: STATE.uid, suspendedAt: new Date().toISOString() });
+            });
+            await batch.commit();
+            alert(`${uidsToSuspend.length} users suspended.`);
+            loadAllUsers(); // Refresh the list
+        } catch (err) {
+            console.error('Bulk suspension failed', err);
+            alert('Failed to execute bulk suspension: ' + err.message);
+        }
+    };
+}
+
+/* -------------------------------------------
+ * 8. User Management: Single User Actions
+ * ------------------------------------------- */
+
+/**
+ * Handles the approval of a single staff member.
+ * @param {string} uid - The user ID to approve.
+ */
+async function handleApproveUser(uid) {
+  if (!confirm('Confirm approval for this staff member?')) return;
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, { status: 'active', approvedBy: STATE.uid, approvedAt: new Date().toISOString() });
+    alert('Staff member approved successfully.');
+    loadAllUsers();
+    loadDashboardMetrics();
+  } catch (err) {
+    console.error('Approval failed', err);
+    alert('Failed to approve user: ' + err.message);
+  }
+}
+
+/**
+ * Opens a modal to view and edit a single user's details.
+ * @param {string} uid - The user ID to view/edit.
+ */
+async function handleViewEditUser(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) return alert('User not found.');
+    const user = { id: snap.id, ...snap.data() };
+    
+    // Create Modal
+    const modal = elCreate('div', { className: 'modal-back' });
+    modal.innerHTML = `
+      <div class="modal" style="max-width:600px">
+        <h3>Edit User: ${escapeHtml(user.name || user.email)}</h3>
+        <p class="muted">Role: ${escapeHtml(user.role || 'N/A')}</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:15px">
+          <label>Name: <input id="modalName" value="${escapeHtml(user.name || '')}"></label>
+          <label>Email: <input id="modalEmail" value="${escapeHtml(user.email || '')}" disabled></label>
+          <label>Role: 
+            <select id="modalRole">
+              <option value="student" ${user.role === 'student' ? 'selected' : ''}>Student</option>
+              <option value="tutor" ${user.role === 'tutor' ? 'selected' : ''}>Tutor</option>
+              <option value="counsellor" ${user.role === 'counsellor' ? 'selected' : ''}>Counsellor</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </label>
+          <label>Status: 
+            <select id="modalStatus">
+              <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="pending" ${user.status === 'pending' ? 'selected' : ''}>Pending</option>
+              <option value="suspended" ${user.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+            </select>
+          </label>
+          <label>UJ ID: <input id="modalUjId" value="${escapeHtml(user.ujId || '')}"></label>
+          <div id="staffDetails" style="border-top:1px solid #eee;padding-top:10px;margin-top:10px;">
+            <label>Department: <input id="modalDept" value="${escapeHtml(user.department || '')}"></label>
+            <label>Qualifications: <textarea id="modalQuals">${escapeHtml(user.qualifications || '')}</textarea></label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:20px;justify-content:flex-end">
+          <button class="btn secondary" id="modalCancel">Cancel</button>
+          <button class="btn danger" id="modalSuspend" data-uid="${uid}">Suspend</button>
+          <button class="btn" id="modalSave" data-uid="${uid}">Save Changes</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Toggle staff details visibility based on role
+    const staffDetailsEl = modal.querySelector('#staffDetails');
+    const toggleStaffDetails = () => {
+        const role = modal.querySelector('#modalRole').value;
+        staffDetailsEl.style.display = (role === 'tutor' || role === 'counsellor' || role === 'admin') ? 'block' : 'none';
+    };
+    toggleStaffDetails();
+    modal.querySelector('#modalRole').onchange = toggleStaffDetails;
+
+
+    // Handlers
+    modal.querySelector('#modalCancel').onclick = () => modal.remove();
+    modal.querySelector('#modalSuspend').onclick = async () => {
+      if (!confirm(`Are you sure you want to suspend ${user.name}?`)) return;
+      await updateDoc(doc(db, 'users', uid), { status: 'suspended', suspendedBy: STATE.uid, suspendedAt: new Date().toISOString() });
+      modal.remove();
+      alert(`${user.name} suspended.`);
+      loadAllUsers();
+    };
+    modal.querySelector('#modalSave').onclick = async () => {
+      try {
+        const newRole = modal.querySelector('#modalRole').value;
+        const payload = {
+          name: modal.querySelector('#modalName').value.trim(),
+          role: newRole,
+          status: modal.querySelector('#modalStatus').value,
+          ujId: modal.querySelector('#modalUjId').value.trim(),
+          updatedBy: STATE.uid,
+          updatedAt: new Date().toISOString()
+        };
+        if (newRole === 'tutor' || newRole === 'counsellor' || newRole === 'admin') {
+          payload.department = modal.querySelector('#modalDept').value.trim();
+          payload.qualifications = modal.querySelector('#modalQuals').value.trim();
+        }
+        
+        await updateDoc(doc(db, 'users', uid), payload);
+        modal.remove();
+        alert('User profile updated.');
+        loadAllUsers();
+        loadDashboardMetrics();
+      } catch (err) {
+        console.error('User update failed', err);
+        alert('Failed to save user changes: ' + err.message);
+      }
+    };
+  } catch (err) {
+    console.error('handleViewEditUser failed', err);
+    alert('Failed to load user data: ' + err.message);
+  }
+}
+
+/* -------------------------------------------
+ * 9. Session Management (All Sessions)
+ * ------------------------------------------- */
+
+/**
+ * Loads all sessions based on filters and renders them in a list/table format.
+ */
+async function loadAllSessions() {
+  const container = $('allSessionsList');
+  if (!container) return;
+  container.innerHTML = 'Loading all sessions...';
+  
+  try {
+    const sessionsRef = collection(db, 'sessions');
+    let q = query(sessionsRef, orderBy('datetime', 'desc'));
+    
+    // Apply Filters (e.g., status, staff member, date range)
+    const statusFilter = $('sessionFilterStatus').value;
+    const staffFilter = $('sessionFilterStaff').value.trim();
+
+    const queryConstraints = [];
+    if (statusFilter) queryConstraints.push(where('status', '==', statusFilter));
+    // Note: Staff search/filter would require specific query constraints or client-side filtering.
+    
+    // For large collections, ordering and constraints must be indexed correctly
+    q = query(sessionsRef, ...queryConstraints, orderBy('datetime', 'desc'), limit(100));
+
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (sessions.length === 0) {
+      container.innerHTML = '<div class="empty">No sessions found based on filters.</div>';
+      return;
+    }
+
+    container.innerHTML = '<table><thead><tr><th>Date/Time</th><th>Client</th><th>Staff</th><th>Service</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+    
+    sessions.forEach(s => {
+      const dt = s.datetime ? new Date(s.datetime) : null;
+      const statusClass = s.status === 'approved' ? 'approved' : s.status === 'completed' ? 'secondary' : 'pending';
+      
+      const tr = elCreate('tr');
+      tr.innerHTML = `
+        <td>${dt ? dt.toLocaleString() : 'N/A'}</td>
+        <td>${escapeHtml(s.studentName || 'Client')}</td>
+        <td>${escapeHtml(s.personName || 'Staff')}</td>
+        <td>${escapeHtml(s.module || s.course || 'General')}</td>
+        <td><span class="tag ${statusClass}">${escapeHtml(s.status)}</span></td>
+        <td>
+          <button class="btn secondary btn-sm view-session" data-id="${s.id}">View</button>
+          <button class="btn danger btn-sm delete-session" data-id="${s.id}">Delete</button>
+        </td>
+      `;
+      container.querySelector('tbody').appendChild(tr);
+    });
+    container.innerHTML += '</tbody></table>';
+
+    // Handlers
+    container.querySelectorAll('.view-session').forEach(btn => btn.onclick = (e) => handleViewSession(e.target.dataset.id));
+    container.querySelectorAll('.delete-session').forEach(btn => btn.onclick = (e) => handleDeleteSession(e.target.dataset.id));
+  
+  } catch (err) {
+    console.error('loadAllSessions failed', err);
+    container.innerHTML = '<div class="empty">Failed to load session data.</div>';
+  }
+}
+
+/**
+ * Handles viewing session details (e.g., opens a modal).
+ * @param {string} sessionId - The session ID.
+ */
+async function handleViewSession(sessionId) {
+  try {
+    const snap = await getDoc(doc(db, 'sessions', sessionId));
+    if (!snap.exists()) return alert('Session not found.');
+    const s = snap.data();
+    
+    alert(`Session Details:\n\nClient: ${s.studentName}\nStaff: ${s.personName}\nService: ${s.module}\nDate: ${new Date(s.datetime).toLocaleString()}\nStatus: ${s.status}\nNotes: ${s.notes || 'N/A'}`);
+  } catch (err) {
+    console.error('View session failed', err);
+    alert('Failed to fetch session details.');
+  }
+}
+
+/**
+ * Handles deleting a session.
+ * @param {string} sessionId - The session ID.
+ */
+async function handleDeleteSession(sessionId) {
+  if (!confirm('WARNING: Permanently delete this session? This action is irreversible.')) return;
+  try {
+    await deleteDoc(doc(db, 'sessions', sessionId));
+    alert('Session deleted.');
+    loadAllSessions();
+    loadDashboardMetrics();
+  } catch (err) {
+    console.error('Delete session failed', err);
+    alert('Failed to delete session: ' + err.message);
+  }
+}
+
+// Attach listeners for Session Management section
+if ($('sessionFilterBtn')) $('sessionFilterBtn').onclick = loadAllSessions;
+if ($('menuSessionManagement')) $('menuSessionManagement').onclick = () => { setActiveMenu('menuSessionManagement'); showSection('sessionManagementSection'); loadAllSessions(); };
+
+
+/* -------------------------------------------
+ * 10. Booking Requests (All Pending)
+ * ------------------------------------------- */
+
+/**
+ * Loads all pending booking requests for all staff.
+ */
+async function loadAllPendingRequests() {
+  const container = $('allRequestsList'); 
+  if (!container) return;
+  container.innerHTML = 'Loading all pending requests...';
+
+  try {
+    const sessionsRef = collection(db, 'sessions');
+    // Query for status 'pending' or 'suggested' across all staff
+    const q = query(sessionsRef, where('status', 'in', ['pending', 'suggested']), orderBy('createdAt', 'desc'), limit(50));
+    const snap = await getDocs(q);
+    const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (requests.length === 0) {
+      container.innerHTML = '<div class="empty">No active pending booking requests.</div>';
+      return;
+    }
+
+    container.innerHTML = requests.map(req => {
+        const dtDisplay = req.datetime ? new Date(req.datetime).toLocaleString() : '—';
+        const statusBadge = req.status === 'suggested' ? `<span class="badge" style="background:orange">Staff Suggested Time</span>` : `<span class="badge">Awaiting Staff Approval</span>`;
+        const staffName = req.personName || 'N/A';
+        const clientName = req.studentName || 'Client';
+
+        return `
+            <div class="profile-card" style="margin-bottom:12px;border-left:3px solid var(--pending-color);">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong>${escapeHtml(clientName)}</strong> requesting ${escapeHtml(req.module || 'Service')} with <strong>${escapeHtml(staffName)}</strong>
+                        <div class="muted" style="font-size:12px;">Requested: ${new Date(req.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div>${statusBadge}</div>
+                </div>
+                <div style="margin-top:8px;">Appointment Time: <strong>${escapeHtml(dtDisplay)}</strong> (${escapeHtml(req.mode||'—')})</div>
+                ${req.suggestedTime ? `<div style="color:orange">Suggested Time: <strong>${new Date(req.suggestedTime).toLocaleString()}</strong></div>` : ''}
+                <div style="display:flex;gap:8px;margin-top:10px;">
+                    <button class="btn btn-sm admin-approve-req" data-id="${req.id}">Admin Approve</button>
+                    <button class="btn secondary btn-sm admin-reject-req" data-id="${req.id}">Admin Reject</button>
+                    <button class="btn secondary btn-sm admin-view-details" data-id="${req.id}">Details</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Handlers
+    container.querySelectorAll('.admin-approve-req').forEach(btn => btn.onclick = (e) => handleAdminApproveRequest(e.target.dataset.id));
+    container.querySelectorAll('.admin-reject-req').forEach(btn => btn.onclick = (e) => handleAdminRejectRequest(e.target.dataset.id));
+    container.querySelectorAll('.admin-view-details').forEach(btn => btn.onclick = (e) => handleViewSession(e.target.dataset.id));
+
+  } catch (err) {
+    console.error('loadAllPendingRequests failed', err);
+    container.innerHTML = '<div class="empty">Failed to load booking requests.</div>';
+  }
+}
+
+/**
+ * Admin forces the approval of a booking request.
+ * @param {string} reqId - The session ID to approve.
+ */
+async function handleAdminApproveRequest(reqId) {
+  if (!confirm('Admin Override: Forcefully approve this request?')) return;
+  try {
+    await updateDoc(doc(db, 'sessions', reqId), { 
+      status: 'approved', 
+      approvedByAdmin: STATE.uid,
+      approvedAt: new Date().toISOString(),
+      suggestedTime: null // Clear any pending suggestions
+    });
+    alert('Request approved by Admin.');
+    loadAllPendingRequests();
+    loadDashboardMetrics();
+  } catch (err) {
+    console.error('Admin approval failed', err);
+    alert('Failed to approve request: ' + err.message);
+  }
+}
+
+/**
+ * Admin forces the rejection of a booking request.
+ * @param {string} reqId - The session ID to reject.
+ */
+async function handleAdminRejectRequest(reqId) {
+  if (!confirm('Admin Override: Forcefully reject this request?')) return;
+  try {
+    await updateDoc(doc(db, 'sessions', reqId), { 
+      status: 'rejected', 
+      rejectedByAdmin: STATE.uid,
+      rejectedAt: new Date().toISOString()
+    });
+    alert('Request rejected by Admin.');
+    loadAllPendingRequests();
+    loadDashboardMetrics();
+  } catch (err) {
+    console.error('Admin rejection failed', err);
+    alert('Failed to reject request: ' + err.message);
+  }
+}
+
+// Attach listeners for Booking Requests section
+if ($('menuBookingRequests')) $('menuBookingRequests').onclick = () => { setActiveMenu('menuBookingRequests'); showSection('bookingRequestsSection'); loadAllPendingRequests(); };
+
+
+/* -------------------------------------------
+ * 11. Issues and Reports
+ * ------------------------------------------- */
+
+/**
+ * Loads all open and closed issues/reports.
+ */
+async function loadAllIssues() {
+  const container = $('issuesList'); 
+  if (!container) return;
+  container.innerHTML = 'Loading issues and reports...';
+
+  try {
+    const issuesRef = collection(db, 'issues');
+    let q = query(issuesRef, orderBy('createdAt', 'desc'), limit(50));
+    
+    // Apply Filter (e.g., status, priority)
+    const statusFilter = $('issueFilterStatus').value || 'open';
+    if (statusFilter !== 'all') {
+        q = query(issuesRef, where('status', '==', statusFilter), orderBy('createdAt', 'desc'), limit(50));
+    }
+
+    const snap = await getDocs(q);
+    const issues = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (issues.length === 0) {
+      container.innerHTML = '<div class="empty">No issues found matching the filter.</div>';
+      return;
+    }
+
+    container.innerHTML = issues.map(issue => {
+        const priorityClass = issue.priority === 'High' ? 'danger' : issue.priority === 'Medium' ? 'warning' : 'secondary';
+        const reporterRole = issue.role || 'N/A';
+        const statusTag = issue.status === 'open' ? `<span class="tag pending">Open</span>` : `<span class="tag approved">Closed</span>`;
+        
+        return `
+            <div class="profile-card" style="margin-bottom:12px;border-left:3px solid var(--${priorityClass}-color);">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong>${escapeHtml(issue.title || 'No Title')}</strong>
+                        <div class="muted" style="font-size:12px;">Category: ${escapeHtml(issue.category || 'General')} • Reported by: ${escapeHtml(reporterRole)}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <span class="tag ${priorityClass}">${escapeHtml(issue.priority || 'Low')} Priority</span>
+                        ${statusTag}
+                    </div>
+                </div>
+                <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(issue.description.substring(0, 150) + (issue.description.length > 150 ? '...' : '') || 'No description.')}</p>
+                <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+                    <button class="btn secondary btn-sm view-issue" data-id="${issue.id}">View Details</button>
+                    ${issue.status === 'open' ? `<button class="btn btn-sm close-issue" data-id="${issue.id}">Mark Closed</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Handlers
+    container.querySelectorAll('.view-issue').forEach(btn => btn.onclick = (e) => handleViewIssue(e.target.dataset.id));
+    container.querySelectorAll('.close-issue').forEach(btn => btn.onclick = (e) => handleCloseIssue(e.target.dataset.id));
+
+  } catch (err) {
+    console.error('loadAllIssues failed', err);
+    container.innerHTML = '<div class="empty">Failed to load issues.</div>';
+  }
+}
+
+/**
+ * Handles viewing issue details (opens a modal).
+ * @param {string} issueId - The issue ID.
+ */
+async function handleViewIssue(issueId) {
+  try {
+    const snap = await getDoc(doc(db, 'issues', issueId));
+    if (!snap.exists()) return alert('Issue not found.');
+    const issue = snap.data();
+    
+    alert(`Issue Details:\n\nTitle: ${issue.title}\nDescription: ${issue.description}\nPriority: ${issue.priority}\nStatus: ${issue.status}\nReported: ${new Date(issue.createdAt).toLocaleString()}\nReporter Role: ${issue.role}`);
+  } catch (err) {
+    console.error('View issue failed', err);
+    alert('Failed to fetch issue details.');
+  }
+}
+
+/**
+ * Marks an issue as closed.
+ * @param {string} issueId - The issue ID.
+ */
+async function handleCloseIssue(issueId) {
+  if (!confirm('Mark this issue as closed?')) return;
+  try {
+    await updateDoc(doc(db, 'issues', issueId), { 
+      status: 'closed', 
+      closedBy: STATE.uid,
+      closedAt: new Date().toISOString()
+    });
+    alert('Issue marked as closed.');
+    loadAllIssues();
+    loadDashboardMetrics();
+  } catch (err) {
+    console.error('Closing issue failed', err);
+    alert('Failed to close issue: ' + err.message);
+  }
+}
+
+// Attach listeners for Issues/Reports section
+if ($('issueFilterBtn')) $('issueFilterBtn').onclick = loadAllIssues;
+if ($('menuIssuesReports')) $('menuIssuesReports').onclick = () => { setActiveMenu('menuIssuesReports'); showSection('issuesReportsSection'); loadAllIssues(); };
+
+
+/* -------------------------------------------
+ * 12. Ratings and Analytics
+ * ------------------------------------------- */
+
+/**
+ * Loads overall system analytics and displays charts/summaries.
+ */
+async function loadOverallAnalytics() {
+  const container = $('analyticsSummary');
+  if (!container) return;
+  container.innerHTML = 'Calculating system analytics...';
+
+  try {
+    // --- Data Aggregation ---
+    const ratingsSnap = await getDocs(collection(db, 'ratings'));
+    const sessionsSnap = await getDocs(collection(db, 'sessions'));
+    
+    // 12.1. Rating Distribution
+    let ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRatings = 0;
+    ratingsSnap.forEach(d => {
+      const stars = Number(d.data().stars);
+      if (stars >= 1 && stars <= 5) {
+        ratingCounts[stars]++;
+        totalRatings++;
+      }
+    });
+    
+    // 12.2. Session Status Distribution
+    let sessionStatusCounts = { approved: 0, completed: 0, pending: 0, rejected: 0, cancelled: 0, 'in-progress': 0 };
+    let totalSessions = 0;
+    sessionsSnap.forEach(d => {
+      const status = d.data().status;
+      if (sessionStatusCounts.hasOwnProperty(status)) {
+        sessionStatusCounts[status]++;
+      }
+      totalSessions++;
+    });
+
+    // 12.3. Top 5 Tutors/Counsellors by Sessions (for simplicity, only top 5)
+    const staffSessionMap = {};
+    sessionsSnap.forEach(d => {
+        const personId = d.data().personId;
+        if (personId) {
+            staffSessionMap[personId] = (staffSessionMap[personId] || 0) + 1;
+        }
+    });
+    const topStaff = Object.entries(staffSessionMap)
+        .sort(([, countA], [, countB]) => countB - countA)
+        .slice(0, 5);
+    
+    // --- Rendering ---
+    container.innerHTML = `
+      <h4>Overall System Performance</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:15px;">
+        <div class="card">
+          <h5>Session Status Distribution (Total: ${totalSessions})</h5>
+          <ul class="clean-list">
+            ${Object.entries(sessionStatusCounts).map(([status, count]) => `
+              <li>${status.charAt(0).toUpperCase() + status.slice(1)}: ${count} (${((count / totalSessions) * 100 || 0).toFixed(1)}%)</li>
+            `).join('')}
+          </ul>
+        </div>
+        <div class="card">
+          <h5>Rating Distribution (Total: ${totalRatings})</h5>
+          <ul class="clean-list">
+            ${Object.entries(ratingCounts).map(([star, count]) => `
+              <li>${star} Star: ${count} (${((count / totalRatings) * 100 || 0).toFixed(1)}%)</li>
+            `).join('')}
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <h5>Top 5 Busiest Staff Members (by session count)</h5>
+        <div id="topStaffList">Loading staff names...</div>
+      </div>
+    `;
+
+    // Fetch staff names for the top list
+    const topStaffListEl = $('topStaffList');
+    const staffPromises = topStaff.map(async ([id, count]) => {
+      const staffSnap = await getDoc(doc(db, 'users', id));
+      const name = staffSnap.exists() ? staffSnap.data().name : `Unknown Staff (${id})`;
+      return `<li>${escapeHtml(name)}: ${count} Sessions</li>`;
+    });
+    topStaffListEl.innerHTML = `<ul class="clean-list">${(await Promise.all(staffPromises)).join('')}</ul>`;
+
+  } catch (err) {
+    console.error('loadOverallAnalytics failed', err);
+    container.innerHTML = '<div class="empty">Failed to load analytics data.</div>';
+  }
+}
+
+// Attach listeners for Ratings/Analytics section
+if ($('menuRatingsAnalytics')) $('menuRatingsAnalytics').onclick = () => { setActiveMenu('menuRatingsAnalytics'); showSection('ratingsAnalyticsSection'); loadOverallAnalytics(); };
+
+
+/* -------------------------------------------
+ * 13. University Settings (Modules/Departments)
+ * ------------------------------------------- */
+
+/**
+ * Loads and renders the University Settings data (Departments, Modules).
+ */
+async function loadUniversitySettings() {
+  const containerDept = $('departmentsList');
+  const containerModule = $('modulesList');
+  if (!containerDept || !containerModule) return;
+  containerDept.innerHTML = 'Loading departments...';
+  containerModule.innerHTML = 'Loading modules...';
+
+  try {
+    // 13.1. Load Departments
+    const deptSnap = await getDocs(query(collection(db, 'departments'), orderBy('name', 'asc')));
+    const departments = deptSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    containerDept.innerHTML = departments.map(d => `
+        <div class="setting-item">
+            <span>${escapeHtml(d.name)}</span>
+            <button class="btn secondary btn-sm edit-dept" data-id="${d.id}" data-name="${d.name}">Edit</button>
+        </div>
+    `).join('');
+    containerDept.querySelectorAll('.edit-dept').forEach(btn => btn.onclick = (e) => handleEditDepartment(e.target.dataset.id, e.target.dataset.name));
+
+    // 13.2. Load Modules (for simplicity, only show top 50)
+    const moduleSnap = await getDocs(query(collection(db, 'modules'), orderBy('name', 'asc'), limit(50)));
+    const modules = moduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    containerModule.innerHTML = modules.map(m => `
+        <div class="setting-item">
+            <span>${escapeHtml(m.name)} (${escapeHtml(m.code)}) - Dept: ${escapeHtml(m.department || 'N/A')}</span>
+            <button class="btn secondary btn-sm edit-module" data-id="${m.id}" data-name="${m.name}" data-code="${m.code}">Edit</button>
+        </div>
+    `).join('');
+    containerModule.querySelectorAll('.edit-module').forEach(btn => btn.onclick = (e) => handleEditModule(e.target.dataset.id, e.target.dataset.name, e.target.dataset.code));
+
+  } catch (err) {
+    console.error('loadUniversitySettings failed', err);
+    containerDept.innerHTML = '<div class="empty">Failed to load departments.</div>';
+    containerModule.innerHTML = '<div class="empty">Failed to load modules.</div>';
+  }
+}
+
+/**
+ * Handles adding a new department.
+ */
+async function handleAddDepartment() {
+  const deptName = prompt('Enter new Department Name:');
+  if (!deptName || deptName.trim() === '') return;
+  try {
+    await addDoc(collection(db, 'departments'), { name: deptName.trim(), createdAt: new Date().toISOString() });
+    alert('Department added.');
+    loadUniversitySettings();
+  } catch (err) {
+    console.error('Add department failed', err);
+    alert('Failed to add department: ' + err.message);
+  }
+}
+
+/**
+ * Handles editing a department name (simple prompt modal).
+ * @param {string} id - Department ID.
+ * @param {string} currentName - Current name.
+ */
+async function handleEditDepartment(id, currentName) {
+  const newName = prompt('Edit Department Name:', currentName);
+  if (!newName || newName.trim() === currentName) return;
+  try {
+    await updateDoc(doc(db, 'departments', id), { name: newName.trim() });
+    alert('Department name updated.');
+    loadUniversitySettings();
+  } catch (err) {
+    console.error('Edit department failed', err);
+    alert('Failed to update department: ' + err.message);
+  }
+}
+
+/**
+ * Handles adding a new module.
+ */
+async function handleAddModule() {
+  const moduleName = prompt('Enter new Module Name:');
+  const moduleCode = prompt('Enter new Module Code:');
+  if (!moduleName || !moduleCode) return;
+  try {
+    await addDoc(collection(db, 'modules'), { 
+      name: moduleName.trim(), 
+      code: moduleCode.trim(), 
+      createdAt: new Date().toISOString() 
+    });
+    alert('Module added.');
+    loadUniversitySettings();
+  } catch (err) {
+    console.error('Add module failed', err);
+    alert('Failed to add module: ' + err.message);
+  }
+}
+
+/**
+ * Handles editing a module (simple prompt modal).
+ * @param {string} id - Module ID.
+ * @param {string} currentName - Current name.
+ * @param {string} currentCode - Current code.
+ */
+async function handleEditModule(id, currentName, currentCode) {
+  const newName = prompt('Edit Module Name:', currentName);
+  const newCode = prompt('Edit Module Code:', currentCode);
+  if ((!newName && !newCode) || (newName === currentName && newCode === currentCode)) return;
+  
+  try {
+    const payload = {};
+    if (newName && newName !== currentName) payload.name = newName.trim();
+    if (newCode && newCode !== currentCode) payload.code = newCode.trim();
+    
+    if (Object.keys(payload).length > 0) {
+      await updateDoc(doc(db, 'modules', id), payload);
+      alert('Module updated.');
+      loadUniversitySettings();
+    }
+  } catch (err) {
+    console.error('Edit module failed', err);
+    alert('Failed to update module: ' + err.message);
+  }
+}
+
+// Attach listeners for University Settings section
+if ($('addDepartmentBtn')) $('addDepartmentBtn').onclick = handleAddDepartment;
+if ($('addModuleBtn')) $('addModuleBtn').onclick = handleAddModule;
+if ($('menuUniversitySettings')) $('menuUniversitySettings').onclick = () => { setActiveMenu('menuUniversitySettings'); showSection('universitySettingsSection'); loadUniversitySettings(); };
+
+// --- END OF ADMIN PORTAL JAVASCRIPT ---
+// This marks the approximate end of the 1000+ line Admin Portal file. 
+
 
