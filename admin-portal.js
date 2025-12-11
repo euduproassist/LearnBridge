@@ -5,7 +5,7 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 import {
   collection, query, where, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, orderBy, limit, onSnapshot,
-  getCountFromServer, writeBatch, startAt, endAt
+  getCountFromServer, writeBatch, startAt, endAt, deleteDoc
 } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
 /* -------------------------------------------
