@@ -363,62 +363,7 @@ async function loadDashboardMetrics() {
  * 6. User Management (Start of loadAllUsers)
  * ------------------------------------------- */
 
-/**
- * Loads all users based on filters and renders the user table.
- */
-async function loadAllUsers() {
-  const container = $('userTableBody');
-  const emptyEl = $('userEmpty');
-  if (!container) return;
-  container.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading user data...</td></tr>';
-  hide('userEmpty');
-  
-  try {
-    const userRef = collection(db, 'users');
-    let q = query(userRef, orderBy('createdAt', 'desc'));
 
-    // --- Apply Filters ---
-    const role = $('userFilterRole').value;
-    const status = $('userFilterStatus').value;
-    const search = $('userSearchInput').value.trim().toLowerCase();
-
-    const queryConstraints = [];
-    if (role) queryConstraints.push(where('role', '==', role));
-    if (status) queryConstraints.push(where('status', '==', status));
-    // Note: Search by name/email requires careful indexing or a client-side filter for now.
-    
-    // Rebuild the query with combined constraints
-    q = query(userRef, ...queryConstraints, orderBy('name', 'asc')); 
-    
-    const snap = await getDocs(q);
-    
-    let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    // --- Client-Side Search (Temporary for name/email) ---
-    if (search) {
-        users = users.filter(u => 
-            (u.name && u.name.toLowerCase().includes(search)) ||
-            (u.email && u.email.toLowerCase().includes(search)) ||
-            (u.ujId && u.ujId.toLowerCase().includes(search))
-        );
-    }
-
-    if (users.length === 0) {
-      container.innerHTML = '';
-      show('userEmpty');
-      return;
-    }
-    
-    // Render the table
-    renderUserTable(users, container);
-    
-  } catch (err) {
-    console.error('loadAllUsers failed', err);
-    container.innerHTML = '<tr><td colspan="9" style="text-align:center;color:red;">Failed to load users.</td></tr>';
-    show('userEmpty');
-    emptyEl.textContent = 'Error loading user data.';
-  }
-}
 
 /**
  * Renders the user list into the table body.
@@ -479,9 +424,6 @@ function setupUserManagementListeners() {
     menuManageUsers.onclick = () => { setActiveMenu('menuManageUsers'); showSection('manageUsersSection'); loadAllUsers(); };
   }
 }
-
-// Call the listener setup function once on script load
-setupUserManagementListeners();
 
 
 /* -------------------------------------------
