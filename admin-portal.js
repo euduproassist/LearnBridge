@@ -177,73 +177,7 @@ async function initAdminPortal(uid) {
 
 
 
-/* -------------------------------------------
- * 4. Admin Profile Management
- * ------------------------------------------- */
 
-/**
- * Loads the current Admin's profile and populates the profile section fields.
- * @param {string} uid - The Firebase User ID.
- */
-async function loadAdminProfile(uid) {
-  try {
-    const userRef = doc(db, 'users', uid);
-    const snap = await getDoc(userRef);
-    const profile = snap.exists() ? snap.data() : null;
-    
-    // Crucial check: If the user exists but is not an admin, log them out (Security measure)
-    if (profile && profile.role !== 'admin') {
-      alert("Access Denied: Your account role is not 'admin'.");
-      await signOut(auth);
-      return;
-    }
-    
-    STATE.profile = profile || {};
-    
-    // Update main header info
-    const displayName = profile?.name || 'Admin User';
-    $('.user-info').querySelector('span').previousSibling.textContent = `Admin: ${displayName} • `;
-
-    // Populate profile section
-    if (profile) {
-      $('adminName').value = profile.name || '';
-      $('adminRole').value = profile.title || 'System Administrator';
-      $('adminEmail').value = profile.email || (auth.currentUser && auth.currentUser.email) || '';
-    }
-  } catch (err) {
-    console.error('loadAdminProfile failed', err);
-  }
-}
-
-/**
- * Saves the Admin's profile changes (Name, Title, Email).
- */
-async function saveAdminProfile() {
-  const uid = STATE.uid;
-  if (!uid) return alert('Error: Admin user not identified.');
-
-  try {
-    const payload = {
-      name: $('adminName').value.trim(),
-      title: $('adminRole').value.trim(),
-      email: $('adminEmail').value.trim(),
-      // role should never be updated here, only title/name
-      updatedAt: new Date().toISOString()
-    };
-    // Note: Email changes require Firebase Auth logic, handled separately.
-    await updateDoc(doc(db, 'users', uid), payload);
-    alert('Profile saved successfully.');
-    await loadAdminProfile(uid); // Refresh display
-  } catch (err) {
-    console.error('saveAdminProfile failed', err);
-    alert('Failed to save profile: ' + err.message);
-  }
-}
-
-// Attach Save Profile handler
-if ($('saveAdminProfileBtn')) {
-    $('saveAdminProfileBtn').onclick = saveAdminProfile;
-}
 
 
 /* -------------------------------------------
