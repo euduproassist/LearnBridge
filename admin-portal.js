@@ -66,49 +66,7 @@ const ALL_SECTION_IDS = [
   'adminProfileSection'
 ];
 
-/**
- * Handles all navigation and visibility logic.
- * @param {string} idToShow - The ID of the section to show (e.g., 'dashboardSection').
- */
-function showSection(idToShow) {
-  ALL_SECTION_IDS.forEach(s => {
-    const el = $(s);
-    if (!el) return;
-    el.classList.toggle('hidden', s !== idToShow);
-  });
-  
-  // Re-hide empty states until data fetch confirms emptiness
-  ['userEmpty', 'sessionEmpty', 'requestsEmpty', 'issuesEmpty', 'auditLogEmpty'].forEach(hide);
 
-  // Trigger specific load function after showing section
-  switch(idToShow) {
-    case 'dashboardSection':
-      loadDashboardMetrics();
-      break;
-    case 'manageUsersSection':
-      loadAllUsers();
-      break;
-    case 'sessionManagementSection':
-      loadAllSessions();
-      break;
-    case 'bookingRequestsSection':
-      loadAllPendingRequests();
-      break;
-    case 'issuesReportsSection':
-      loadAllIssues();
-      break;
-    case 'ratingsAnalyticsSection':
-      loadOverallAnalytics();
-      break;
-    case 'universitySettingsSection':
-      loadUniversitySettings();
-      break;
-    case 'adminProfileSection':
-      loadAdminProfile(STATE.uid);
-      break;
-    // Other sections (Reports, Notifications) will have their own dedicated load functions
-  }
-}
 
 /* -------------------------------------------
  * 3. Authentication & Entry
