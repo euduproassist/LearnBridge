@@ -802,10 +802,6 @@ async function handleDeleteSession(sessionId) {
   }
 }
 
-// Attach listeners for Session Management section
-if ($('sessionSearchBtn')) $('sessionSearchBtn').onclick = loadAllSessions;
-if ($('menuSessionManagement')) $('menuSessionManagement').onclick = () => { setActiveMenu('menuSessionManagement'); showSection('sessionManagementSection'); loadAllSessions(); };
-
 
 /* -------------------------------------------
  * 10. Booking Requests (All Pending)
