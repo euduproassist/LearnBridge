@@ -1038,9 +1038,6 @@ async function handleCloseIssue(issueId) {
   }
 }
 
-// Attach listeners for Issues/Reports section
-if ($('issueFilterBtn')) $('issueFilterBtn').onclick = loadAllIssues;
-if ($('menuIssuesReports')) $('menuIssuesReports').onclick = () => { setActiveMenu('menuIssuesReports'); showSection('issuesReportsSection'); loadAllIssues(); };
 
 
 /* -------------------------------------------
