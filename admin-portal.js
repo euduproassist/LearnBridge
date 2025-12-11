@@ -1276,6 +1276,70 @@ async function handleEditModule(id, currentName, currentCode) {
     alert('Failed to update module: ' + err.message);
   }
 }
+/**
+ * Loads the global system policies (e.g., max booking time, admin emails)
+ * and populates the settings form fields.
+ */
+async function loadSystemPolicies() {
+  const policiesRef = doc(db, 'settings', 'policies');
+  try {
+    const snap = await getDoc(policiesRef);
+    const policies = snap.exists() ? snap.data() : {};
+
+    // Assuming form fields exist with these IDs in universitySettingsSection
+    $('policyMaxBookingHours').value = policies.maxBookingHours || 2;
+    $('policyMaxSessionsPerWeek').value = policies.maxSessionsPerWeek || 3;
+    $('policyAdminContactEmail').value = policies.adminContactEmail || 'admin@university.ac.za';
+    $('policyTutorAutoApprove').checked = !!policies.tutorAutoApprove;
+
+  } catch (err) {
+    console.error('loadSystemPolicies failed', err);
+    alert('Failed to load system policies.');
+  }
+}
+
+/**
+ * Saves the updated system policies.
+ */
+async function saveSystemPolicies() {
+  try {
+    const policiesRef = doc(db, 'settings', 'policies');
+    
+    const payload = {
+      maxBookingHours: Number($('policyMaxBookingHours').value),
+      maxSessionsPerWeek: Number($('policyMaxSessionsPerWeek').value),
+      adminContactEmail: $('policyAdminContactEmail').value.trim(),
+      tutorAutoApprove: $('policyTutorAutoApprove').checked,
+      updatedAt: new Date().toISOString(),
+      updatedBy: STATE.uid
+    };
+    
+    // Use setDoc with merge to create or update the policies document
+    await setDoc(policiesRef, payload, { merge: true });
+    alert('System Policies updated successfully.');
+    loadSystemPolicies(); // Refresh
+  } catch (err) {
+    console.error('saveSystemPolicies failed', err);
+    alert('Failed to save system policies: ' + err.message);
+  }
+}
+
+/**
+ * Handles deleting a Module.
+ * NOTE: This is a critical action. Only include if necessary.
+ * @param {string} id - Module ID.
+ */
+async function handleDeleteModule(id) {
+    if (!confirm('WARNING: Delete this module? This cannot be undone and may break existing user data.')) return;
+    try {
+        await deleteDoc(doc(db, 'modules', id));
+        alert('Module deleted successfully.');
+        loadUniversitySettings();
+    } catch (err) {
+        console.error('Delete module failed', err);
+        alert('Failed to delete module: ' + err.message);
+    }
+}
 
 
 // --- END OF ADMIN PORTAL JAVASCRIPT ---
