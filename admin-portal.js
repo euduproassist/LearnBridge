@@ -689,9 +689,10 @@ async function handleViewEditUser(uid) {
  * Loads all sessions based on filters and renders them in a list/table format.
  */
 async function loadAllSessions() {
-  const container = $('allSessionsList');
-  if (!container) return;
+  const emptyEl = $('sessionEmpty');
+  if (!container || !emptyEl) return;
   container.innerHTML = 'Loading all sessions...';
+  hide('sessionEmpty');
   
   try {
     const sessionsRef = collection(db, 'sessions');
@@ -783,7 +784,7 @@ async function handleDeleteSession(sessionId) {
 }
 
 // Attach listeners for Session Management section
-if ($('sessionFilterBtn')) $('sessionFilterBtn').onclick = loadAllSessions;
+if ($('sessionSearchBtn')) $('sessionSearchBtn').onclick = loadAllSessions;
 if ($('menuSessionManagement')) $('menuSessionManagement').onclick = () => { setActiveMenu('menuSessionManagement'); showSection('sessionManagementSection'); loadAllSessions(); };
 
 
@@ -795,7 +796,7 @@ if ($('menuSessionManagement')) $('menuSessionManagement').onclick = () => { set
  * Loads all pending booking requests for all staff.
  */
 async function loadAllPendingRequests() {
-  const container = $('allRequestsList'); 
+  const container = $('pendingRequestsList'); 
   if (!container) return;
   container.innerHTML = 'Loading all pending requests...';
 
@@ -1109,8 +1110,8 @@ if ($('menuRatingsAnalytics')) $('menuRatingsAnalytics').onclick = () => { setAc
  * Loads and renders the University Settings data (Departments, Modules).
  */
 async function loadUniversitySettings() {
-  const containerDept = $('departmentsList');
-  const containerModule = $('modulesList');
+  const containerDept = $('departmentList');
+  const containerModule = $('moduleList');
   if (!containerDept || !containerModule) return;
   containerDept.innerHTML = 'Loading departments...';
   containerModule.innerHTML = 'Loading modules...';
