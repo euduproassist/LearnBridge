@@ -252,6 +252,104 @@ async function saveAdminProfile() {
 // Removed the redundant manual event listener at the end of the section.
 
 
+/**
+ * Fetches and aggregates all core system metrics for the dashboard cards.
+ */
+async function loadDashboardMetrics() {
+  try {
+    const startOfToday = new Date(new Date().setHours(0, 0, 0, 0)); // JavaScript Date Object for query comparison
+    const endOfToday = new Date(new Date().setHours(23, 59, 59, 999)); // End of day
+
+    // --- 5.1. User Counts ---
+    const userRef = collection(db, 'users');
+    const qStudents = query(userRef, where('role', '==', 'student'));
+    const qStaff = query(userRef, where('role', 'in', ['tutor', 'counsellor']));
+    
+    // FIX: Using the JavaScript Date object directly for comparison
+    const qNewToday = query(userRef, where('createdAt', '>=', startOfToday)); 
+    const qPendingTutors = query(userRef, where('role', '==', 'tutor'), where('status', '==', 'pending'));
+    
+    const [snapStudents, snapStaff, snapNewToday, snapPendingTutors] = await Promise.all([
+      getCountFromServer(qStudents),
+      getCountFromServer(qStaff),
+      getCountFromServer(qNewToday),
+      getCountFromServer(qPendingTutors)
+    ]);
+    
+    // Update dashboard cards
+    $('totalStudents').textContent = snapStudents.data().count;
+    $('totalStaff').textContent = snapStaff.data().count;
+    $('newSignupsToday').textContent = snapNewToday.data().count;
+    $('pendingApprovals').textContent = snapPendingTutors.data().count;
+    // Update quick action button badge
+    document.querySelector('#quickApproveTutors span').textContent = snapPendingTutors.data().count;
+
+    // --- 5.2. Session Counts ---
+    const sessionsRef = collection(db, 'sessions');
+    const qPendingBookings = query(sessionsRef, where('status', '==', 'pending'));
+    
+    // FIX: Using Date objects for 'datetime' comparisons
+    // IMPORTANT: This query requires a composite index on (datetime, status)
+    const qSessionsToday = query(sessionsRef, 
+      where('datetime', '>=', startOfToday), 
+      where('datetime', '<', endOfToday), 
+      where('status', 'in', ['approved', 'in-progress'])
+    );
+    const qLiveSessions = query(sessionsRef, where('status', '==', 'in-progress'));
+    
+    const [snapPendingBookings, snapSessionsToday, snapLiveSessions] = await Promise.all([
+        getCountFromServer(qPendingBookings),
+        getCountFromServer(qSessionsToday),
+        getCountFromServer(qLiveSessions)
+    ]);
+
+    // Update dashboard cards
+    $('pendingBookings').textContent = snapPendingBookings.data().count;
+    $('sessionsToday').textContent = snapSessionsToday.data().count;
+    $('liveSessions').textContent = snapLiveSessions.data().count;
+
+    // --- 5.3. Issues & Reports ---
+    const issuesRef = collection(db, 'issues');
+    // FIX: Using Date object for 'createdAt' comparison
+    const qIssuesToday = query(issuesRef, 
+      where('createdAt', '>=', startOfToday),
+      where('status', '==', 'open')
+    );
+    const snapIssuesToday = await getCountFromServer(qIssuesToday);
+    
+    // Update dashboard cards
+    $('issuesToday').textContent = snapIssuesToday.data().count;
+    // Update quick action button badge (using null check for safety)
+    const quickIssuesBadge = document.querySelector('#quickViewIssues span');
+    if (quickIssuesBadge) {
+        quickIssuesBadge.textContent = snapIssuesToday.data().count;
+    }
+
+    // --- 5.4. Ratings ---
+    const ratingsRef = collection(db, 'ratings');
+    const snapRatings = await getDocs(query(ratingsRef));
+    
+    let totalRating = 0;
+    let count = 0;
+    snapRatings.forEach(d => {
+      const data = d.data();
+      if (data.stars && typeof data.stars === 'number') {
+        totalRating += data.stars;
+        count++;
+      }
+    });
+
+    $('avgRating').textContent = count > 0 ? (totalRating / count).toFixed(2) : 'N/A';
+    
+  } catch (err) {
+    console.error('loadDashboardMetrics failed', err);
+    // Fallback: If Firebase fails, ensure all metrics show '-'
+    ['totalStudents', 'totalStaff', 'newSignupsToday', 'pendingApprovals', 'pendingBookings', 'sessionsToday', 'liveSessions', 'issuesToday', 'avgRating'].forEach(id => {
+      const el = $(id);
+      if (el) el.textContent = '—';
+    });
+  }
+}
 
 
 
