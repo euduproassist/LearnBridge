@@ -935,6 +935,75 @@ async function handleAdminRejectRequest(reqId) {
  * 11. Issues and Reports
  * ------------------------------------------- */
 
+/**
+ * Loads all open and closed issues/reports.
+ */
+async function loadAllIssues() {
+  const container = $('issuesReportsList'); // Assuming you have a specific list container within the section
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;">Loading issues and reports...</div>';
+  hide('issuesEmpty');
+
+  try {
+    const issuesRef = collection(db, 'issues');
+    let q = query(issuesRef, orderBy('createdAt', 'desc'), limit(50));
+    
+    // Apply Filter (e.g., status, priority)
+    const statusFilter = $('issueFilterStatus').value || 'open';
+    
+    // Ensure the query is rebuilt correctly if a filter is applied
+    const queryConstraints = [];
+    if (statusFilter !== 'all') {
+        queryConstraints.push(where('status', '==', statusFilter));
+    }
+    
+    // Rebuild the query
+    q = query(issuesRef, ...queryConstraints, orderBy('createdAt', 'desc'), limit(50));
+
+    const snap = await getDocs(q);
+    const issues = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (issues.length === 0) {
+      container.innerHTML = '<div class="empty">No issues found matching the filter.</div>';
+      return;
+    }
+
+    // Render the list using profile-card structure
+    container.innerHTML = issues.map(issue => {
+        const priorityClass = issue.priority === 'High' ? 'danger' : issue.priority === 'Medium' ? 'warning' : 'secondary';
+        const reporterRole = issue.role || 'N/A';
+        const statusTag = issue.status === 'open' ? `<span class="tag pending">Open</span>` : `<span class="tag approved">Closed</span>`;
+        
+        return `
+            <div class="profile-card" style="margin-bottom:12px;border-left:3px solid var(--${priorityClass}-color);">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong>${escapeHtml(issue.title || 'No Title')}</strong>
+                        <div class="muted" style="font-size:12px;">Category: ${escapeHtml(issue.category || 'General')} • Reported by: ${escapeHtml(reporterRole)}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <span class="tag ${priorityClass}">${escapeHtml(issue.priority || 'Low')} Priority</span>
+                        ${statusTag}
+                    </div>
+                </div>
+                <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(issue.description.substring(0, 150) + (issue.description.length > 150 ? '...' : '') || 'No description.')}</p>
+                <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+                    <button class="btn secondary btn-sm view-issue" data-id="${issue.id}">View Details</button>
+                    ${issue.status === 'open' ? `<button class="btn btn-sm close-issue" data-id="${issue.id}">Mark Closed</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Handlers
+    container.querySelectorAll('.view-issue').forEach(btn => btn.onclick = (e) => handleViewIssue(e.target.dataset.id));
+    container.querySelectorAll('.close-issue').forEach(btn => btn.onclick = (e) => handleCloseIssue(e.target.dataset.id));
+
+  } catch (err) {
+    console.error('loadAllIssues failed', err);
+    container.innerHTML = '<div class="empty">Failed to load issues.</div>';
+  }
+}
 
 
 /**
