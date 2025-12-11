@@ -252,6 +252,11 @@ async function saveAdminProfile() {
 // Removed the redundant manual event listener at the end of the section.
 
 
+/* -------------------------------------------
+ * 5. Dashboard Loading and Metrics
+ * ------------------------------------------- */
+
+
 /**
  * Fetches and aggregates all core system metrics for the dashboard cards.
  */
