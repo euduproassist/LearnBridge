@@ -1049,6 +1049,100 @@ async function handleCloseIssue(issueId) {
 /* -------------------------------------------
  * 12. Ratings and Analytics
  * ------------------------------------------- */
+/**
+ * Loads overall system analytics and displays charts/summaries.
+ */
+async function loadOverallAnalytics() {
+  // FIX: Use a specific ID for robustness. Assuming the content area has id="analyticsContent"
+  const container = $('analyticsContent'); 
+  if (!container) return;
+  container.innerHTML = 'Calculating system analytics...';
+
+  try {
+    // --- Data Aggregation ---
+    const [ratingsSnap, sessionsSnap] = await Promise.all([
+      getDocs(collection(db, 'ratings')),
+      getDocs(collection(db, 'sessions'))
+    ]);
+    
+    // 12.1. Rating Distribution
+    let ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRatings = 0;
+    ratingsSnap.forEach(d => {
+      const stars = Number(d.data().stars);
+      if (stars >= 1 && stars <= 5) {
+        ratingCounts[stars]++;
+        totalRatings++;
+      }
+    });
+    
+    // 12.2. Session Status Distribution
+    let sessionStatusCounts = { approved: 0, completed: 0, pending: 0, rejected: 0, cancelled: 0, 'in-progress': 0 };
+    let totalSessions = 0;
+    sessionsSnap.forEach(d => {
+      const status = d.data().status;
+      if (sessionStatusCounts.hasOwnProperty(status)) {
+        sessionStatusCounts[status]++;
+      }
+      totalSessions++;
+    });
+
+    // 12.3. Top 5 Tutors/Counsellors by Sessions 
+    const staffSessionMap = {};
+    sessionsSnap.forEach(d => {
+        const personId = d.data().personId;
+        // Only count sessions that are approved or completed
+        if (personId && (d.data().status === 'approved' || d.data().status === 'completed' || d.data().status === 'in-progress')) {
+            staffSessionMap[personId] = (staffSessionMap[personId] || 0) + 1;
+        }
+    });
+    const topStaff = Object.entries(staffSessionMap)
+        .sort(([, countA], [, countB]) => countB - countA)
+        .slice(0, 5);
+    
+    // --- Rendering ---
+    container.innerHTML = `
+      <h4>Overall System Performance</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:15px;">
+        <div class="card">
+          <h5>Session Status Distribution (Total: ${totalSessions})</h5>
+          <ul class="clean-list">
+            ${Object.entries(sessionStatusCounts).map(([status, count]) => `
+              <li>${status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}: ${count} (${((count / totalSessions) * 100 || 0).toFixed(1)}%)</li>
+            `).join('')}
+          </ul>
+        </div>
+        <div class="card">
+          <h5>Rating Distribution (Total: ${totalRatings})</h5>
+          <ul class="clean-list">
+            ${Object.entries(ratingCounts).map(([star, count]) => `
+              <li>${star} Star: ${count} (${((count / totalRatings) * 100 || 0).toFixed(1)}%)</li>
+            `).join('')}
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <h5>Top 5 Busiest Staff Members (by session count)</h5>
+        <div id="topStaffList">Loading staff names...</div>
+      </div>
+    `;
+
+    // Fetch staff names for the top list
+    const topStaffListEl = $('topStaffList');
+    const staffPromises = topStaff.map(async ([id, count]) => {
+      const staffSnap = await getDoc(doc(db, 'users', id));
+      const staffData = staffSnap.exists() ? staffSnap.data() : {};
+      const name = staffData.name || `Unknown Staff (${id})`;
+      const role = staffData.role || 'N/A';
+      return `<li>${escapeHtml(name)} (${escapeHtml(role)}): ${count} Sessions</li>`; // Added role for clarity
+    });
+    topStaffListEl.innerHTML = `<ul class="clean-list">${(await Promise.all(staffPromises)).join('')}</ul>`;
+
+  } catch (err) {
+    console.error('loadOverallAnalytics failed', err);
+    container.innerHTML = '<div class="empty">Failed to load analytics data.</div>';
+  }
+}
 
 
 
