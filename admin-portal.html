@@ -339,50 +339,6 @@
     .tag.normal { background: #17a2b8; color: white; }
     .tag.urgent { background: #d73a3a; color: white; }
 
-    /* CRITICAL FIX: Modal Styling for handleViewEditUser */
-    .modal-back {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6); 
-        z-index: 1000; 
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        width: 90%;
-        max-width: 500px;
-        position: relative;
-        animation: fadeIn 0.3s ease-out;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-    .modal label {
-        display: block;
-        font-weight: 600;
-        color: #444;
-        margin-bottom: 5px;
-    }
-    .clean-list {
-        list-style: none;
-        padding-left: 0;
-    }
-    .clean-list li {
-        padding: 5px 0;
-        border-bottom: 1px dashed #eee;
-    }
-    /* END CRITICAL FIX */
-
     /* Media Queries for Responsiveness */
     @media(max-width: 1024px) {
         .admin-cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -597,7 +553,7 @@
       </div>
 
       <h3>Upcoming Sessions List</h3>
-      <div class="section-content" id="sessionList">
+      <div id="sessionList" class="card-grid">
         </div>
       <div id="sessionEmpty" class="empty">No sessions found.</div>
     </section>
@@ -617,8 +573,8 @@
         <input id="issueSearchInput" type="search" placeholder="Search by title, reporter, or ID..." style="flex:1">
         <select id="issueFilterPriority">
           <option value="">All Priorities</option>
-          <option value="Urgent">Urgent</option>
-          <option value="Normal">Normal</option>
+          <option value="urgent">Urgent</option>
+          <option value="normal">Normal</option>
         </select>
         <select id="issueFilterType">
             <option value="">All Types</option>
@@ -626,10 +582,10 @@
             <option value="behavior">Behavior</option>
             <option value="other">Other</option>
         </select>
-        <button class="btn" id="issueFilterBtn">Filter</button>
+        <button class="btn secondary">Filter</button>
       </div>
 
-      <div class="section-content" id="issuesList">
+      <div class="section-content">
         <table>
             <thead>
                 <tr>
@@ -671,18 +627,11 @@
           <div class="metric" id="feedbackVolume">0</div>
       </div>
       </div>
-      
-      <div class="section-content" id="analyticsSummary" style="margin-bottom: 20px;">
-          <p class="muted">Loading overall analytics summary...</p>
-      </div>
 
-      <div class="section-content">
+      <div class="section-content" style="margin-bottom: 20px;">
         <h3 style="display: flex; justify-content: space-between; align-items: center;">
             Staff Performance Detail: <span id="tutorNameDisplay">Select Staff</span>
-            <div style="display:flex; gap:10px;">
-                <input id="staffSearch" type="search" placeholder="Search Staff ID/Name..." style="width: 250px; margin: 0;">
-                <button class="btn btn-sm" id="searchStaffBtn">Search</button>
-            </div>
+            <input id="staffSearch" type="search" placeholder="Search Staff ID/Name..." style="width: 250px; margin: 0;">
         </h3>
         <p><strong>Role:</strong> <span id="staffRole">N/A</span> | <strong>Rating Score:</strong> <span id="tutorRating">N/A</span> | <strong>Sessions Completed:</strong> <span id="tutorSessions">0</span> | <strong>Attendance Rate:</strong> <span id="tutorAttendance">0%</span></p>
         <p><strong>Response Time (Avg):</strong> <span id="tutorResponseTime">N/A</span></p>
@@ -704,23 +653,23 @@
 
       <div class="section-content">
         <h3>Manage Departments (Faculties)</h3>
-        <input placeholder="New Department Name (e.g., Science Faculty)" id="newDepartmentName">
+        <input placeholder="New Department Name (e.g., Science Faculty)">
         <button class="btn" id="addDepartmentBtn">Add Department</button>
         <ul id="departmentList" style="list-style:none; padding-top:10px;">
             <li style="border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; align-items: center;">Computer Science <button class="btn secondary btn-sm">Edit</button></li>
             <li style="border-bottom: 1px solid #eee; padding: 8px 0; display: flex; justify-content: space-between; align-items: center;">Mathematics <button class="btn secondary btn-sm">Edit</button></li>
-        </ul>
+            </ul>
       </div>
 
       <div class="section-content">
         <h3>Manage Modules (Courses)</h3>
         <select id="moduleDepartmentSelect">
             <option value="">Select Department</option>
+            <option value="CS">Computer Science</option>
             </select>
-        <input placeholder="New Module Name (e.g., COS 1511)" id="newModuleName">
-        <input placeholder="Module Code (e.g., COS1511)" id="newModuleCode">
+        <input placeholder="New Module Name (e.g., COS 1511)">
         <button class="btn" id="addModuleBtn">Add Module</button>
-        <div id="moduleList" style="margin-top: 10px;">No modules defined for selected department.</div>
+        <p class="muted" style="margin-top: 10px;" id="moduleList">No modules defined for selected department.</p>
       </div>
 
       <div class="section-content">
@@ -760,21 +709,7 @@
       <div class="section-content">
         <h3>Notification History</h3>
         <p class="muted">Review sent announcements and message logs here.</p>
-        <table style="font-size: 13px;">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Target</th>
-                    <th>Type</th>
-                    <th>Title</th>
-                    <th>Sender</th>
-                </tr>
-            </thead>
-            <tbody id="notificationHistoryTableBody">
-                </tbody>
-        </table>
-        <div id="notificationHistoryEmpty" class="empty">No past announcements found.</div>
-      </div>
+        </div>
     </section>
     
     <section id="reportsAuditSection" class="hidden">
@@ -844,9 +779,7 @@
 
       <div class="section-content">
         <h3>Security Settings</h3>
-        <label>Current Password:</label>
-        <input type="password" id="currentPassword" placeholder="Enter Current Password for verification">
-        <label>New Password:</label>
+        <label>Change Password:</label>
         <input type="password" id="newPassword" placeholder="New Password">
         <label>Confirm Password:</label>
         <input type="password" id="confirmNewPassword" placeholder="Confirm New Password">
@@ -869,12 +802,6 @@
   // Script to handle section switching (Basic client-side routing mock-up)
   const sections = document.querySelectorAll('main section');
   const menuItems = document.querySelectorAll('.sidebar-menu li');
-  const allSectionIds = [
-    'dashboardSection', 'manageUsersSection', 'sessionManagementSection', 
-    'bookingRequestsSection', 'issuesReportsSection', 'ratingsAnalyticsSection', 
-    'universitySettingsSection', 'notificationsControlSection', 'reportsAuditSection', 
-    'adminProfileSection'
-  ];
 
   function showSection(id) {
     sections.forEach(sec => {
@@ -890,35 +817,43 @@
     if (targetSection) targetSection.classList.remove('hidden');
     if (targetMenu) targetMenu.classList.add('active');
     
-    // The JS file will handle data loading and hiding the empty state if data is present.
+    // In a real application, you would only show the empty state after the database query returns no results.
+    // For this mock-up, we ensure the empty states are visible when the section is loaded until Firebase populates them.
+    document.getElementById('userEmpty').classList.remove('hidden');
+    document.getElementById('sessionEmpty').classList.remove('hidden');
+    document.getElementById('requestsEmpty').classList.remove('hidden');
+    document.getElementById('issuesEmpty').classList.remove('hidden');
+    document.getElementById('auditLogEmpty').classList.remove('hidden');
+
+    // Hide all tables/lists that would be populated by data until data is loaded
+    document.getElementById('userTableBody').innerHTML = '';
+    document.getElementById('sessionList').innerHTML = '';
+    document.getElementById('pendingRequestsList').innerHTML = '';
+    document.getElementById('issueTableBody').innerHTML = '';
+    document.getElementById('auditLogTableBody').innerHTML = '';
     
     // Placeholder logic for quick actions metric update
-    // This is handled better in the JS now, but kept here for fallback in the HTML script.
-    const pendingMetric = document.getElementById('pendingApprovals')?.textContent || '0';
-    const issuesMetric = document.getElementById('issuesToday')?.textContent || '0';
-    
-    document.querySelector('#quickApproveTutors span').textContent = pendingMetric;
-    document.querySelector('#quickViewIssues span').textContent = issuesMetric;
-
-    // Call the dedicated JS function to load data for the section
-    if (window.showSectionInJs) {
-        window.showSectionInJs(id);
-    }
+    document.querySelector('#quickApproveTutors span').textContent = document.getElementById('pendingApprovals').textContent;
+    document.querySelector('#quickViewIssues span').textContent = document.getElementById('issuesToday').textContent;
   }
 
-  // Generic menu listeners
   menuItems.forEach(item => {
+    // Exclude the Log Out item from section switching
     if (item.id !== 'menuLogout') {
         item.addEventListener('click', () => {
           const sectionId = item.id.replace('menu', '').toLowerCase() + 'Section';
           showSection(sectionId);
         });
     } else {
-        // Logout handled in admin-portal.js
+        item.addEventListener('click', () => {
+            // Placeholder for Firebase Logout logic
+            console.log('Logging out...');
+            alert('Logout functionality to be implemented in admin-portal.js using Firebase Auth.');
+        });
     }
   });
 
-  // Default to Dashboard on load (The JS file will also run this in initAdminPortal)
+  // Default to Dashboard on load
   showSection('dashboardSection');
 </script>
 
