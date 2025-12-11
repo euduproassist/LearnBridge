@@ -1333,6 +1333,7 @@ async function saveSystemPolicies() {
   }
 }
 
+
 /**
  * Handles deleting a Module.
  * NOTE: This is a critical action. Only include if necessary.
@@ -1349,6 +1350,204 @@ async function handleDeleteModule(id) {
         alert('Failed to delete module: ' + err.message);
     }
 }
+/* -------------------------------------------
+ * 14. Notifications Control
+ * ------------------------------------------- */
+
+/**
+ * Loads the history of sent notifications.
+ */
+async function loadNotificationHistory() {
+  const container = $('notificationHistoryList');
+  if (!container) return;
+  container.innerHTML = 'Loading notification history...';
+
+  try {
+    const notificationsRef = collection(db, 'notifications');
+    // Fetch the 50 most recent notifications sent
+    const q = query(notificationsRef, orderBy('sentAt', 'desc'), limit(50));
+    const snap = await getDocs(q);
+    const history = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (history.length === 0) {
+      container.innerHTML = '<div class="empty">No recent notification history found.</div>';
+      return;
+    }
+
+    container.innerHTML = history.map(n => {
+        const statusClass = n.status === 'sent' ? 'approved' : 'pending';
+        const target = n.targetRole === 'all' ? 'All Users' : n.targetRole === 'students' ? 'Students Only' : n.targetRole === 'staff' ? 'Staff Only' : 'Specific Users';
+        
+        return `
+            <div class="notification-item card-sm">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <strong>${escapeHtml(n.subject || 'No Subject')}</strong>
+                    <span class="tag ${statusClass}">${escapeHtml(n.status || 'draft')}</span>
+                </div>
+                <div class="muted" style="font-size:12px;">Sent to: ${target} • Sent on: ${new Date(n.sentAt).toLocaleString()}</div>
+                <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(n.body.substring(0, 80) + (n.body.length > 80 ? '...' : '') || 'No body.')}</p>
+            </div>
+        `;
+    }).join('');
+
+  } catch (err) {
+    console.error('loadNotificationHistory failed', err);
+    container.innerHTML = '<div class="empty">Failed to load notification history.</div>';
+  }
+}
+
+/**
+ * Sends a new system-wide announcement notification.
+ */
+async function sendSystemAnnouncement() {
+  const subject = $('announcementSubject').value.trim();
+  const body = $('announcementBody').value.trim();
+  const targetRole = $('announcementTarget').value;
+  
+  if (!subject || !body) return alert('Subject and Body are required for the announcement.');
+  if (!confirm(`Confirm sending this announcement to ${targetRole.toUpperCase()}?`)) return;
+
+  try {
+    await addDoc(collection(db, 'notifications'), { 
+      subject,
+      body,
+      targetRole,
+      sender: STATE.uid,
+      sentAt: new Date().toISOString(),
+      status: 'sent'
+      // Note: A Firebase Cloud Function would typically handle the actual email/push dispatch here
+    });
+    alert(`Announcement sent to ${targetRole}.`);
+    // Clear form and refresh history
+    $('announcementSubject').value = '';
+    $('announcementBody').value = '';
+    loadNotificationHistory();
+
+  } catch (err) {
+    console.error('sendSystemAnnouncement failed', err);
+    alert('Failed to send announcement: ' + err.message);
+  }
+}
+/* -------------------------------------------
+ * 15. Reports and Audit
+ * ------------------------------------------- */
+
+/**
+ * Loads the history of critical administrative actions (Audit Logs).
+ */
+async function loadAuditLogs() {
+  const container = $('auditLogTableBody');
+  const emptyEl = $('auditLogEmpty');
+  if (!container || !emptyEl) return;
+  container.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading audit logs...</td></tr>';
+  hide('auditLogEmpty');
+
+  try {
+    const auditRef = collection(db, 'audit_logs');
+    // Fetch the 100 most recent logs, ordered by timestamp
+    const q = query(auditRef, orderBy('timestamp', 'desc'), limit(100));
+    const snap = await getDocs(q);
+    const logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (logs.length === 0) {
+      container.innerHTML = '';
+      show('auditLogEmpty');
+      return;
+    }
+
+    container.innerHTML = logs.map(log => {
+        const logClass = log.level === 'CRITICAL' ? 'danger' : log.level === 'WARNING' ? 'warning' : 'secondary';
+        const adminName = log.adminName || 'Admin';
+        
+        return `
+            <tr>
+                <td><span class="tag ${logClass}">${escapeHtml(log.level)}</span></td>
+                <td>${escapeHtml(log.action || 'N/A')}</td>
+                <td>${escapeHtml(adminName)} (${escapeHtml(log.adminRole || 'Admin')})</td>
+                <td>${new Date(log.timestamp).toLocaleString()}</td>
+            </tr>
+        `;
+    }).join('');
+
+  } catch (err) {
+    console.error('loadAuditLogs failed', err);
+    container.innerHTML = '<tr><td colspan="4" style="text-align:center;color:red;">Failed to load audit logs.</td></tr>';
+    show('auditLogEmpty');
+  }
+}
+
+/**
+ * Triggers the generation and download of a comprehensive report.
+ * (Placeholder: In a real system, this would call a Cloud Function).
+ */
+function handleGenerateReport() {
+    // Determine report type (e.g., from a select box in the UI)
+    const reportType = $('reportTypeSelect').value; 
+    
+    if (!reportType) return alert('Please select a report type.');
+    if (!confirm(`Start generation of the ${reportType} report? This may take time.`)) return;
+
+    alert(`Generating report: ${reportType}. Please check your Admin email shortly.`);
+    // Placeholder for actual API call to trigger report generation service
+    console.log(`Report generation requested for: ${reportType}`);
+}
+/* -------------------------------------------
+ * 16. Global Event Listeners (Final Wiring)
+ * ------------------------------------------- */
+
+/**
+ * Wires up all primary menu, filter, and action buttons using their IDs.
+ * This is called once during initAdminPortal().
+ */
+function setupAllEventListeners() {
+    // --- Menu Navigation ---
+    $('menuDashboard').onclick = () => { setActiveMenu('menuDashboard'); showSection('dashboardSection'); };
+    $('menuManageUsers').onclick = () => { setActiveMenu('menuManageUsers'); showSection('manageUsersSection'); };
+    $('menuSessionManagement').onclick = () => { setActiveMenu('menuSessionManagement'); showSection('sessionManagementSection'); };
+    $('menuBookingRequests').onclick = () => { setActiveMenu('menuBookingRequests'); showSection('bookingRequestsSection'); };
+    $('menuIssuesReports').onclick = () => { setActiveMenu('menuIssuesReports'); showSection('issuesReportsSection'); };
+    $('menuRatingsAnalytics').onclick = () => { setActiveMenu('menuRatingsAnalytics'); showSection('ratingsAnalyticsSection'); };
+    $('menuUniversitySettings').onclick = () => { setActiveMenu('menuUniversitySettings'); showSection('universitySettingsSection'); };
+    $('menuNotificationsControl').onclick = () => { setActiveMenu('menuNotificationsControl'); showSection('notificationsControlSection'); };
+    $('menuReportsAudit').onclick = () => { setActiveMenu('menuReportsAudit'); showSection('reportsAuditSection'); };
+    $('menuAdminProfile').onclick = () => { setActiveMenu('menuAdminProfile'); showSection('adminProfileSection'); };
+    
+    // --- User Management Filters & Actions ---
+    $('userFilterBtn').onclick = loadAllUsers;
+    $('userSearchBtn').onclick = loadAllUsers;
+    
+    // --- Session Management Filters & Actions ---
+    $('sessionFilterBtn').onclick = loadAllSessions;
+    $('sessionSearchBtn').onclick = loadAllSessions;
+    
+    // --- Issues & Reports Filters ---
+    $('issueFilterBtn').onclick = loadAllIssues;
+
+    // --- Admin Profile Actions ---
+    $('saveProfileBtn').onclick = saveAdminProfile;
+    $('resetPasswordBtn').onclick = () => {
+      if (auth.currentUser && confirm(`Send password reset link to ${auth.currentUser.email}?`)) {
+        sendPasswordResetEmail(auth, auth.currentUser.email)
+          .then(() => alert('Password reset link sent to your email.'))
+          .catch(err => alert('Failed to send reset email: ' + err.message));
+      }
+    };
+    
+    // --- University Settings Actions ---
+    $('addDepartmentBtn').onclick = handleAddDepartment;
+    $('addModuleBtn').onclick = handleAddModule;
+    $('savePoliciesBtn').onclick = saveSystemPolicies; // Ties the policy form button to the save function
+    
+    // --- Notifications Control Actions ---
+    $('sendAnnouncementBtn').onclick = sendSystemAnnouncement;
+    
+    // --- Reports & Audit Actions ---
+    $('generateReportBtn').onclick = handleGenerateReport;
+}
+
+// Ensure the functions are available in the console for debugging
+window.loadAllUsers = loadAllUsers;
+// Add other top-level functions to window object if required for external use
 
 
 // --- END OF ADMIN PORTAL JAVASCRIPT ---
