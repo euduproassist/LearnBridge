@@ -136,42 +136,7 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-/**
- * Initializes the portal by fetching profile, wiring menus, and loading initial data.
- * @param {string} uid - The Firebase User ID.
- */
-async function initAdminPortal(uid) {
-  console.log('Admin Portal Initializing for UID:', uid);
-  
-  // --- 3.1. Menu Wiring ---
-  // Using generic click handlers defined in the HTML script block, but we re-wire the logout button.
-  $('menuLogout').onclick = async () => { 
-    if (!confirm('Are you sure you want to sign out?')) return; 
-    try {
-      await signOut(auth); 
-      window.location.href = 'index.html'; // Redirect to login
-    } catch (err) {
-      console.error('Logout failed:', err);
-      alert('Logout failed. Please try again.');
-    }
-  };
 
-  // --- 3.2. Quick Action Wiring ---
-  $('quickApproveTutors').onclick = () => showSection('manageUsersSection');
-  $('quickViewIssues').onclick = () => showSection('issuesReportsSection');
-  $('quickManageModules').onclick = () => showSection('universitySettingsSection');
-  $('quickSendAnnouncement').onclick = () => showSection('notificationsControlSection');
-  $('quickOpenSettings').onclick = () => showSection('universitySettingsSection');
-  $('quickAnalyticsPanel').onclick = () => showSection('ratingsAnalyticsSection');
-  
-  // --- 3.3. Initial Data Load & Display ---
-  await loadAdminProfile(uid);
-  await loadDashboardMetrics();
-  
-  // Default to Dashboard
-  setActiveMenu('menuDashboard');
-  showSection('dashboardSection');
-}
 
 
 /* -------------------------------------------
