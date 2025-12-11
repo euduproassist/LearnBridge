@@ -689,6 +689,7 @@ async function handleViewEditUser(uid) {
  * Loads all sessions based on filters and renders them in a list/table format.
  */
 async function loadAllSessions() {
+  const container = $('sessionList');
   const emptyEl = $('sessionEmpty');
   if (!container || !emptyEl) return;
   container.innerHTML = 'Loading all sessions...';
@@ -904,9 +905,12 @@ if ($('menuBookingRequests')) $('menuBookingRequests').onclick = () => { setActi
  * Loads all open and closed issues/reports.
  */
 async function loadAllIssues() {
-  const container = $('issuesList'); 
-  if (!container) return;
-  container.innerHTML = 'Loading issues and reports...';
+  const container = $('issuesReportsSection').querySelector('.section-content'); 
+  const tableBody = $('issueTableBody');
+  if (!container || !tableBody) return;
+  tableBody.innerHTML = '<tr><td colspan="8"
+    style="text-align:center;">Loading issues and reports...</td></tr>';
+    hide('issuesEmpty');
 
   try {
     const issuesRef = collection(db, 'issues');
@@ -1013,7 +1017,7 @@ if ($('menuIssuesReports')) $('menuIssuesReports').onclick = () => { setActiveMe
  * Loads overall system analytics and displays charts/summaries.
  */
 async function loadOverallAnalytics() {
-  const container = $('analyticsSummary');
+  const container = $('ratingsanalyticsSection').querySelect or('.section-content:nth-of-type(1)');
   if (!container) return;
   container.innerHTML = 'Calculating system analytics...';
 
