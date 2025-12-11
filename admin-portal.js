@@ -176,6 +176,80 @@ async function initAdminPortal(uid) {
 }
 
 
+/* -------------------------------------------
+ * 4. Admin Profile Management
+ * ------------------------------------------- */
+
+/**
+ * Loads the current Admin's profile and populates the profile section fields.
+ * @param {string} uid - The Firebase User ID.
+ */
+async function loadAdminProfile(uid) {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.exists() ? snap.data() : null;
+    
+    // Crucial security check: If the user exists but is not an admin, log them out
+    if (profile && profile.role !== 'admin') {
+      alert("Access Denied: Your account role is not 'admin'.");
+      await signOut(auth);
+      return;
+    }
+    
+    STATE.profile = profile || {};
+    
+    // Update main header info (Simplified DOM update)
+    const displayName = profile?.name || 'Admin User';
+    const headerElement = document.querySelector('.user-info');
+    if (headerElement) {
+        // Find the element displaying the name/role and update it
+        // Assuming there is an element with class 'admin-display-name' in your header HTML.
+        // If not, use the robust selector below:
+        const span = headerElement.querySelector('span');
+        if (span) {
+             span.textContent = `Admin: ${displayName} • `;
+        }
+    }
+
+    // Populate profile section
+    if (profile) {
+      $('adminName').value = profile.name || '';
+      $('adminRole').value = profile.title || 'System Administrator';
+      // Use the email from Firebase Auth, which is more reliable and up-to-date
+      $('adminEmail').value = profile.email || (auth.currentUser && auth.currentUser.email) || '';
+    }
+  } catch (err) {
+    console.error('loadAdminProfile failed', err);
+  }
+}
+
+/**
+ * Saves the Admin's profile changes (Name, Title, Email).
+ */
+async function saveAdminProfile() {
+  const uid = STATE.uid;
+  if (!uid) return alert('Error: Admin user not identified.');
+
+  try {
+    const payload = {
+      name: $('adminName').value.trim(),
+      title: $('adminRole').value.trim(),
+      // The email field is read-only in the UI, but we include it in payload for completeness
+      email: $('adminEmail').value.trim(), 
+      // role should never be updated here, only title/name
+      updatedAt: new Date().toISOString()
+    };
+    // Note: Email changes require Firebase Auth logic (updateEmail), handled separately.
+    await updateDoc(doc(db, 'users', uid), payload);
+    alert('Profile saved successfully.');
+    await loadAdminProfile(uid); // Refresh display
+  } catch (err) {
+    console.error('saveAdminProfile failed', err);
+    alert('Failed to save profile: ' + err.message);
+  }
+}
+// Removed the redundant manual event listener at the end of the section.
 
 
 
