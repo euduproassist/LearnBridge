@@ -362,6 +362,64 @@ async function loadDashboardMetrics() {
 /* -------------------------------------------
  * 6. User Management (Start of loadAllUsers)
  * ------------------------------------------- */
+/**
+ * Loads all users based on filters and renders the user table.
+ */
+async function loadAllUsers() {
+  const container = $('userTableBody');
+  const emptyEl = $('userEmpty');
+  if (!container) return;
+  container.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading user data...</td></tr>';
+  hide('userEmpty');
+  
+  try {
+    const userRef = collection(db, 'users');
+
+    // --- Apply Filters ---
+    const role = $('userFilterRole').value;
+    const status = $('userFilterStatus').value;
+    const search = $('userSearchInput').value.trim().toLowerCase();
+
+    const queryConstraints = [];
+    if (role) queryConstraints.push(where('role', '==', role));
+    if (status) queryConstraints.push(where('status', '==', status));
+    
+    // Always enforce sorting, defaulting to name for table display.
+    // NOTE: Requires a composite index for role/status combined with name.
+    const sortOrder = orderBy('name', 'asc'); 
+
+    // Build the final query
+    let q = query(userRef, ...queryConstraints, sortOrder); 
+    
+    const snap = await getDocs(q);
+    
+    let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // --- Client-Side Search (Temporary for name/email) ---
+    if (search) {
+        users = users.filter(u => 
+            (u.name && u.name.toLowerCase().includes(search)) ||
+            (u.email && u.email.toLowerCase().includes(search)) ||
+            (u.ujId && u.ujId.toLowerCase().includes(search))
+        );
+    }
+
+    if (users.length === 0) {
+      container.innerHTML = '';
+      show('userEmpty');
+      return;
+    }
+    
+    // Render the table
+    renderUserTable(users, container);
+    
+  } catch (err) {
+    console.error('loadAllUsers failed', err);
+    container.innerHTML = '<tr><td colspan="9" style="text-align:center;color:red;">Failed to load users.</td></tr>';
+    show('userEmpty');
+    if (emptyEl) emptyEl.textContent = 'Error loading user data.';
+  }
+}
 
 
 
