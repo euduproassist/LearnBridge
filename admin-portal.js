@@ -1277,10 +1277,6 @@ async function handleEditModule(id, currentName, currentCode) {
   }
 }
 
-// Attach listeners for University Settings section
-if ($('addDepartmentBtn')) $('addDepartmentBtn').onclick = handleAddDepartment;
-if ($('addModuleBtn')) $('addModuleBtn').onclick = handleAddModule;
-if ($('menuUniversitySettings')) $('menuUniversitySettings').onclick = () => { setActiveMenu('menuUniversitySettings'); showSection('universitySettingsSection'); loadUniversitySettings(); };
 
 // --- END OF ADMIN PORTAL JAVASCRIPT ---
 // This marks the approximate end of the 1000+ line Admin Portal file. 
