@@ -791,60 +791,7 @@
       </div>
     </section>
 
-  </main>
-</div>
 
-<script>
-  // Script to update the time
-  setInterval(() => {
-    document.getElementById("currentTime").textContent = new Date().toLocaleString();
-  }, 1000);
-
-  // Script to handle section switching (Basic client-side routing mock-up)
-  const sections = document.querySelectorAll('main section');
-  const menuItems = document.querySelectorAll('.sidebar-menu li');
-
-  function showSection(id) {
-    sections.forEach(sec => {
-      sec.classList.add('hidden');
-    });
-    menuItems.forEach(item => {
-      item.classList.remove('active');
-    });
-
-    const targetSection = document.getElementById(id);
-    const targetMenu = document.getElementById('menu' + id.replace('Section', ''));
-
-    if (targetSection) targetSection.classList.remove('hidden');
-    if (targetMenu) targetMenu.classList.add('active');
-    
-    // In a real application, you would only show the empty state after the database query returns no results.
-    // For this mock-up, we ensure the empty states are visible when the section is loaded until Firebase populates them.
-    // NOTE: JS will hide these elements during the load process, so leaving the initial state here is fine.
-    document.getElementById('userEmpty').classList.remove('hidden');
-    document.getElementById('sessionEmpty').classList.remove('hidden');
-    document.getElementById('requestsEmpty').classList.remove('hidden');
-    document.getElementById('issuesEmpty').classList.remove('hidden');
-    document.getElementById('auditLogEmpty').classList.remove('hidden');
-
-    // Hide all tables/lists that would be populated by data until data is loaded
-    document.getElementById('userTableBody').innerHTML = '';
-    document.getElementById('sessionList').innerHTML = '';
-    document.getElementById('pendingRequestsList').innerHTML = '';
-    document.getElementById('issueTableBody').innerHTML = '';
-    document.getElementById('auditLogTableBody').innerHTML = '';
-    
-    // Placeholder logic for quick actions metric update
-    // FIX: Using the correct attribute 'data-metric-ref' from HTML structure
-    const pendingCount = document.getElementById('pendingApprovals').textContent || '0';
-    const issuesCount = document.getElementById('issuesToday').textContent || '0';
-    
-    const quickApproveSpan = document.querySelector('#quickApproveTutors span');
-    if (quickApproveSpan) quickApproveSpan.textContent = pendingCount;
-    
-    const quickViewSpan = document.querySelector('#quickViewIssues span');
-    if (quickViewSpan
-As u can see this is incomplete
 
 
 
