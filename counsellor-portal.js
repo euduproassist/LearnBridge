@@ -136,27 +136,7 @@ async function loadProfile(uid) {
 }
 
 
-async function saveProfile(uid) {
-  try {
-    const payload = {
-      name: $('profileNameInput').value.trim(),
-      bio: $('profileBioInput').value.trim(),
-      modules: $('profileModulesInput').value.trim(),
-      department: $('profileDepartmentInput').value.trim(),
-      qualifications: $('profileQualificationsInput').value.trim(),
-      profilePictureInput: $('profilePictureInput').value.trim(),
-      location: $('profileLocationInput').value.trim(),
-      rate: $('profileRateInput').value.trim(),
-      role: STATE.profile?.role || 'counsellor' // Changed default role
-    };
-    await setDoc(doc(db, 'users', uid), payload, { merge: true });
-    alert('Profile saved successfully.');
-    await loadProfile(uid);
-  } catch (err) {
-    console.error('saveProfile', err);
-    alert('Failed to save profile: ' + err.message);
-  }
-}
+
 
 /* ---------- Dashboard (UPDATED Terminology) ---------- */
 async function loadDashboard(uid) {
