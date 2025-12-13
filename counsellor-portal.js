@@ -90,29 +90,7 @@ function showSection(idToShow) {
 }
 
 /* ---------- Profile for Counsellor (UPDATED Fields) ---------- */
-async function loadProfile(uid) {
-  try {
-    const userRef = doc(db, 'users', uid);
-    const snap = await getDoc(userRef);
-    const profile = snap.exists() ? snap.data() : null;
-    STATE.profile = profile || {};
-    if (profile) {
-      $('profileEmail').textContent = profile.email || (auth.currentUser && auth.currentUser.email) || '';
-      $('profileNameInput').value = profile.name || '';
-      $('profileBioInput').value = profile.bio || ''; // Focus Areas
-      $('profileModulesInput').value = profile.modules || ''; // Services Offered
-      $('profileDepartmentInput').value = profile.department || '';
-      $('profileQualificationsInput').value = profile.qualifications || ''; // Certifications/Licenses
-      $('profilePictureInput').value = profile.profilePictureInput || '';
-      $('profileLocationInput').value = profile.location || ''; // Office & Campus
-      $('profileRateInput').value = profile.rate || ''; // Session Fee
-    } else {
-      $('profileEmail').textContent = auth.currentUser ? auth.currentUser.email : '';
-    }
-  } catch (err) {
-    console.error('loadProfile', err);
-  }
-}
+
 
 async function saveProfile(uid) {
   try {
