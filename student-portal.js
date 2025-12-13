@@ -19,10 +19,7 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&quot;',"'":'&#39;'}[c])); 
 }
 /* ---------- Utilities ---------- */
-function escapeHtml(s) {
-  if (s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+
 
 let CURRENT_USER_ID = null;
 let currentChatContact = null;
