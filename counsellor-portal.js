@@ -734,7 +734,7 @@ function cleanupAllChatListeners() {
   });
 }
 
-// ... loadNotifications (remains same)
+
 
 /* ---------- Client Feedback (renamed from loadTutorRatings) ---------- */
 async function loadCounsellorFeedback(uid, filter = '') {
