@@ -136,6 +136,42 @@ async function loadProfile(uid) {
 }
 
 
+async function saveProfile(uid) {
+  // Check if current status is suspended (prevent saving)
+  if (STATE.profile?.status === 'suspended') {
+      return alert('Profile changes cannot be saved while your account is suspended.');
+  }
+
+  try {
+    const userRef = doc(db, 'users', uid);
+    
+    const payload = {
+      name: $('profileNameInput').value.trim(),
+      bio: $('profileBioInput').value.trim(),
+      modules: $('profileModulesInput').value.trim(),
+      department: $('profileDepartmentInput').value.trim(),
+      qualifications: $('profileQualificationsInput').value.trim(),
+      profilePictureInput: $('profilePictureInput').value.trim(),
+      location: $('profileLocationInput').value.trim(),
+      rate: $('profileRateInput').value.trim(),
+      
+      // FIX 1: CRITICAL - Preserve the Admin-set status (active/pending/suspended)
+      status: STATE.profile?.status || 'pending', 
+      
+      // FIX 2: Hardcode role, but also include email and timestamp for Admin data integrity
+      role: 'counsellor', 
+      email: STATE.profile?.email || (auth.currentUser && auth.currentUser.email) || '', 
+      updatedAt: new Date().toISOString()
+    };
+    
+    await setDoc(userRef, payload, { merge: true });
+    alert('Profile saved successfully.');
+    await loadProfile(uid);
+  } catch (err) {
+    console.error('saveProfile', err);
+    alert('Failed to save profile: ' + err.message);
+  }
+}
 
 
 /* ---------- Dashboard (UPDATED Terminology) ---------- */
