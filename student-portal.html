@@ -333,7 +333,132 @@
       gap:10px; 
       margin-bottom: 10px;
     }
+
+    /* Chat specific styles */
+.chat-container { 
+  display: flex; 
+  height: 70vh; /* Increased height for better viewing */
+  background: #fdfdfd; /* Very light background, almost white */
+  border-radius: 12px; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Lighter shadow */
+}
+
+.chat-list { 
+  width: 280px; /* Slightly wider list for better names */
+  min-width: 250px;
+  border-right: 1px solid #e0e0e0; /* Softer divider */
+  padding: 10px 0; /* Padding adjustment */
+  overflow-y: auto; 
+  background: #f7f7f7; /* Very light grey for list background */
+}
+
+.chat-item { 
+  padding: 15px 20px; /* Increased padding */
+  border-bottom: none; /* Removed bottom border for cleaner look */
+  cursor: pointer; 
+  border-radius: 0; /* Full-width hover effect */
+  transition: background 0.2s, color 0.2s;
+  font-size: 14px;
+  position: relative;
+}
+
+.chat-item:hover {
+    background: #fff5ee; /* Very subtle light orange hover */
+}
+
+.chat-item.active { 
+  background: #ff7a00; 
+  color: white;
+  font-weight: 600; 
+  /* Add an accent line for extra visual pop */
+  border-left: 4px solid #cc6600; 
+  padding-left: 16px; 
+}
+
+.chat-window { 
+  flex-grow: 1; 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.chat-header { 
+  padding: 15px 20px; 
+  background: #333; /* Darker, less distracting header */
+  color: white; 
+  border-top-right-radius: 12px; 
+  font-weight: 600; 
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.messages { 
+  flex-grow: 1; 
+  padding: 20px; 
+  overflow-y: auto; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; /* Reduced gap slightly */
+  background: #fdfdfd; /* Light, calming message area */
+}
+
+.message { 
+  max-width: 65%; /* Narrower bubble for better readability on wide screens */
+  padding: 10px 15px; 
+  border-radius: 18px; /* Slightly less round */
+  line-height: 1.5; /* Increased line-height for better eye comfort */
+  font-size: 15px;
+  word-wrap: break-word; /* Essential for long words */
+}
+
+.message.sent { 
+  background: #ff7a00; 
+  color: white; 
+  align-self: flex-end; 
+  /* Modern bubble tail look */
+  border-bottom-right-radius: 4px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.message.received { 
+  background: #e9e9e9; 
+  color: #333; 
+  align-self: flex-start; 
+  /* Modern bubble tail look */
+  border-bottom-left-radius: 4px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chat-input { 
+  display: flex; 
+  padding: 15px 20px; 
+  border-top: 1px solid #e0e0e0; /* Softer divider */
+  background: #f7f7f7; /* Matching list background for an integrated look */
+}
+
+.chat-input input { 
+  flex-grow: 1; 
+  margin-bottom: 0; 
+  margin-right: 10px; 
+  background: white; /* White input field for focus */
+  border: 1px solid #ddd;
+}
+
+.chat-actions { 
+  display: flex; 
+  gap: 5px; 
+  align-items: center; 
+}
+
+/* Responsive adjustment for chat-list (if applicable) */
+@media(max-width: 600px){
+    /* ... existing media queries */
+    .chat-container { flex-direction: column; height: auto; }
+    .chat-list { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; padding: 10px; }
+    .chat-item { padding: 12px; }
+    .chat-item.active { padding-left: 12px; } /* Adjust padding for mobile active state */
     
+}
+
 
 
     /* Responsive Adjustments */
