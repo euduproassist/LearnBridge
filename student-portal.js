@@ -139,7 +139,19 @@ async function initPortal(uid) {
   $('menuPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
   $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsList(uid); };
   $('menuChat').onclick = () => { setActiveMenu('menuChat'); showSection('chatSection'); loadChatContacts(uid); }; // New Chat Menu
-
+  
+  $('menuLogout').onclick = async () => {
+    try {
+      if (confirm('Are you sure you want to log out?')) {
+        await signOut(auth);
+        // The onAuthStateChanged listener at the top will redirect to index.html
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('Logout failed: ' + error.message);
+    }
+  };
+  
   // dashboard quick actions
   $('openProfile').onclick = () => { setActiveMenu('menuProfile'); showSection('profileSection'); loadProfile(uid); };
   $('openTutorSessions').onclick = () => { setActiveMenu('menuSessions'); showSection('sessionsSection'); loadSessionsList(uid, 'tutor'); };
