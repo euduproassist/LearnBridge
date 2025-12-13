@@ -868,6 +868,60 @@ async function openRatingModal(person) {
   };
 }
 
+/* ---------- Helpers: Session Conflict Check (Robust Overlap Logic) ---------- */
+// This logic matches the requirement of the callServerFunction for secure scheduling.
+async function checkConflictForPerson(personId, desiredISO, durationMinutes = 60) {
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    const q = query(sessionsCol, 
+      where('personId', '==', personId), 
+      where('status', 'in', ['approved', 'pending', 'in-progress']) 
+    );
+    const snap = await getDocs(q);
+    
+    const desiredStart = new Date(desiredISO);
+    const desiredEnd = new Date(desiredStart.getTime() + durationMinutes * 60 * 1000);
+    
+    for (const d of snap.docs) {
+      const s = d.data();
+      if (!s.datetime) continue;
+
+      const existingStart = new Date(s.datetime);
+      const existingDuration = Number(s.duration || durationMinutes);
+      const existingEnd = new Date(existingStart.getTime() + existingDuration * 60 * 1000);
+
+      // Check for overlap: Start of desired < End of existing AND End of desired > Start of existing
+      const isOverlapping = (desiredStart < existingEnd) && (desiredEnd > existingStart);
+      
+      if (isOverlapping) {
+        console.log(`[SERVER CHECK] Conflict found with appointment ${d.id}`);
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    console.error('[SERVER CHECK] Conflict check failed', err);
+    return false;
+  }
+}
+
+// Attempts to find the next available slot starting 1 hour after the desired time
+async function findNextAvailable(personId, desiredISO) {
+  try {
+    const base = new Date(desiredISO);
+    for (let i = 1; i <= 10; i++) { // Check up to 10 subsequent hours
+      const cand = new Date(base.getTime() + i * 60 * 60 * 1000); 
+      const iso = cand.toISOString();
+      // Ensure we use the robust conflict check here
+      const conflict = await checkConflictForPerson(personId, iso); 
+      if (!conflict) return iso;
+    }
+    return null;
+  } catch (err) {
+    console.error('[SERVER CHECK] findNextAvailable failed', err);
+    return null;
+  }
+}
 
 
 /* Google calendar link */
