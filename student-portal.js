@@ -185,9 +185,6 @@ async function initPortal(uid) {
   // Simulate file/link logic (Feature 6)
   $('fileUploadBtn').onclick = () => alert("File/Document/Link upload workflow initiated (not fully implemented in client-side demo).");
 
-/* ---------- Init Portal ---------- */
-async function initPortal(uid) {
-  // ... (existing menu wiring and search handlers) ...
 
   // profile save
   $('saveProfileBtn').onclick = async () => { await saveProfile(uid); };
@@ -215,11 +212,7 @@ async function initPortal(uid) {
   // support
   $('sendSupportBtn').onclick = async () => { await sendSupport(uid); };
 
-  // ... (rest of the initPortal function) ...
-}
-
-
-  
+ 
 
   // initial loads
   await loadProfile(uid);
