@@ -389,6 +389,59 @@ async function loadPendingRequests(uid) {
         try {
           // 🚨 Production Change: Use secure server function for mutation
           await callServerFunction('updateSessionStatus', { sessionId: id, status: 'cancelled' });
+/* ---------- Helpers: Session Conflict Check (Used by Server Simulation) ---------- */
+// NOTE: These helpers simulate the crucial conflict logic that MUST run on a secure server.
+async function checkConflictForPerson(personId, desiredISO, durationMinutes = 60) {
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    // Check for conflicts on the person's (tutor/counsellor) schedule
+    const q = query(sessionsCol, 
+      where('personId', '==', personId), 
+      where('status', 'in', ['approved', 'pending', 'in-progress']) 
+    );
+    const snap = await getDocs(q);
+    
+    const desiredStart = new Date(desiredISO);
+    const desiredEnd = new Date(desiredStart.getTime() + durationMinutes * 60 * 1000);
+    
+    for (const d of snap.docs) {
+      const s = d.data();
+      if (!s.datetime) continue;
+
+      const existingStart = new Date(s.datetime);
+      const existingDuration = Number(s.duration || durationMinutes);
+      const existingEnd = new Date(existingStart.getTime() + existingDuration * 60 * 1000);
+
+      const isOverlapping = (desiredStart < existingEnd) && (desiredEnd > existingStart);
+      
+      if (isOverlapping) {
+        console.log(`[SERVER CHECK] Conflict found with appointment ${d.id} from ${existingStart.toLocaleString()} to ${existingEnd.toLocaleString()}`);
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    console.error('[SERVER CHECK] Conflict check failed', err);
+    return false;
+  }
+}
+
+// Attempts to find the next available slot starting 1 hour after the desired time
+async function findNextAvailable(personId, desiredISO) {
+  try {
+    const base = new Date(desiredISO);
+    for (let i = 1; i <= 10; i++) { // Check up to 10 subsequent hours
+      const cand = new Date(base.getTime() + i * 60 * 60 * 1000); // Check 1 hour later, 2 hours later, etc.
+      const iso = cand.toISOString();
+      const conflict = await checkConflictForPerson(personId, iso);
+      if (!conflict) return iso;
+    }
+    return null; // No available slot found in the next 10 hours
+  } catch (err) {
+    console.error('[SERVER CHECK] findNextAvailable failed', err);
+    return null;
+  }
+}
 
           
           alert('Request cancelled.');
