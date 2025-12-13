@@ -219,9 +219,7 @@ async function loadDashboard(uid) {
     
     // Today's schedule
     if (todaySessions.length) {
-        $('todayList').innerHTML = todaySessions.slice(0, 3).map(s => 
-          `<p style="margin-bottom:4px;">${new Date(s.datetime).toLocaleTimeString()} - ${s.studentName}</p>` // Changed studentName to clientName
-        ).join('');
+
         if (todaySessions.length > 3) {
             $('todayList').innerHTML += `<small class="muted">...and ${todaySessions.length - 3} more.</small>`;
         }
