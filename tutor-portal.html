@@ -1,3 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tutor Portal — LearnBridge</title>
+    <link rel="icon" type="image/png" href="assets/logos/uj.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* * LearnBridge Tutor Portal Styles (Themed to Admin Portal)
+        * Accent Color: #ff7a00 (LearnBridge Orange)
+        */
+
+        /* Global Reset & Typography */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Consistent font stack */
+        }
+
+        body {
+            /* Adopted Admin BG */
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            display: flex;
+            min-height: 100vh;
+            color: #333; /* Default text color for main content */
+        }
+
+        /* --- Layout Structure --- */
+        .portal-wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .portal-sidebar {
+            width: 250px;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.9); /* Darker sidebar */
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        .portal-sidebar img {
+            width: 70px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            color: #ff7a00;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        /* Sidebar Menu */
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar-menu li {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .sidebar-menu li.active,
+        .sidebar-menu li:hover {
+            background: #ff7a00;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 122, 0, 0.5);
+        }
+
+        .sidebar-footer {
+            font-size: 11px;
+            color: #ff7a00;
+            opacity: 0.9;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content Area */
+        .portal-main {
+            flex-grow: 1;
+            background: #f4f4f4; /* Lighter main BG for contrast */
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* Main Header */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .main-header h1 {
+            color: #cc6600;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            font-size: 15px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        h2 {
+            color: #ff7a00;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ff7a00;
+            padding-bottom: 5px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        /* --- Dashboard Elements --- */
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dash-card {
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-left: 6px solid #ff7a00; /* Primary accent border */
+            transition: all 0.2s ease-in-out;
+            cursor: default;
+        }
+        
+        .dash-card:hover {
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dash-card h3 { 
+            font-size: 15px; 
+            color: #666; 
+            margin-bottom: 8px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .dash-card strong { 
+            font-size: 30px; 
+            font-weight: 900; 
+            color: #111; 
+            display: block; 
+            margin-top: 5px;
+        }
+        /* Style for schedule list */
+        #todayList { 
+            font-size: 14px; 
+            line-height: 1.6;
+        }
+        #todayList p {
+            margin: 4px 0;
+            color: #444;
+        }
+
+
+        .muted {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* --- Form Elements & Buttons --- */
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            transition: border-color 0.15s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #ff7a00;
+            outline: none;
+        }
+
+        button.btn {
+            background: #ff7a00;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        button.btn:hover {
+            background: #cc6600;
+            transform: translateY(-1px);
+        }
+
+        button.btn.secondary {
+            background: #eee;
+            color: #555;
+        }
+
+        button.btn.secondary:hover {
+            background: #ccc;
+            color: #333;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Specific Fix for Search row input width on dashboard */
+        .portal-section#dashboardSection .search-row input {
+            /* Reset specific flex property if needed */
+            flex: 1 1 auto; 
+        }
+
+        /* --- Table Styling --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: left;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        th {
+            background: #e9e9e9;
+            color: #333;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background: #fff5ee;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            color: #666;
+            margin-top: 20px;
+            background: #fff;
+        }
+        
+        /* --- General Layouts & Components --- */
+        .portal-section > .profile-card, .profile-card { 
+            background: white; 
+            padding: 25px;
+            border-radius: 12px; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05); 
+            margin-bottom: 20px; 
+        }
+
+        .profile-photo {
+            width: 72px;
+            height: 72px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        /* Tags/Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+            display: inline-block;
+            text-transform: uppercase;
+            /* Default badge color inherited from old style, but adjusted */
+            background: #0070a0; 
+            color: white;
+        }
+        
+        /* Urgent Tag for Feedback */
+        .urgent {
+            border-left: 5px solid #d73a3a !important; /* Thicker, defined border */
+            padding-left: 15px !important;
+        }
+        
+        /* Status Display */
+        #profileStatusDisplay {
+            color: #28a745; /* Use green for active status display */
+            font-weight: 700;
+        }
+
+        /* MODAL (Chat/Selector) */
+        .modal-back {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7); /* Darker backdrop */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            width: 560px;
+            max-width: 95%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #ff7a00;
+        }
+        
+        /* Chat Message Styling */
+        #chatMessages {
+            border: 1px solid #ddd !important;
+            background: #fcfcfc !important;
+        }
+        #chatMessages div[style*="background:#0070a0"] {
+            background: #ff7a00 !important; /* Make tutor messages orange */
+        }
+
+
+        /* Media Queries for Responsiveness */
+        @media(max-width: 1024px) {
+            .dashboard-cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        }
+
+        @media(max-width: 800px) {
+            .portal-sidebar {
+                width: 200px;
+                padding: 15px;
+            }
+
+            .main-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .main-header h1 {
+                margin-bottom: 10px;
+            }
+
+            .search-row {
+                flex-wrap: wrap;
+            }
+
+            .search-row input,
+            .search-row select {
+                flex: 1 1 45%;
+            }
+        }
+
+        @media(max-width: 600px) {
+            .portal-wrapper {
+                flex-direction: column;
+            }
+
+            .portal-sidebar {
+                width: 100%;
+                height: auto;
+                padding-bottom: 0;
+            }
+
+            .sidebar-menu ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .sidebar-menu li {
+                margin: 5px;
+                flex-grow: 1;
+                text-align: center;
+            }
+
+            .portal-main {
+                padding: 15px;
+            }
+
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="portal-wrapper">
+
+        <aside class="portal-sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <img src="assets/logos/uj.png" alt="UJ Logo">
+                    <div>LearnBridge</div>
+                </div>
+
+                <nav class="sidebar-menu">
+                    <ul>
+                        <li id="menuDashboard" class="active">🏠 Dashboard</li>
+                        <li id="menuSessions">📅 Upcoming Tutorials</li>
+                        <li id="menuIncoming">📨 Student Requests
+                            <span id="incomingBadge" class="badge hidden"
+                                style="background:#d73a3a;margin-left:8px">0</span>
+                        </li>
+                        <li id="menuAvailability">🕒 Manage Availability</li>
+                        <li id="menuChat">💬 Chat</li>
+                        <li id="menuNotifications">🔔 Notifications</li>
+                        <li id="menuRatings">✨ Student Feedback</li>
+                        <li id="menuReport">📝 Report Issue</li>
+                        <li id="menuProfile">👤 Profile</li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                Tutor • University of Johannesburg<br>
+                <small class="muted">Status: Logged in</small>
+                <button class="btn secondary" id="logoutBtn" style="width:100%; margin-top:10px;">🚪 Log Out</button>
+            </div>
+        </aside>
+
+        <main class="portal-main">
+            <header class="main-header">
+                <h1>Tutor Portal</h1>
+                <div class="user-info">
+                    UJ • <span id="currentTime">Loading Time...</span>
+                </div>
+            </header>
+
+            <section id="dashboardSection" class="portal-section">
+                <h2>Tutor Dashboard</h2>
+
+                <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+                    <div class="search-row" style="flex:1">
+                        <input placeholder="Search students, modules..." style="margin: 0; border-color: #ddd;">
+                        <button class="btn secondary">Search</button>
+                    </div>
+
+                    <div style="width:240px; display:flex; flex-direction:column; gap:10px;">
+                        <button class="btn" id="updateAvailabilityQuick">Update Availability</button>
+                        <button class="btn" id="viewIncomingQuick">View Student Requests</button>
+                    </div>
+                </div>
+
+                <div class="dashboard-cards">
+                    <div class="dash-card">
+                        <h3>Quick Stats</h3>
+                        <p>Total Tutorials This Week: <strong id="statThisWeek">0</strong></p>
+                        <p>Upcoming Tutorials: <strong id="statUpcoming">0</strong></p>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Performance</h3>
+                        <p>Pending Requests: <strong id="statPending">0</strong></p>
+                        <p>Average Feedback Score: <strong id="statRating">—</strong></p>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Today's Schedule</h3>
+                        <div id="todayList">No tutorials today.</div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>Quick Actions</h3>
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            <button class="btn" id="quickChatBtn">Start Chat</button>
+                            <button class="btn secondary" id="quickReportBtn">Report Issue</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-card">
+                    <h3>Notifications Summary</h3>
+                    <div id="dashNotifs" class="muted">Loading...</div>
+                </div>
+            </section>
+
+            <section id="sessionsSection" class="portal-section hidden">
+                <h2>Upcoming Tutorials</h2>
+                <div id="sessionList" class="profile-card">Loading tutorials...</div>
+            </section>
+
+            <section id="incomingSection" class="portal-section hidden">
+                <h2>Incoming Student Requests</h2>
+                <div id="incomingList">Loading incoming requests...</div>
+                <div id="incomingEmpty" class="empty hidden">No incoming student requests.</div>
+            </section>
+
+            <section id="availabilitySection" class="portal-section hidden">
+                <h2>Manage Availability</h2>
+                <div style="margin-bottom:12px; display:flex; gap:8px;">
+                    <button class="btn secondary" id="presetAllWeek">Available All Week</button>
+                    <button class="btn secondary" id="presetEvenings">Only Evenings</button>
+                    <button class="btn secondary" id="presetWeekend">Weekend Only</button>
+                </div>
+                <div id="availabilityEditor" class="profile-card">
+                    <div id="availabilityTable">Loading availability...</div>
+                    <div style="margin-top:20px; display:flex; gap:8px;">
+                        <button class="btn" id="saveAvailabilityBtn">Save Availability</button>
+                        <button class="btn secondary" id="toggleAvailableNowBtn">Toggle Available Now</button>
+                        <button class="btn secondary" id="offlineModeBtn">Offline Mode</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="chatSection" class="portal-section hidden">
+                <h2>Chat</h2>
+                <div class="empty">
+                    Use the **Chat** menu item or the **Start Chat** button to open the student selector and chat window.
+                </div>
+            </section>
+
+            <section id="notificationsSection" class="portal-section hidden">
+                <h2>Notifications</h2>
+                <div id="notificationsList" class="profile-card">Loading...</div>
+            </section>
+
+            <section id="ratingsSection" class="portal-section hidden">
+                <h2>Student Feedback</h2>
+                <div style="margin-bottom:12px">
+                    <div class="search-row">
+                        <input id="ratingsFilter" placeholder="Filter by student, module or urgency..."
+                            style="flex:1; margin:0;">
+                        <button class="btn" id="ratingsFilterBtn">Filter</button>
+                    </div>
+                </div>
+                <div id="ratingsList">Loading feedback...</div>
+                <div id="ratingsEmpty" class="empty hidden">No feedback yet.</div>
+            </section>
+
+            <section id="reportSection" class="portal-section hidden">
+                <h2>Report an Issue</h2>
+                <div class="profile-card">
+                    <label>Issue Title</label>
+                    <input id="reportTitle" placeholder="Brief summary of the issue">
+
+                    <label>Category</label>
+                    <select id="reportCategory">
+                        <option value="technical">Technical Error</option>
+                        <option value="data">Data/Security Concern</option>
+                        <option value="student">Student Behaviour</option>
+                        <option value="general">General Inquiry</option>
+                    </select>
+
+                    <label>Priority</label>
+                    <select id="reportPriority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+
+                    <label>Description</label>
+                    <textarea id="reportDesc" rows="5" placeholder="Detailed description..."></textarea>
+
+                    <div style="margin-top:8px; display:flex; gap:8px;">
+                        <button class="btn" id="sendReportBtn">Send to Admin</button>
+                        <button class="btn secondary" id="clearReportBtn">Clear</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profileSection" class="portal-section hidden">
+                <h2>Tutor Profile</h2>
+                <div class="profile-card">
+
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                        <div style="font-weight: bold;">Status: <span id="profileStatusDisplay"
+                                style="color:#0070a0;">loading...</span></div>
+                    </div>
+
+                    <p style="margin-bottom: 15px;"><strong>Email (Read Only):</strong>
+                        <span id="profileEmail" class="muted">—</span>
+                    </p>
+
+                    <label>Name:</label>
+                    <input id="profileNameInput" type="text">
+
+                    <label>Bio (Subject Expertise):</label>
+                    <textarea id="profileBioInput" rows="3"></textarea>
+
+                    <label>Modules Offered (e.g., Mathematics I, Physics A):</label>
+                    <input id="profileModulesInput" type="text">
+
+                    <label>Department:</label>
+                    <input id="profileDepartmentInput" type="text">
+
+                    <label>Qualifications/Certifications:</label>
+                    <input id="profileQualificationsInput" type="text">
+
+                    <label>Profile Picture URL:</label>
+                    <input id="profilePictureInput" type="text">
+
+                    <label>Location (Campus & Building):</label>
+                    <input id="profileLocationInput" type="text">
+
+                    <label>Session Rate (optional):</label>
+                    <input id="profileRateInput" type="text">
+
+                    <div style="margin-top:8px; display:flex; gap:8px">
+                        <button id="saveProfileBtn" class="btn">Save Profile</button>
+                        <button id="resetPasswordBtn" class="btn secondary">Reset Password</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Update current time display
+        setInterval(() => {
+            document.getElementById("currentTime").textContent = new Date().toLocaleString();
+        }, 1000);
+    </script>
+
+    <script type="module" src="tutor-portal.js"></script>
+
+</body>
+
+</html>
 
 
 
