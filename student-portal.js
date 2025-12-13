@@ -185,6 +185,41 @@ async function initPortal(uid) {
   // Simulate file/link logic (Feature 6)
   $('fileUploadBtn').onclick = () => alert("File/Document/Link upload workflow initiated (not fully implemented in client-side demo).");
 
+/* ---------- Init Portal ---------- */
+async function initPortal(uid) {
+  // ... (existing menu wiring and search handlers) ...
+
+  // profile save
+  $('saveProfileBtn').onclick = async () => { await saveProfile(uid); };
+
+  // 🚨 NEW PASSWORD RESET WIRING 🚨
+  $('resetPasswordBtn').onclick = async () => {
+    try {
+      const email = auth.currentUser ? auth.currentUser.email : '';
+      if (!email) {
+        alert('Could not find your email address.');
+        return;
+      }
+      
+      if (confirm(`A password reset link will be sent to your email: ${email}. Continue?`)) {
+        await sendPasswordResetEmail(auth, email);
+        alert('Password reset email sent! Check your inbox (and spam folder) to continue.');
+      }
+
+    } catch (error) {
+      console.error('Password Reset Error:', error);
+      alert('Failed to send reset email: ' + error.message);
+    }
+  };
+
+  // support
+  $('sendSupportBtn').onclick = async () => { await sendSupport(uid); };
+
+  // ... (rest of the initPortal function) ...
+}
+
+
+  
 
   // initial loads
   await loadProfile(uid);
