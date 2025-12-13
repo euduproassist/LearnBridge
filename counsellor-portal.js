@@ -734,6 +734,86 @@ function cleanupAllChatListeners() {
   });
 }
 
+/* Cleanup helper: remove all chat listeners */
+function cleanupAllChatListeners() {
+  Object.keys(CHAT_LISTENERS).forEach(id => { 
+    if(CHAT_LISTENERS[id]) CHAT_LISTENERS[id]();
+    delete CHAT_LISTENERS[id]; 
+  });
+}
+
+/* ---------- Notifications List (simple list of actions needed or completed) ---------- */
+async function loadNotifications(uid) {
+  const container = $('notificationsList');
+  if (!container) return;
+  container.innerHTML = 'Loading notifications...';
+
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    
+    // Query for sessions that require action or have had recent status changes
+    const q = query(sessionsCol, 
+      where('personId', '==', uid), 
+      where('status', 'in', ['pending', 'suggested', 'rescheduleRequested', 'rejected', 'cancelled']), 
+      orderBy('createdAt', 'desc'), 
+      limit(20) 
+    );
+    const snap = await getDocs(q);
+    const notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (notifications.length === 0) {
+      container.innerHTML = '<div class="empty">No recent notifications or actions required.</div>';
+      return;
+    }
+
+    container.innerHTML = notifications.map(n => {
+      let message;
+      let badgeStyle = 'background:#888;';
+      const clientName = escapeHtml(n.studentName || 'Client');
+      const time = new Date(n.createdAt).toLocaleString();
+
+      switch (n.status) {
+        case 'pending':
+          message = `New request from ${clientName} needs your approval.`;
+          badgeStyle = 'background:red;';
+          break;
+        case 'suggested':
+          message = `Time suggestion sent to ${clientName}. Awaiting their confirmation.`;
+          badgeStyle = 'background:orange;';
+          break;
+        case 'rescheduleRequested':
+          message = `${clientName} requested a reschedule. Action required.`;
+          badgeStyle = 'background:blue;';
+          break;
+        case 'rejected':
+          message = `A request from ${clientName} was rejected.`;
+          break;
+        case 'cancelled':
+          message = `Appointment with ${clientName} was cancelled by the client.`;
+          break;
+        default:
+          message = `Status update for session with ${clientName} (${n.status}).`;
+      }
+
+      return `
+        <div class="notification-item" style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;">
+          <div style="flex:1">
+            <span class="badge" style="${badgeStyle}margin-right:8px">${n.status.toUpperCase()}</span>
+            ${message}
+          </div>
+          <small class="muted">${time}</small>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('loadNotifications', err);
+    container.innerHTML = '<div class="empty">Failed to load notifications.</div>';
+  }
+}
+
+/* ---------- Client Feedback (renamed from loadTutorRatings) ---------- */
+// ... (Your existing loadCounsellorFeedback function follows)
 
 
 /* ---------- Client Feedback (renamed from loadTutorRatings) ---------- */
