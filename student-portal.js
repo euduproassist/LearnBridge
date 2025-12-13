@@ -5,14 +5,7 @@ import {
   collection, query, where, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
-/* ---------- small DOM helpers ---------- */
-const $ = id => document.getElementById(id);
-const show = id => { const el = $(id); if(el) el.classList.remove('hidden'); };
-const hide = id => { const el = $(id); if(el) el.classList.add('hidden'); };
-const setActiveMenu = (id) => {
-  document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
-  const el = $(id); if(el) el.classList.add('active');
-};
+
 
 let CURRENT_USER_ID = null;
 let currentChatContact = null;
