@@ -389,6 +389,8 @@ async function loadPendingRequests(uid) {
         try {
           // 🚨 Production Change: Use secure server function for mutation
           await callServerFunction('updateSessionStatus', { sessionId: id, status: 'cancelled' });
+
+          
           alert('Request cancelled.');
           await loadPendingRequests(uid);
           await loadSessionSummaries(uid);
