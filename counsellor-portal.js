@@ -90,6 +90,50 @@ function showSection(idToShow) {
 }
 
 /* ---------- Profile for Counsellor (UPDATED Fields) ---------- */
+async function loadProfile(uid) {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.exists() ? snap.data() : null;
+
+    if (!profile) {
+      alert("Error: Profile data missing. Logging out.");
+      await signOut(auth); 
+      return;
+    }
+
+    // FIX 1: CRITICAL SECURITY CHECK - Must be a counsellor
+    if (profile.role !== 'counsellor') {
+      alert(`Access Denied: Your role is '${profile.role}'. This portal is for Counsellors.`);
+      await signOut(auth); 
+      return;
+    }
+
+    STATE.profile = profile;
+    
+    // Populate profile fields (Ensure your HTML IDs match these)
+    $('profileEmail').textContent = profile.email || (auth.currentUser && auth.currentUser.email) || '';
+    $('profileNameInput').value = profile.name || '';
+    
+    // FIX 2: Ensure we read the fields the Admin Portal manages
+    $('profileBioInput').value = profile.bio || ''; 
+    $('profileModulesInput').value = profile.modules || ''; 
+    $('profileDepartmentInput').value = profile.department || '';
+    $('profileQualificationsInput').value = profile.qualifications || ''; 
+    $('profilePictureInput').value = profile.profilePictureInput || '';
+    $('profileLocationInput').value = profile.location || ''; 
+    $('profileRateInput').value = profile.rate || ''; 
+    
+    // FIX 3: Display the Admin-set status
+    const statusEl = $('profileStatusDisplay'); // ASSUMPTION: You have this ID in your HTML
+    if (statusEl) statusEl.textContent = profile.status || 'pending';
+
+  } catch (err) {
+    console.error('loadProfile failed', err);
+    // Fail safe: log out on critical error
+    await signOut(auth); 
+  }
+}
 
 
 async function saveProfile(uid) {
