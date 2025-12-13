@@ -868,49 +868,7 @@ async function openRatingModal(person) {
   };
 }
 
-/* checkConflictForPerson(personId, desiredISO) - Simulated Server Logic */
-async function checkConflictForPerson(personId, desiredISO) {
-  try {
-    const sessionsCol = collection(db, 'sessions');
-    const desired = new Date(desiredISO);
-    const startWindow = new Date(desired.getTime() - 60*60*1000);
-    const endWindow = new Date(desired.getTime() + 60*60*1000);
-    
-    // We only check for sessions with the personId that are approved or pending
-    const q1 = query(sessionsCol, where('personId','==',personId), where('status', 'in', ['approved', 'pending']));
-    const snap = await getDocs(q1);
 
-    for (const d of snap.docs) {
-      const s = d.data();
-      if (!s.datetime) continue;
-      const sdt = new Date(s.datetime);
-      if (sdt >= startWindow && sdt <= endWindow) {
-        return true; // Conflict found
-      }
-    }
-    return false; // No conflict
-  } catch (err) {
-    console.error('checkConflictForPerson', err);
-    return false;
-  }
-}
-
-/* findNextAvailable(personId, desiredISO) => returns ISO string or null - Simulated Server Logic */
-async function findNextAvailable(personId, desiredISO) {
-  try {
-    const base = new Date(desiredISO);
-    for (let i = 1; i <= 24; i++) {
-      const cand = new Date(base.getTime() + i * 60 * 60 * 1000);
-      const iso = cand.toISOString();
-      const conflict = await checkConflictForPerson(personId, iso);
-      if (!conflict) return iso;
-    }
-    return null;
-  } catch (err) {
-    console.error('findNextAvailable', err);
-    return null;
-  }
-}
 
 /* Google calendar link */
 function generateGoogleCalendarLink({ title, details, location, start, end }) {
