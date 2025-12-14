@@ -1,115 +1,34 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+webchannel_connection.ts:169 
+ 
+ POST https://firestore.googleapis.com/v1/projects/learnbridge-c600a/databases/(default)/documents:runAggregationQuery 403 (Forbidden)
+(anonymous)	@	webchannel_connection.ts:169
+Lo	@	webchannel_connection.ts:79
+Oo	@	rest_connection.ts:34
+ko	@	rest_connection.ts:155
+(anonymous)	@	datastore.ts:150
+Promise.then		
+ko	@	datastore.ts:146
+__PRIVATE_invokeRunAggregationQueryRpc	@	datastore.ts:282
+(anonymous)	@	aggregate.ts:133
+await in (anonymous)		
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+__PRIVATE_firestoreClientRunAggregateQuery	@	firestore_client.ts:541
+getAggregateFromServer	@	aggregate.ts:149
+getCountFromServer	@	aggregate.ts:111
+loadDashboardMetrics	@	admin-portal.js:306
+await in loadDashboardMetrics		
+initAdminPortal	@	admin-portal.js:169
+await in initAdminPortal		
+(anonymous)	@	admin-portal.js:134
+(anonymous)	@	auth_impl.ts:744
+Promise.then		
+registerStateListener	@	auth_impl.ts:744
+onAuthStateChanged	@	auth_impl.ts:545
+onAuthStateChanged	@	index.ts:211
+(anonymous)	@	admin-portal.js:125
 
-    /* ---------------- GLOBAL HELPER FUNCTIONS ----------------
-     * ADDED: A function to check if the user is an admin by checking their custom claims token.
-     * The admin user must have this claim set on their Firebase Auth token (via the Firebase Admin SDK).
-     * -----------------------------------------------------------*/
-    function isAdmin() {
-      // NOTE: This uses the custom token claim set by the Admin SDK.
-      // This is the most secure method. 
-      return request.auth.token.admin == true;
-    }
-    
-    /* ---------------- USERS ----------------
-     * Only the authenticated user can read/write their own profile
-     * FIX: Allow authenticated users to READ any profile (tutors, counsellors) 
-     * so the student portal can display names in the chat list.
-     * ----------------------------------------*/
-    match /users/{userId} {
-      // Allow any authenticated user to read (for fetching tutor/counselor names)
-      // Allow admin to read/write all user profiles for management.
-      allow read: if request.auth != null; 
-      
-      // Only allow a user to write/update their OWN profile
-      // Allow admin to write/update any profile
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
-    }
-
-    /* ---------------- SESSIONS (FIXED FOR ADMIN PORTAL) ----------------
-     * ADDED: The Admin must be able to read all sessions to calculate dashboard metrics.
-     * ----------------------------------------*/
-    match /sessions/{sessionId} {
-      // Helper function to check if the user is a participant
-      function isSessionParticipant() {
-        return request.auth.uid == resource.data.studentId || 
-               resource.data.personId == request.auth.uid; // Minor optimization to use resource.data
-      }
-      
-      // Students can only CREATE sessions where the studentId field is their UID
-      allow create: if request.auth != null
-                  && request.resource.data.studentId == request.auth.uid; 
-
-      // Students/Counsellors can READ if they are a participant (studentId OR personId)
-      // ADDED: Allow read if the user is an Admin
-      allow read: if request.auth != null
-                && (isSessionParticipant() || isAdmin()); 
-
-      // Students/Counsellors can UPDATE/DELETE if they are a participant
-      // ADDED: Allow Admin to update/delete all sessions
-      allow update, delete: if request.auth != null
-                          && (isSessionParticipant() || isAdmin());
-    }
-
-/* ---------------- RATINGS (FIXED) ----------------
- * Students create, students read their own, Admins read/manage all, and Counsellors read ratings about them.
- * ----------------------------------------*/
-match /ratings/{ratingId} {
-  // Student creates rating -> studentId must match their UID
-  allow create: if request.auth != null
-             && request.resource.data.studentId == request.auth.uid; 
-  
-  // ALLOW READ if: Admin OR Student created it OR Counsellor is the Person rated (personId)
-  // Replaced request.auth.token.admin == true with isAdmin()
-  allow read: if request.auth != null
-            && (isAdmin()
-             || resource.data.studentId == request.auth.uid
-             || resource.data.personId == request.auth.uid); 
-             
-  // Only admin can modify or delete
-  // Replaced request.auth.token.admin == true with isAdmin()
-  allow update, delete: if request.auth != null
-                      && isAdmin();
-}
-    
-    /* ---------------- CHATS ----------------
-     * Chats are between two parties (studentId and personId)
-     * Both must be involved to access the main chat document
-     * ADDED: Allow Admin read access to all chats
-     * ----------------------------------------*/
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null 
-                       && (isAdmin()
-                        || resource.data.studentId == request.auth.uid
-                        || resource.data.personId == request.auth.uid);
-
-      // Messages subcollection: Inherits read/write from parent, but explicitly secured
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null 
-                         && (isAdmin()
-                          || getParent(chatId).data.studentId == request.auth.uid
-                          || getParent(chatId).data.personId == request.auth.uid);
-      }
-    }
-    
-    /* ---------------- SUPPORT TICKETS ----------------
-     * Students create, only Admins read/manage
-     * ----------------------------------------*/
-    match /supportTickets/{ticketId} {
-      // Only authenticated users can create a ticket
-      allow create: if request.auth != null;
-      
-      // Only admins can read/update/delete tickets
-      // Replaced request.auth.token.admin == true with isAdmin()
-      allow read, update, delete: if request.auth != null 
-                                && isAdmin();
-    }
-
-    // ADDED: General Admin Access for other administrative collections
-    // You should add these for any other collections your dashboard loads data from
-    match /{document=**} {
-      allow read, write: if isAdmin();
-    }
-  }
-}
