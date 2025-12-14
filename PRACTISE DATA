@@ -1,1 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------------- USERS ----------------
+     * Only the authenticated user can read/write their own profile
+     * FIX: Allow authenticated users to READ any profile (tutors, counsellors) 
+     * so the student portal can display names in the chat list.
+     * ----------------------------------------*/
+    match /users/{userId} {
+      // Allow any authenticated user to read (for fetching tutor/counselor names)
+      allow read: if request.auth != null; 
+      
+      // Only allow a user to write/update their OWN profile
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    /* ---------------- SESSIONS (FIXED) ----------------
+     * Allow both the Student (studentId) and the Counsellor/Tutor (personId) to read/manage their sessions.
+     * ----------------------------------------*/
+    match /sessions/{sessionId} {
+      // Helper function to check if the user is a participant
+      function isSessionParticipant() {
+        return request.auth.uid == resource.data.studentId || 
+               request.auth.uid == resource.data.personId;
+      }
+      
+      // Students can only CREATE sessions where the studentId field is their UID
+      allow create: if request.auth != null
+                  && request.resource.data.studentId == request.auth.uid; 
+
+      // Students/Counsellors can READ if they are a participant (studentId OR personId)
+      allow read: if request.auth != null
+                && isSessionParticipant(); 
+
+      // Students/Counsellors can UPDATE/DELETE if they are a participant
+      allow update, delete: if request.auth != null
+                          && isSessionParticipant();
+    }
+
+    /* ---------------- RATINGS ----------------
+     * Students create and read their own ratings
+     * Admins can manage all ratings
+     * ----------------------------------------*/
+    match /ratings/{ratingId} {
+      // Student creates rating -> studentId must match their UID
+      allow create: if request.auth != null
+                 && request.resource.data.studentId == request.auth.uid; 
+      
+      // Students read their own OR admin reads all
+      allow read: if request.auth != null
+                && (request.auth.token.admin == true
+                 || resource.data.studentId == request.auth.uid);
+                 
+      // Only admin can modify or delete
+      allow update, delete: if request.auth != null
+                          && request.auth.token.admin == true;
+    }
+    
+    /* ---------------- CHATS ----------------
+     * Chats are between two parties (studentId and personId)
+     * Both must be involved to access the main chat document
+     * ----------------------------------------*/
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null 
+                       && (resource.data.studentId == request.auth.uid
+                        || resource.data.personId == request.auth.uid);
+
+      // Messages subcollection: Inherits read/write from parent, but explicitly secured
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null 
+                         && (getParent(chatId).data.studentId == request.auth.uid
+                          || getParent(chatId).data.personId == request.auth.uid);
+      }
+    }
+    
+    /* ---------------- SUPPORT TICKETS ----------------
+     * Students create, only Admins read/manage
+     * ----------------------------------------*/
+    match /supportTickets/{ticketId} {
+      // Only authenticated users can create a ticket
+      allow create: if request.auth != null;
+      
+      // Only admins can read/update/delete tickets
+      allow read, update, delete: if request.auth != null 
+                                && request.auth.token.admin == true;
+    }
+  }
+}
 
