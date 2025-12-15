@@ -1012,7 +1012,7 @@ async function loadAllIssues() {
  */
 async function handleViewIssue(issueId) {
   try {
-    const snap = await getDoc(doc(db, 'issues', issueId));
+    const snap = await getDoc(doc(db, 'supportTickets', issueId));
     if (!snap.exists()) return alert('Issue not found.');
     const issue = snap.data();
     
