@@ -866,7 +866,7 @@ async function sendIssueAsTutor(uid) {
     const category = $('reportCategory').value;
     if (!title || !desc) return alert('Please provide title and description');
 
-    await addDoc(collection(db,'issues'), {
+    await addDoc(collection(db,'supportTickets'), {
       reporterId: uid,
       title,
       description: desc,
