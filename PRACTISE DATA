@@ -154,5 +154,37 @@ match /ratings/{ratingId} {
     match /{document=**} {
       allow read, write: if isAdmin();
     }
+
+
+
+
+
+
+
+
+/* ---------------- CHATS (FIXED FOR TOP-LEVEL MESSAGE DOCUMENTS) ----------------
+ * Each message is a top-level document in /chats.
+ * Access is granted if the user's UID matches the 'from' or 'to' field.
+ * ----------------------------------------*/
+match /chats/{messageId} {
+  // Helper to check if the user is the sender ('from') or recipient ('to')
+  function isChatParticipant() {
+    return request.auth.uid == resource.data.from || 
+           request.auth.uid == resource.data.to;
   }
+  
+  // Allow CREATE if:
+  // 1. Authenticated
+  // 2. User is the sender ('from' field must match their UID)
+  allow create: if request.auth != null
+             && request.auth.uid == request.resource.data.from;
+  
+  // Allow READ if:
+  // 1. Authenticated
+  // 2. User is the sender/recipient (from/to) OR is an Admin
+  allow read: if request.auth != null
+           && (isChatParticipant() || isAdmin());
+
+  // Disable update/delete of individual chat messages
+  allow update, delete: if false; 
 }
