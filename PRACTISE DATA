@@ -1,34 +1,24 @@
-webchannel_connection.ts:169 
- 
- POST https://firestore.googleapis.com/v1/projects/learnbridge-c600a/databases/(default)/documents:runAggregationQuery 403 (Forbidden)
-(anonymous)	@	webchannel_connection.ts:169
-Lo	@	webchannel_connection.ts:79
-Oo	@	rest_connection.ts:34
-ko	@	rest_connection.ts:155
-(anonymous)	@	datastore.ts:150
-Promise.then		
-ko	@	datastore.ts:146
-__PRIVATE_invokeRunAggregationQueryRpc	@	datastore.ts:282
-(anonymous)	@	aggregate.ts:133
-await in (anonymous)		
-(anonymous)	@	async_queue_impl.ts:138
-(anonymous)	@	async_queue_impl.ts:330
-Promise.then		
-yu	@	async_queue_impl.ts:189
-enqueue	@	async_queue_impl.ts:136
-enqueueAndForget	@	async_queue_impl.ts:97
-__PRIVATE_firestoreClientRunAggregateQuery	@	firestore_client.ts:541
-getAggregateFromServer	@	aggregate.ts:149
-getCountFromServer	@	aggregate.ts:111
-loadDashboardMetrics	@	admin-portal.js:306
-await in loadDashboardMetrics		
-initAdminPortal	@	admin-portal.js:169
-await in initAdminPortal		
-(anonymous)	@	admin-portal.js:134
-(anonymous)	@	auth_impl.ts:744
-Promise.then		
-registerStateListener	@	auth_impl.ts:744
-onAuthStateChanged	@	auth_impl.ts:545
-onAuthStateChanged	@	index.ts:211
-(anonymous)	@	admin-portal.js:125
+Microsoft Windows [Version 10.0.26200.7171]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\tshep>C:\Users\tshep\OneDrive\Desktop\AdminFix
+'C:\Users\tshep\OneDrive\Desktop\AdminFix' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\tshep>npm install forebase-admin
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/forebase-admin - Not found
+npm error 404
+npm error 404  The requested resource 'forebase-admin@*' could not be found or you do not have permission to access it.
+npm error 404
+npm error 404 Note that you can also install from a
+npm error 404 tarball, folder, http url, or git url.
+npm notice
+npm notice New minor version of npm available! 11.6.0 -> 11.7.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+npm notice To update run: npm install -g npm@11.7.0
+npm notice
+npm error A complete log of this run can be found in: C:\Users\tshep\AppData\Local\npm-cache\_logs\2025-12-15T00_08_21_693Z-debug-0.log
+
+C:\Users\tshep>
 
