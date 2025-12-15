@@ -1,3 +1,14 @@
+student-portal.js:834 
+ [SERVER CHECK] Conflict check failed FirebaseError: Missing or insufficient permissions.
+checkConflictForPerson	@	student-portal.js:834
+await in checkConflictForPerson		
+callServerFunction	@	student-portal.js:46
+$.onclick	@	student-portal.js:705
+
+
+
+
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
