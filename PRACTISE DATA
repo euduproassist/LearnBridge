@@ -1,5 +1,12 @@
-Uncaught SyntaxError: Unexpected token 'class' (at admin-portal.js:987:61)
-
+admin-portal.js:1003 
+ loadAllIssues failed ReferenceError: previewDesc is not defined
+    at admin-portal.js:989:102
+    at Array.map (<anonymous>)
+    at loadAllIssues (admin-portal.js:972:34)
+loadAllIssues	@	admin-portal.js:1003
+await in loadAllIssues		
+showSection	@	admin-portal.js:98
+$.onclick	@	admin-portal.js:1508
 
 
 
