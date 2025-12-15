@@ -27,12 +27,60 @@ enqueueAndForget	@	async_queue_impl.ts:97
 vo	@	webchannel_connection.ts:56
 (anonymous)	@	webchannel_connection.ts:398
 (anonymous)	@	webchannel_connection.ts:298
-[NEW] Explain Console errors by using Copilot in Edge: click 
- to explain an error. Learn more
-Don't show again
-counsellor-portal.js:692 
- send chat FirebaseError: Missing or insufficient permissions.
-modal.querySelector.onclick	@	counsellor-portal.js:692
+Promise.then		
+Eo	@	webchannel_connection.ts:265
+send	@	stream_bridge.ts:94
+c_	@	persistent_stream.ts:330
+V_	@	persistent_stream.ts:701
+__PRIVATE_sendWatchRequest	@	remote_store.ts:357
+(anonymous)	@	remote_store.ts:421
+__PRIVATE_onWatchStreamOpen	@	remote_store.ts:417
+(anonymous)	@	persistent_stream.ts:533
+(anonymous)	@	persistent_stream.ts:599
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+(anonymous)	@	persistent_stream.ts:597
+(anonymous)	@	persistent_stream.ts:518
+bo	@	webchannel_connection.ts:50
+(anonymous)	@	dom.ts:22
+setTimeout		
+qo	@	dom.ts:19
+E_	@	persistent_stream.ts:664
+I_	@	persistent_stream.ts:505
+(anonymous)	@	persistent_stream.ts:482
+Promise.then		
+auth	@	persistent_stream.ts:477
+start	@	persistent_stream.ts:274
+__PRIVATE_startWatchStream	@	remote_store.ts:389
+__PRIVATE_remoteStoreListen	@	remote_store.ts:288
+__PRIVATE_allocateTargetAndMaybeListen	@	sync_engine_impl.ts:374
+await in __PRIVATE_allocateTargetAndMaybeListen		
+__PRIVATE_syncEngineListen	@	sync_engine_impl.ts:316
+__PRIVATE_eventManagerListen	@	event_manager.ts:176
+__PRIVATE_readDocumentViaSnapshotListener	@	firestore_client.ts:485
+(anonymous)	@	firestore_client.ts:488
+await in (anonymous)		
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+__PRIVATE_firestoreClientGetDocumentViaSnapshotListener	@	firestore_client.ts:651
+getDoc	@	reference_impl.ts:120
+loadProfile	@	counsellor-portal.js:96
+initPortal	@	counsellor-portal.js:71
+(anonymous)	@	counsellor-portal.js:36
+(anonymous)	@	auth_impl.ts:744
+Promise.then		
+registerStateListener	@	auth_impl.ts:744
+onAuthStateChanged	@	auth_impl.ts:545
+onAuthStateChanged	@	index.ts:211
+(anonymous)	@	counsellor-portal.js:30
 
 
 
@@ -40,6 +88,7 @@ modal.querySelector.onclick	@	counsellor-portal.js:692
 
 
 
+this are my current codes 
 
 rules_version = '2';
 service cloud.firestore {
@@ -116,51 +165,6 @@ match /ratings/{ratingId} {
                       && isAdmin();
 }
     
-    /* ---------------- CHATS ----------------
-     * Chats are between two parties (studentId and personId)
-     * Both must be involved to access the main chat document
-     * ADDED: Allow Admin read access to all chats
-     * ----------------------------------------*/
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null 
-                       && (isAdmin()
-                        || resource.data.studentId == request.auth.uid
-                        || resource.data.personId == request.auth.uid);
-
-      // Messages subcollection: Inherits read/write from parent, but explicitly secured
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null 
-                         && (isAdmin()
-                          || getParent(chatId).data.studentId == request.auth.uid
-                          || getParent(chatId).data.personId == request.auth.uid);
-      }
-    }
-    
-    /* ---------------- SUPPORT TICKETS ----------------
-     * Students create, only Admins read/manage
-     * ----------------------------------------*/
-    match /supportTickets/{ticketId} {
-      // Only authenticated users can create a ticket
-      allow create: if request.auth != null;
-      
-      // Only admins can read/update/delete tickets
-      // Replaced request.auth.token.admin == true with isAdmin()
-      allow read, update, delete: if request.auth != null 
-                                && isAdmin();
-    }
-
-    // ADDED: General Admin Access for other administrative collections
-    // You should add these for any other collections your dashboard loads data from
-    match /{document=**} {
-      allow read, write: if isAdmin();
-    }
-
-
-
-
-
-
-
 
 /* ---------------- CHATS (FIXED FOR TOP-LEVEL MESSAGE DOCUMENTS) ----------------
  * Each message is a top-level document in /chats.
@@ -188,3 +192,25 @@ match /chats/{messageId} {
   // Disable update/delete of individual chat messages
   allow update, delete: if false; 
 }
+    
+    /* ---------------- SUPPORT TICKETS ----------------
+     * Students create, only Admins read/manage
+     * ----------------------------------------*/
+    match /supportTickets/{ticketId} {
+      // Only authenticated users can create a ticket
+      allow create: if request.auth != null;
+      
+      // Only admins can read/update/delete tickets
+      // Replaced request.auth.token.admin == true with isAdmin()
+      allow read, update, delete: if request.auth != null 
+                                && isAdmin();
+    }
+
+    // ADDED: General Admin Access for other administrative collections
+    // You should add these for any other collections your dashboard loads data from
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+
