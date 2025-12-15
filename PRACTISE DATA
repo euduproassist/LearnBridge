@@ -1,6 +1,6 @@
-counsellor-portal.js:716 
- Chat listener failed: FirebaseError: Missing or insufficient permissions.
-(anonymous)	@	counsellor-portal.js:716
+student-portal.js:1007 
+ Chat listener failed:  FirebaseError: Missing or insufficient permissions.
+(anonymous)	@	student-portal.js:1007
 (anonymous)	@	bundle_reader_impl.ts:43
 setTimeout		
 Xa	@	bundle_reader_impl.ts:32
@@ -72,15 +72,11 @@ enqueue	@	async_queue_impl.ts:136
 enqueueAndForget	@	async_queue_impl.ts:97
 __PRIVATE_firestoreClientGetDocumentViaSnapshotListener	@	firestore_client.ts:651
 getDoc	@	reference_impl.ts:120
-loadProfile	@	counsellor-portal.js:96
-initPortal	@	counsellor-portal.js:71
-(anonymous)	@	counsellor-portal.js:36
+loadProfile	@	student-portal.js:244
+initPortal	@	student-portal.js:218
+(anonymous)	@	student-portal.js:126
 (anonymous)	@	auth_impl.ts:744
-Promise.then		
-registerStateListener	@	auth_impl.ts:744
-onAuthStateChanged	@	auth_impl.ts:545
-onAuthStateChanged	@	index.ts:211
-(anonymous)	@	counsellor-portal.js:30
+
 
 
 
