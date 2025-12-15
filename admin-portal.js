@@ -986,7 +986,7 @@ async function loadAllIssues() {
                         ${statusTag}
                     </div>
                 </div>
-                <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(issue.description.substring(0, 150) + (issue.description.length > 150 ? '...' : '') || 'No description.')}</p>
+                <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(previewDesc)}</p>
                 <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
                     <button class="btn secondary btn-sm view-issue" data-id="${issue.id}">View Details</button>
                     ${issue.status === 'open' ? `<button class="btn btn-sm close-issue" data-id="${issue.id}">Mark Closed</button>` : ''}
