@@ -1,1 +1,61 @@
+/* ---------------- CHATS (FINAL PERMANENT SOLUTION) ----------------
+ * Secures BOTH data structures:
+ * 1. Top-Level Messages: /chats/{messageId} (Used by Counsellor/Tutor)
+ * 2. Nested Messages: /chats/{chatID}/messages/{messageId} (Used by Student)
+ * --------------------------------------------------------------------------*/
+
+// --- 1. Rule for the Top-Level /chats/{messageId} (Counsellor/Tutor) ---
+match /chats/{messageId} {
+  
+  // Helper: Checks if the user is the sender ('from') or recipient ('to')
+  // Note: Counsellor/Tutor documents use 'from' and 'to' fields
+  function isTopLevelChatParticipant() {
+    return request.auth.uid == resource.data.from || 
+           request.auth.uid == resource.data.to;
+  }
+  
+  // Allow CREATE if:
+  // 1. Authenticated
+  // 2. User is the sender ('from' field must match their UID)
+  // 3. User is not trying to spoof the participant list (optional, but good)
+  allow create: if request.auth != null
+             && request.auth.uid == request.resource.data.from;
+  
+  // Allow READ if:
+  // 1. Authenticated
+  // 2. User is the sender/recipient (from/to) OR is an Admin
+  allow read: if request.auth != null
+           && (isTopLevelChatParticipant() || isAdmin());
+
+  // Disable update/delete of individual chat messages
+  allow update, delete: if false; 
+}
+
+
+// --- 2. Rule for the Nested /chats/{chatID}/messages/{messageId} (Student) ---
+// Note: This matches the student code's structure and requires fields like 'senderId'
+match /chats/{chatID}/messages/{messageId} {
+  
+  // Helper: Checks if the authenticated UID is one of the UIDs in the chatID string (e.g., "uid1__uid2")
+  // IMPORTANT: Using double underscore '__' as confirmed by your data and code.
+  function isNestedChatParticipant() {
+    return request.path[2].split('__').includes(request.auth.uid);
+  }
+  
+  // Allow READ if:
+  // 1. Authenticated
+  // 2. User is a participant (from the chatID) OR is an Admin.
+  allow read: if request.auth != null
+           && (isNestedChatParticipant() || isAdmin());
+  
+  // Allow CREATE if:
+  // 1. Authenticated
+  // 2. User is a participant
+  // 3. The new message's 'senderId' field matches the user's UID (from student code).
+  allow create: if request.auth != null
+             && isNestedChatParticipant()
+             && request.auth.uid == request.resource.data.senderId;
+
+  allow update, delete: if false; 
+}
 
