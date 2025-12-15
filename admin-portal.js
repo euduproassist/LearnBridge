@@ -984,6 +984,14 @@ async function loadAllIssues() {
                     <div style="display:flex;gap:8px;align-items:center;">
                         <span class="tag ${priorityClass}">${escapeHtml(issue.priority || 'Low')} Priority</span>
                         ${statusTag}
+         const statusTag = issue.status === 'open' ? `<span class="tag pending">Open</span>` : `<span class="tag approved">Closed</span>`;
+        // --- START FIX ---
+        const issueDesc = issue.description || '';
+        const previewDesc = issueDesc.substring(0, 150) + (issueDesc.length > 150 ? '...' : '') || 'No description.';
+        // --- END FIX ---
+        
+        return `
+
                     </div>
                 </div>
                 <p style="margin-top:8px;padding-left:10px;border-left:2px solid #eee;">${escapeHtml(previewDesc)}</p>
