@@ -973,7 +973,8 @@ async function loadAllIssues() {
         const priorityClass = issue.priority === 'High' ? 'danger' : issue.priority === 'Medium' ? 'warning' : 'secondary';
         const reporterRole = issue.role || 'N/A';
         const statusTag = issue.status === 'open' ? `<span class="tag pending">Open</span>` : `<span class="tag approved">Closed</span>`;
-        
+
+              const previewDesc = (issue.description || 'No description provided.').substring(0, 100) + ((issue.description && issue.description.length > 100) ? '...' : ''); 
         return `
             <div class="profile-card" style="margin-bottom:12px;border-left:3px solid var(--${priorityClass}-color);">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
