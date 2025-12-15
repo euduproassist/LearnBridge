@@ -1,24 +1,28 @@
-Microsoft Windows [Version 10.0.26200.7171]
-(c) Microsoft Corporation. All rights reserved.
+// set-admin.js
+const admin = require('firebase-admin');
 
-C:\Users\tshep>C:\Users\tshep\OneDrive\Desktop\AdminFix
-'C:\Users\tshep\OneDrive\Desktop\AdminFix' is not recognized as an internal or external command,
-operable program or batch file.
+// 1. Point to the secure key you just downloaded
+const serviceAccount = require('./service-key.json'); 
 
-C:\Users\tshep>npm install forebase-admin
-npm error code E404
-npm error 404 Not Found - GET https://registry.npmjs.org/forebase-admin - Not found
-npm error 404
-npm error 404  The requested resource 'forebase-admin@*' could not be found or you do not have permission to access it.
-npm error 404
-npm error 404 Note that you can also install from a
-npm error 404 tarball, folder, http url, or git url.
-npm notice
-npm notice New minor version of npm available! 11.6.0 -> 11.7.0
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
-npm notice To update run: npm install -g npm@11.7.0
-npm notice
-npm error A complete log of this run can be found in: C:\Users\tshep\AppData\Local\npm-cache\_logs\2025-12-15T00_08_21_693Z-debug-0.log
+// Initialize the Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
-C:\Users\tshep>
+// 2. The UID that needs the admin tag
+const adminUid = 'hwNv2k636LMjPUfkjJLSpung77t1'; 
+
+console.log(`Attempting to set Admin security tag for UID: ${adminUid}...`);
+
+// This line applies the 'admin: true' tag to your user account
+admin.auth().setCustomUserClaims(adminUid, { admin: true })
+  .then(() => {
+    console.log('✅ SUCCESS! The Admin security tag is now set on your user account. Please LOG OUT and LOG BACK IN to your portal.');
+    process.exit();
+  })
+  .catch((error) => {
+    console.error('❌ ERROR setting the Admin tag:', error);
+    process.exit(1);
+  });
+
 
