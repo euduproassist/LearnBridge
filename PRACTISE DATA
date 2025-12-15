@@ -78,6 +78,30 @@ initPortal	@	student-portal.js:218
 (anonymous)	@	auth_impl.ts:744
 
 
+but the collection is there J0VVHuUWWKr3Midk5RXt
+chatId
+"Dndphn9bYFNhU6qIP7KObIsCVQG2__sbCtDO97y1VSk6PQAW9VEIFVoDw1"
+(string)
+
+
+createdAt
+"2025-12-15T11:35:22.542Z"
+(string)
+
+
+from
+"Dndphn9bYFNhU6qIP7KObIsCVQG2"
+(string)
+
+
+text
+"Hi"
+(string)
+
+
+to
+"sbCtDO97y1VSk6PQAW9VEIFVoDw1"
+
 
 
 
@@ -209,4 +233,3 @@ match /chats/{messageId} {
     }
   }
 }
-
