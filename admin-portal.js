@@ -1005,6 +1005,42 @@ async function loadAllIssues() {
   }
 }
 
+/**
+ * Handles viewing issue details (opens a modal).
+ * @param {string} issueId - The issue ID.
+ */
+async function handleViewIssue(issueId) {
+  try {
+    // 1. Fetch the Issue/Ticket details
+    const issueSnap = await getDoc(doc(db, 'supportTickets', issueId)); // FIX: using 'supportTickets'
+    if (!issueSnap.exists()) return alert('Issue not found.');
+    const issue = issueSnap.data();
+    
+    let reporterName = 'N/A';
+    
+    // 2. Fetch the reporter's name if the ID is available
+    if (issue.reporterId) {
+        const userSnap = await getDoc(doc(db, 'users', issue.reporterId));
+        if (userSnap.exists()) {
+            reporterName = userSnap.data().name || `User ID: ${issue.reporterId}`;
+        }
+    }
+    
+    // 3. Display all details including the reporter's name
+    alert(`Issue Details:
+Title: ${issue.title}
+Description: ${issue.description}
+Priority: ${issue.priority}
+Status: ${issue.status}
+Reported By: ${reporterName} (${issue.role || 'N/A'}) // <--- ADDED NAME HERE
+Reported On: ${new Date(issue.createdAt).toLocaleString()}
+`);
+    
+  } catch (err) {
+    console.error('View issue failed', err);
+    alert('Failed to fetch issue details.');
+  }
+}
 
 
 
