@@ -892,7 +892,157 @@ async function sendSupport(uid) {
   }
 }
 
+/* ---------- CHAT (Feature 6 - Fully Implemented with Realtime) ---------- */
 
+/** Loads a list of people the student has an active session (or chat) with. */
+async function loadChatContacts(uid, autoSelectContact = null) {
+  const listEl = $('chatList');
+  listEl.innerHTML = '<div class="empty">Finding your chat contacts...</div>';
+  
+  try {
+    // Find all unique people the student has sessions with (approved or pending)
+    const sessionsCol = collection(db, 'sessions');
+    const q = query(sessionsCol, where('studentId', '==', uid), where('status', 'in', ['approved', 'pending']));
+    const snap = await getDocs(q);
+
+    const personIds = new Set();
+    snap.forEach(d => personIds.add(d.data().personId));
+
+    if (personIds.size === 0) {
+      listEl.innerHTML = '<div class="empty">No active sessions yet. Book a tutor!</div>';
+      openChatWindow(null);
+      return;
+    }
+
+    const contacts = [];
+    for (const pid of personIds) {
+        const userSnap = await getDoc(doc(db, 'users', pid));
+        if (userSnap.exists()) {
+            const u = userSnap.data();
+            contacts.push({ id: userSnap.id, name: u.name, role: u.role });
+        }
+    }
+    
+    listEl.innerHTML = '';
+    contacts.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'chat-item';
+        item.textContent = `${c.name} (${c.role})`;
+        item.onclick = () => openChatWindow(c);
+        listEl.appendChild(item);
+    });
+
+    // Auto-select the contact if provided (e.g., from search/booking)
+    if (autoSelectContact && autoSelectContact.id) {
+        const contact = contacts.find(c => c.id === autoSelectContact.id) || autoSelectContact;
+        openChatWindow(contact);
+    } else if (contacts.length > 0) {
+        openChatWindow(contacts[0]);
+    } else {
+        openChatWindow(null);
+    }
+
+  } catch (err) {
+    console.error('loadChatContacts', err);
+    listEl.innerHTML = `<div class="empty">Failed to load contacts.</div>`;
+    openChatWindow(null);
+  }
+}
+
+/** Opens a chat window and starts listening for messages. */
+function openChatWindow(contact) {
+    currentChatContact = contact;
+    
+    // Clear previous listener if active
+    if (unsubscribeChat) {
+        unsubscribeChat();
+        unsubscribeChat = null;
+    }
+
+    $('chatHeader').textContent = contact ? `Chatting with ${contact.name}` : 'Select a contact to start chatting';
+    $('messageInput').disabled = !contact;
+    $('sendMessageBtn').disabled = !contact;
+    $('fileUploadBtn').disabled = !contact;
+    $('chatList').querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+    
+    const messagesEl = $('chatMessages');
+    messagesEl.innerHTML = contact ? '<div class="empty" style="border:none">Loading messages...</div>' : '';
+
+    if (!contact) return;
+    
+    // Highlight the current contact
+    const activeItem = Array.from($('chatList').querySelectorAll('.chat-item')).find(el => el.textContent.includes(contact.name));
+    if (activeItem) activeItem.classList.add('active');
+
+    // Chat ID Convention: Order the IDs alphabetically to ensure both users use the same chat document ID
+    const chatID = [CURRENT_USER_ID, contact.id].sort().join('__');
+    const chatRef = doc(db, 'chats', chatID);
+    const messagesQuery = query(collection(chatRef, 'messages'), orderBy('timestamp', 'asc'));
+
+    // 🚨 Realtime Listener: Start listening for messages (Feature 6)
+    unsubscribeChat = onSnapshot(messagesQuery, (snapshot) => {
+        messagesEl.innerHTML = ''; // Clear existing
+        if (snapshot.empty) {
+            messagesEl.innerHTML = '<div class="empty" style="border:none">No messages yet. Say hello!</div>';
+            return;
+        }
+
+        snapshot.forEach(msgDoc => {
+            const m = msgDoc.data();
+            const isSent = m.senderId === CURRENT_USER_ID;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            let content = escapeHtml(m.text || m.fileUrl || '—');
+            // Basic link rendering for files/docs
+            if (m.fileUrl) {
+                content = `<a href="${escapeHtml(m.fileUrl)}" target="_blank" style="color:inherit;text-decoration:underline;">${m.text || 'Shared File/Link'}</a>`;
+            }
+            msgDiv.innerHTML = content;
+            messagesEl.appendChild(msgDiv);
+        });
+        // Auto-scroll to bottom
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, (error) => {
+        console.error("Chat listener failed: ", error);
+        messagesEl.innerHTML = '<div class="empty" style="border:none;color:red;">Error loading chat.</div>';
+    });
+}
+
+/** Sends a message to the currently selected contact. */
+async function sendMessage(uid) {
+    if (!currentChatContact) return;
+    const input = $('messageInput');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    try {
+        const chatID = [uid, currentChatContact.id].sort().join('__');
+        const chatRef = doc(db, 'chats', chatID);
+        const messagesRef = collection(chatRef, 'messages');
+
+        // Ensure chat document exists (optional, Firestore handles creation implicitly)
+        await setDoc(chatRef, { 
+            studentId: uid, 
+            personId: currentChatContact.id,
+            lastMessage: new Date().toISOString()
+        }, { merge: true });
+
+        // Add the message
+        await addDoc(messagesRef, {
+            senderId: uid,
+            text: text,
+            timestamp: new Date().toISOString(),
+            read: false, // For read receipts (Feature 6)
+        });
+
+        input.value = ''; // Clear input
+    } catch (error) {
+        console.error("Error sending message:", error);
+        alert('Failed to send message: ' + error.message);
+    }
+} 
 
 
 
