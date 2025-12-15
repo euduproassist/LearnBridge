@@ -1030,7 +1030,7 @@ async function handleViewIssue(issueId) {
 async function handleCloseIssue(issueId) {
   if (!confirm('Mark this issue as closed?')) return;
   try {
-    await updateDoc(doc(db, 'issues', issueId), { 
+    await updateDoc(doc(db, 'supportTickets', issueId), { 
       status: 'closed', 
       closedBy: STATE.uid,
       closedAt: new Date().toISOString()
