@@ -1,115 +1,3 @@
-student-portal.js:1007 
- Chat listener failed:  FirebaseError: Missing or insufficient permissions.
-(anonymous)	@	student-portal.js:1007
-(anonymous)	@	bundle_reader_impl.ts:43
-setTimeout		
-Xa	@	bundle_reader_impl.ts:32
-error	@	async_observer.ts:54
-onError	@	event_manager.ts:485
-__PRIVATE_eventManagerOnWatchError	@	event_manager.ts:367
-__PRIVATE_removeAndCleanupTarget	@	sync_engine_impl.ts:941
-(anonymous)	@	sync_engine_impl.ts:732
-Promise.then		
-__PRIVATE_syncEngineRejectListen	@	sync_engine_impl.ts:731
-__PRIVATE_handleTargetError	@	remote_store.ts:655
-__PRIVATE_onWatchStreamChange	@	remote_store.ts:59
-onNext	@	persistent_stream.ts:684
-(anonymous)	@	persistent_stream.ts:554
-(anonymous)	@	persistent_stream.ts:599
-(anonymous)	@	async_queue_impl.ts:138
-(anonymous)	@	async_queue_impl.ts:330
-Promise.then		
-yu	@	async_queue_impl.ts:189
-enqueue	@	async_queue_impl.ts:136
-enqueueAndForget	@	async_queue_impl.ts:97
-(anonymous)	@	persistent_stream.ts:597
-(anonymous)	@	persistent_stream.ts:541
-vo	@	webchannel_connection.ts:56
-(anonymous)	@	webchannel_connection.ts:398
-(anonymous)	@	webchannel_connection.ts:298
-Promise.then		
-Eo	@	webchannel_connection.ts:265
-send	@	stream_bridge.ts:94
-c_	@	persistent_stream.ts:330
-V_	@	persistent_stream.ts:701
-__PRIVATE_sendWatchRequest	@	remote_store.ts:357
-(anonymous)	@	remote_store.ts:421
-__PRIVATE_onWatchStreamOpen	@	remote_store.ts:417
-(anonymous)	@	persistent_stream.ts:533
-(anonymous)	@	persistent_stream.ts:599
-(anonymous)	@	async_queue_impl.ts:138
-(anonymous)	@	async_queue_impl.ts:330
-Promise.then		
-yu	@	async_queue_impl.ts:189
-enqueue	@	async_queue_impl.ts:136
-enqueueAndForget	@	async_queue_impl.ts:97
-(anonymous)	@	persistent_stream.ts:597
-(anonymous)	@	persistent_stream.ts:518
-bo	@	webchannel_connection.ts:50
-(anonymous)	@	dom.ts:22
-setTimeout		
-qo	@	dom.ts:19
-E_	@	persistent_stream.ts:664
-I_	@	persistent_stream.ts:505
-(anonymous)	@	persistent_stream.ts:482
-Promise.then		
-auth	@	persistent_stream.ts:477
-start	@	persistent_stream.ts:274
-__PRIVATE_startWatchStream	@	remote_store.ts:389
-__PRIVATE_remoteStoreListen	@	remote_store.ts:288
-__PRIVATE_allocateTargetAndMaybeListen	@	sync_engine_impl.ts:374
-await in __PRIVATE_allocateTargetAndMaybeListen		
-__PRIVATE_syncEngineListen	@	sync_engine_impl.ts:316
-__PRIVATE_eventManagerListen	@	event_manager.ts:176
-__PRIVATE_readDocumentViaSnapshotListener	@	firestore_client.ts:485
-(anonymous)	@	firestore_client.ts:488
-await in (anonymous)		
-(anonymous)	@	async_queue_impl.ts:138
-(anonymous)	@	async_queue_impl.ts:330
-Promise.then		
-yu	@	async_queue_impl.ts:189
-enqueue	@	async_queue_impl.ts:136
-enqueueAndForget	@	async_queue_impl.ts:97
-__PRIVATE_firestoreClientGetDocumentViaSnapshotListener	@	firestore_client.ts:651
-getDoc	@	reference_impl.ts:120
-loadProfile	@	student-portal.js:244
-initPortal	@	student-portal.js:218
-(anonymous)	@	student-portal.js:126
-(anonymous)	@	auth_impl.ts:744
-
-
-but the collection is there J0VVHuUWWKr3Midk5RXt
-chatId
-"Dndphn9bYFNhU6qIP7KObIsCVQG2__sbCtDO97y1VSk6PQAW9VEIFVoDw1"
-(string)
-
-
-createdAt
-"2025-12-15T11:35:22.542Z"
-(string)
-
-
-from
-"Dndphn9bYFNhU6qIP7KObIsCVQG2"
-(string)
-
-
-text
-"Hi"
-(string)
-
-
-to
-"sbCtDO97y1VSk6PQAW9VEIFVoDw1"
-
-
-
-
-
-
-
-this are my current codes 
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -164,54 +52,62 @@ service cloud.firestore {
                           && (isSessionParticipant() || isAdmin());
     }
 
-/* ---------------- RATINGS (FIXED) ----------------
- * Students create, students read their own, Admins read/manage all, and Counsellors read ratings about them.
- * ----------------------------------------*/
-match /ratings/{ratingId} {
-  // Student creates rating -> studentId must match their UID
-  allow create: if request.auth != null
-             && request.resource.data.studentId == request.auth.uid; 
-  
-  // ALLOW READ if: Admin OR Student created it OR Counsellor is the Person rated (personId)
-  // Replaced request.auth.token.admin == true with isAdmin()
-  allow read: if request.auth != null
-            && (isAdmin()
-             || resource.data.studentId == request.auth.uid
-             || resource.data.personId == request.auth.uid); 
-             
-  // Only admin can modify or delete
-  // Replaced request.auth.token.admin == true with isAdmin()
-  allow update, delete: if request.auth != null
-                      && isAdmin();
-}
+    /* ---------------- RATINGS (FIXED) ----------------
+     * Students create, students read their own, Admins read/manage all, and Counsellors read ratings about them.
+     * ----------------------------------------*/
+    match /ratings/{ratingId} {
+      // Student creates rating -> studentId must match their UID
+      allow create: if request.auth != null
+                 && request.resource.data.studentId == request.auth.uid; 
+      
+      // ALLOW READ if: Admin OR Student created it OR Counsellor is the Person rated (personId)
+      allow read: if request.auth != null
+                && (isAdmin()
+                 || resource.data.studentId == request.auth.uid
+                 || resource.data.personId == request.auth.uid); 
+                 
+      // Only admin can modify or delete
+      allow update, delete: if request.auth != null
+                          && isAdmin();
+    }
     
 
-/* ---------------- CHATS (FIXED FOR TOP-LEVEL MESSAGE DOCUMENTS) ----------------
- * Each message is a top-level document in /chats.
- * Access is granted if the user's UID matches the 'from' or 'to' field.
- * ----------------------------------------*/
-match /chats/{messageId} {
-  // Helper to check if the user is the sender ('from') or recipient ('to')
-  function isChatParticipant() {
-    return request.auth.uid == resource.data.from || 
-           request.auth.uid == resource.data.to;
-  }
-  
-  // Allow CREATE if:
-  // 1. Authenticated
-  // 2. User is the sender ('from' field must match their UID)
-  allow create: if request.auth != null
-             && request.auth.uid == request.resource.data.from;
-  
-  // Allow READ if:
-  // 1. Authenticated
-  // 2. User is the sender/recipient (from/to) OR is an Admin
-  allow read: if request.auth != null
-           && (isChatParticipant() || isAdmin());
+    /* ---------------- CHATS (FIXED FOR NESTED SUB-COLLECTIONS) ----------------
+     * This section has been updated to correctly match your code's data structure:
+     * /chats/{chatID} (Parent Document - denied access)
+     * /chats/{chatID}/messages/{messageId} (Sub-Collection - granted access)
+     * --------------------------------------------------------------------------*/
+     
+    // Deny access to the parent chat document itself (it's only metadata)
+    match /chats/{chatID} {
+      allow read, write: if false; 
+    }
+     
+    match /chats/{chatID}/messages/{messageId} {
+      
+      // Helper: Checks if the authenticated UID is one of the UIDs in the chatID string (e.g., "uid1_uid2")
+      function isChatParticipant() {
+        // request.path[2] holds the {chatID} path segment
+        return request.path[2].split('_').includes(request.auth.uid);
+      }
+      
+      // Allow READ if:
+      // 1. Authenticated
+      // 2. User is a participant (from the chatID) OR is an Admin.
+      allow read: if request.auth != null
+               && (isChatParticipant() || isAdmin());
+      
+      // Allow CREATE if:
+      // 1. Authenticated
+      // 2. User is a participant
+      // 3. The new message's 'senderId' field matches the user's UID.
+      allow create: if request.auth != null
+                 && isChatParticipant()
+                 && request.auth.uid == request.resource.data.senderId;
 
-  // Disable update/delete of individual chat messages
-  allow update, delete: if false; 
-}
+      // No updates/deletes are allowed for individual messages.
+      allow update, delete: if false; 
+    }
     
     /* ---------------- SUPPORT TICKETS ----------------
      * Students create, only Admins read/manage
@@ -221,7 +117,6 @@ match /chats/{messageId} {
       allow create: if request.auth != null;
       
       // Only admins can read/update/delete tickets
-      // Replaced request.auth.token.admin == true with isAdmin()
       allow read, update, delete: if request.auth != null 
                                 && isAdmin();
     }
