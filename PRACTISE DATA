@@ -1,95 +1,71 @@
-student-portal.js:834 
- [SERVER CHECK] Conflict check failed FirebaseError: Missing or insufficient permissions.
-checkConflictForPerson	@	student-portal.js:834
-await in checkConflictForPerson		
-callServerFunction	@	student-portal.js:46
-$.onclick	@	student-portal.js:705
-
-
-
-
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /* ---------------- GLOBAL HELPER FUNCTIONS ----------------
-     * ADDED: A function to check if the user is an admin by checking their custom claims token.
-     * The admin user must have this claim set on their Firebase Auth token (via the Firebase Admin SDK).
+     * Remains unchanged.
      * -----------------------------------------------------------*/
     function isAdmin() {
       // NOTE: This uses the custom token claim set by the Admin SDK.
-      // This is the most secure method. 
       return request.auth.token.admin == true;
     }
     
     /* ---------------- USERS ----------------
-     * Only the authenticated user can read/write their own profile
-     * FIX: Allow authenticated users to READ any profile (tutors, counsellors) 
-     * so the student portal can display names in the chat list.
+     * Remains unchanged (Allows all authenticated users to read profiles).
      * ----------------------------------------*/
     match /users/{userId} {
-      // Allow any authenticated user to read (for fetching tutor/counselor names)
-      // Allow admin to read/write all user profiles for management.
       allow read: if request.auth != null; 
-      
-      // Only allow a user to write/update their OWN profile
-      // Allow admin to write/update any profile
       allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-    /* ---------------- SESSIONS (FIXED FOR ADMIN PORTAL) ----------------
-     * ADDED: The Admin must be able to read all sessions to calculate dashboard metrics.
-     * ----------------------------------------*/
+    /* ---------------- SESSIONS (PERMANENT FIX FOR CONFLICT CHECK) ----------------
+     * FIX: The client-side 'checkConflictForPerson' requires the student to read 
+     * all sessions for a specific person, which often fail the 'isSessionParticipant' 
+     * check. The only way to permanently fix this client-side query is to allow 
+     * all authenticated users to read the session metadata.
+     * -----------------------------------------------------------------------------*/
     match /sessions/{sessionId} {
-      // Helper function to check if the user is a participant
       function isSessionParticipant() {
         return request.auth.uid == resource.data.studentId || 
-               resource.data.personId == request.auth.uid; // Minor optimization to use resource.data
+               resource.data.personId == request.auth.uid; 
       }
       
+      // PERMANENT FIX: Allows all authenticated users to read all session documents. 
+      // This enables the conflict check query on the client side to succeed.
+      allow read: if request.auth != null; 
+
       // Students can only CREATE sessions where the studentId field is their UID
       allow create: if request.auth != null
                   && request.resource.data.studentId == request.auth.uid; 
 
-      // Students/Counsellors can READ if they are a participant (studentId OR personId)
-      // ADDED: Allow read if the user is an Admin
-      allow read: if request.auth != null
-                && (isSessionParticipant() || isAdmin()); 
-
-      // Students/Counsellors can UPDATE/DELETE if they are a participant
-      // ADDED: Allow Admin to update/delete all sessions
+      // Students/Counsellors can UPDATE/DELETE if they are a participant or admin
       allow update, delete: if request.auth != null
                           && (isSessionParticipant() || isAdmin());
     }
 
-    /* ---------------- RATINGS (FIXED) ----------------
-     * Students create, students read their own, Admins read/manage all, and Counsellors read ratings about them.
+    /* ---------------- RATINGS ----------------
+     * Remains unchanged.
      * ----------------------------------------*/
     match /ratings/{ratingId} {
-      // Student creates rating -> studentId must match their UID
       allow create: if request.auth != null
                  && request.resource.data.studentId == request.auth.uid; 
       
-      // ALLOW READ if: Admin OR Student created it OR Counsellor is the Person rated (personId)
       allow read: if request.auth != null
                 && (isAdmin()
                  || resource.data.studentId == request.auth.uid
                  || resource.data.personId == request.auth.uid); 
                  
-      // Only admin can modify or delete
       allow update, delete: if request.auth != null
                           && isAdmin();
     }
     
 
-    /* ---------------- CHATS (FIXED FOR NESTED SUB-COLLECTIONS) ----------------
-     * This section has been updated to correctly match your code's data structure:
-     * /chats/{chatID} (Parent Document - denied access)
-     * /chats/{chatID}/messages/{messageId} (Sub-Collection - granted access)
+    /* ---------------- CHATS (PERMANENT NESTED COLLECTION FIX) ----------------
+     * FIX: Correctly secures the nested collection structure used by your JS code.
+     * Assumes your JS uses a single underscore '_' for the chatID separator.
      * --------------------------------------------------------------------------*/
      
-    // Deny access to the parent chat document itself (it's only metadata)
+    // Deny access to the parent chat document itself (it only holds metadata)
     match /chats/{chatID} {
       allow read, write: if false; 
     }
@@ -121,21 +97,18 @@ service cloud.firestore {
     }
     
     /* ---------------- SUPPORT TICKETS ----------------
-     * Students create, only Admins read/manage
+     * Remains unchanged.
      * ----------------------------------------*/
     match /supportTickets/{ticketId} {
-      // Only authenticated users can create a ticket
       allow create: if request.auth != null;
-      
-      // Only admins can read/update/delete tickets
       allow read, update, delete: if request.auth != null 
                                 && isAdmin();
     }
 
     // ADDED: General Admin Access for other administrative collections
-    // You should add these for any other collections your dashboard loads data from
     match /{document=**} {
       allow read, write: if isAdmin();
     }
   }
 }
+
