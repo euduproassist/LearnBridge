@@ -1032,7 +1032,7 @@ Title: ${issue.title}
 Description: ${issue.description}
 Priority: ${issue.priority}
 Status: ${issue.status}
-Reported By: ${reporterName} (${issue.role || 'N/A'}) // <--- ADDED NAME HERE
+Reported By: ${reporterName} (${issue.role || 'N/A'}) 
 Reported On: ${new Date(issue.createdAt).toLocaleString()}
 `);
     
