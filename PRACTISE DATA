@@ -1,12 +1,4 @@
-admin-portal.js:1003 
- loadAllIssues failed TypeError: Cannot read properties of undefined (reading 'substring')
-    at admin-portal.js:989:120
-    at Array.map (<anonymous>)
-    at loadAllIssues (admin-portal.js:972:34)
-loadAllIssues	@	admin-portal.js:1003
-await in loadAllIssues		
-showSection	@	admin-portal.js:98
-$.onclick	@	admin-portal.js:1508
+Uncaught SyntaxError: Unexpected token 'class' (at admin-portal.js:987:61)
 
 
 
