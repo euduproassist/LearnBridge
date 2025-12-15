@@ -1006,22 +1006,7 @@ async function loadAllIssues() {
 }
 
 
-/**
- * Handles viewing issue details (opens a modal).
- * @param {string} issueId - The issue ID.
- */
-async function handleViewIssue(issueId) {
-  try {
-    const snap = await getDoc(doc(db, 'supportTickets', issueId));
-    if (!snap.exists()) return alert('Issue not found.');
-    const issue = snap.data();
-    
-    alert(`Issue Details:\n\nTitle: ${issue.title}\nDescription: ${issue.description}\nPriority: ${issue.priority}\nStatus: ${issue.status}\nReported: ${new Date(issue.createdAt).toLocaleString()}\nReporter Role: ${issue.role}`);
-  } catch (err) {
-    console.error('View issue failed', err);
-    alert('Failed to fetch issue details.');
-  }
-}
+
 
 /**
  * Marks an issue as closed.
