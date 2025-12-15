@@ -975,7 +975,7 @@ function openChatWindow(contact) {
     if (activeItem) activeItem.classList.add('active');
 
     // Chat ID Convention: Order the IDs alphabetically to ensure both users use the same chat document ID
-    const chatID = [CURRENT_USER_ID, contact.id].sort().join('_');
+    const chatID = [CURRENT_USER_ID, contact.id].sort().join('__');
     const chatRef = doc(db, 'chats', chatID);
     const messagesQuery = query(collection(chatRef, 'messages'), orderBy('timestamp', 'asc'));
 
@@ -1018,7 +1018,7 @@ async function sendMessage(uid) {
     if (!text) return;
 
     try {
-        const chatID = [uid, currentChatContact.id].sort().join('_');
+        const chatID = [uid, currentChatContact.id].sort().join('__');
         const chatRef = doc(db, 'chats', chatID);
         const messagesRef = collection(chatRef, 'messages');
 
