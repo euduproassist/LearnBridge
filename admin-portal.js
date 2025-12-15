@@ -945,7 +945,7 @@ async function loadAllIssues() {
   hide('issuesEmpty');
 
   try {
-    const issuesRef = collection(db, 'issues');
+    const issuesRef = collection(db, 'supportTickets');
     let q = query(issuesRef, orderBy('createdAt', 'desc'), limit(50));
     
     // Apply Filter (e.g., status, priority)
