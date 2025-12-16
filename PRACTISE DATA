@@ -1,8 +1,11 @@
 
 
-tutor-portal.js:710 
- send chat FirebaseError: Missing or insufficient permissions.
-modal.querySelector.onclick	@	tutor-portal.js:710
+student-portal.js:971 
+ Uncaught TypeError: Cannot read properties of null (reading 'classList')
+    at selectChatContact (student-portal.js:971:19)
+    at HTMLDivElement.<anonymous> (student-portal.js:944:9)
+selectChatContact	@	student-portal.js:971
+(anonymous)	@	student-portal.js:944
 
 
 
