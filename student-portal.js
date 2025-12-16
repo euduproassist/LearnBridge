@@ -951,6 +951,10 @@ function selectChatContact(personId, personName) {
     $('chatHeaderName').textContent = personName;
     show('chatWindow');
     $('chatEmpty').classList.add('hidden');
+  
+   $('messageInput').disabled = false;
+   $('sendMessageBtn').disabled = false;
+   $('fileUploadBtn').disabled = false;
     
     // Start chat listener
     startChatListener(CURRENT_USER_ID, personId);
