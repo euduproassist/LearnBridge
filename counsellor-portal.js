@@ -684,6 +684,15 @@ export async function openChatWindow(userObj) {
       const txt = inputEl.value.trim();
       if (!txt) return;
       try {
+// NEW CODE - WRITING TO NESTED /chats/{chatId}/messages
+const messagesRef = collection(db, 'chats', chatId, 'messages');
+await addDoc(messagesRef, {
+  senderId: myId, // Use 'senderId' to match the student-portal's structure and rules
+  text: txt, 
+  timestamp: new Date().toISOString() // Use 'timestamp' to match the student-portal's structure and rules
+});
+// Optional: Update the parent chat document with a timestamp/last message
+await setDoc(doc(db, 'chats', chatId), { lastMessageAt: new Date().toISOString() }, { merge: true });
 
         inputEl.value = '';
       } catch (err) {
