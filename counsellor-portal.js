@@ -717,9 +717,8 @@ await setDoc(doc(db, 'chats', chatId), { lastMessageAt: new Date().toISOString()
       }
     }
 
-    // Set up real-time listener
-    const q = query(collection(db,'chats'), where('chatId','==', chatId), orderBy('createdAt','asc'));
-    const unsubscribe = onSnapshot(q, renderMessages, (error) => {
+
+    
         console.error('Chat listener failed:', error);
         messagesEl.innerHTML = 'Failed to load messages.';
     });
