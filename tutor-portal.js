@@ -695,7 +695,7 @@ export async function openChatWindow(userObj) {
           // Changed 'from' to 'senderId' to match the security rule's expectation
           senderId: myId, 
           text: txt, 
-          createdAt: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
         });
         
         // Update the parent chat document (required by security rule for 'update' on /chats/{chatID})
@@ -722,7 +722,7 @@ export async function openChatWindow(userObj) {
           return `
             <div style="margin-bottom:6px;display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">
               <div style="background:${isMe?'#0070a0':'#f0f0f0'};color:${isMe?'#fff':'#333'};padding:8px;border-radius:8px;max-width:80%">${escapeHtml(m.text)}</div>
-              <div class="muted" style="font-size:11px;margin-top:4px">${new Date(m.createdAt).toLocaleTimeString()}</div>
+              <div class="muted" style="font-size:11px;margin-top:4px">${new Date(m.timestamp).toLocaleTimeString()}</div>
             </div>
           `;
         }).join('');
@@ -735,7 +735,7 @@ export async function openChatWindow(userObj) {
     // FIX 2: Use nested collection for real-time listener
     const chatRef = doc(db, 'chats', chatId);
     const messagesCol = collection(chatRef, 'messages'); // Target: /chats/{chatID}/messages
-    const q = query(messagesCol, orderBy('createdAt','asc')); // Removed where clause as it's redundant at the path
+    const q = query(messagesCol, orderBy('timestamp','asc')); // Removed where clause as it's redundant at the path
     
     const unsubscribe = onSnapshot(q, renderMessages, (error) => {
         console.error('Chat listener failed:', error);
