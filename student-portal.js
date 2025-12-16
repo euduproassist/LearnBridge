@@ -523,6 +523,64 @@ async function loadSessionsList(uid, filterRole = null) {
   }
 }
 
+/* ---------- Load ratings list (student's own ratings) ---------- */
+async function loadRatingsList(uid, roleFilter = '', searchText = '') {
+  const container = $('ratingsList');
+  const emptyEl = $('ratingsEmpty');
+  
+  // 1. Prepare container for loading state
+  container.classList.add('empty'); // Ensure empty style is applied for loading
+  emptyEl.classList.add('hidden'); 
+  container.innerHTML = 'Loading ratings...';
+  
+  try {
+    const ratingsCol = collection(db, 'ratings');
+    
+    // 2. Fetch ALL of the student's ratings first (efficient Firestore query)
+    const q = query(ratingsCol, where('studentId','==',uid), orderBy('createdAt','desc'));
+    const snap = await getDocs(q);
+    
+    let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // 3. 🎯 CRITICAL FIX: Client-Side Filter for Role and Search Text 🎯
+    if (roleFilter) {
+      docs = docs.filter(r => r.role === roleFilter);
+    }
+    if (searchText) {
+      const lowerSearch = searchText.toLowerCase().trim();
+      docs = docs.filter(r => (r.personName||'').toLowerCase().includes(lowerSearch) || (r.comment||'').toLowerCase().includes(lowerSearch));
+    }
+    
+    // 4. Handle Empty State and CSS Class
+    if (docs.length === 0) {
+      container.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      return;
+    } else {
+      emptyEl.classList.add('hidden');
+      container.classList.remove('empty'); // Fixes the dashed border/padding issue
+    }
+
+    // 5. Render Results
+    const rows = docs.map(r => {
+      return `
+        <div class="profile-card" style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between">
+            <div><strong>${escapeHtml(r.personName)}</strong> <span class="muted">(${escapeHtml(r.role)})</span></div>
+            <div>${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
+          </div>
+          <div class="muted" style="font-size:13px">${new Date(r.createdAt).toLocaleString()}</div>
+          <div>${escapeHtml(r.comment || '')}</div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = `<div class="profiles-grid">${rows}</div>`;
+    
+  } catch (err) {
+    console.error('loadRatingsList', err);
+    container.innerHTML = `<div class="empty">Failed to load ratings</div>`;
+  }
+}
 
 
 
