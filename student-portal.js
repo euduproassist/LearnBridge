@@ -937,7 +937,7 @@ async function loadChatContacts(uid, autoSelectPerson = null) {
 function selectChatContact(personId, personName) {
     // Update active contact visual
     document.querySelectorAll('.chat-contact').forEach(el => el.classList.remove('active'));
-    const selectedEl = $(`chatContacts`).querySelector(`[data-id="${personId}"]`);
+    const selectedEl = $('chatContacts').querySelector(`.chat-contact[data-id="${personId}"]`);
     if (selectedEl) selectedEl.classList.add('active');
 
     // Update global state
