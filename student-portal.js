@@ -957,6 +957,46 @@ async function loadChatContacts(uid, autoSelectPerson = null) {
   }
 }
 
+// --- Replacement for the original function selectChatContact(personId, personName) ---
+/** Handles contact selection and sets up the chat window. */
+function selectChatContact(personId, personName) {
+    // 1. Get the main contacts container first
+    const contactsContainer = $('chatContacts'); 
+
+    // 2. 🚨 CRITICAL FIX: Only proceed if the container exists 🚨
+    if (contactsContainer) {
+        // Update active contact visual (clear all active states first)
+        
+        // 3. Find all contacts within the container and remove the 'active' class
+        contactsContainer.querySelectorAll('.chat-contact').forEach(el => el.classList.remove('active'));
+        
+        // 4. Find the specific contact element using the container
+        const selectedEl = contactsContainer.querySelector(`.chat-contact[data-id="${personId}"]`);
+        
+        // 5. Ensure selectedEl is not null before using classList (This is line 971 or close to it)
+        if (selectedEl) {
+             selectedEl.classList.add('active'); 
+        } else {
+             console.warn(`Chat contact element not found for ID: ${personId}`);
+        }
+    } else {
+        console.error("The '#chatContacts' container was not found. Check your HTML structure.");
+    }
+
+    // Update global state
+    currentChatContact = { id: personId, name: personName };
+    $('chatHeaderName').textContent = personName;
+    show('chatWindow');
+    $('chatEmpty').classList.add('hidden');
+  
+   $('messageInput').disabled = false;
+   $('sendMessageBtn').disabled = false;
+   $('fileUploadBtn').disabled = false;
+    
+    // Start chat listener
+    startChatListener(CURRENT_USER_ID, personId);
+}
+// --------------------------------------------------------------------------------------
 
 
 /** Starts the real-time listener for messages in the nested collection. */
