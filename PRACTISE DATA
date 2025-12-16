@@ -1,265 +1,74 @@
-Conflict found with appointment i0ACUYAOMIlG3vTGujTP from 2025/12/15, 15:00:00 to 2025/12/15, 16:00:00
-logger.ts:117  [2025-12-16T13:58:37.154Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
-defaultLogHandler @ logger.ts:117
-warn @ logger.ts:209
-__PRIVATE_logWarn @ log.ts:76
-Xe @ watch_change.ts:515
-Je @ watch_change.ts:452
-__PRIVATE_onWatchStreamChange @ remote_store.ts:490
-onNext @ persistent_stream.ts:684
-(anonymous) @ persistent_stream.ts:554
-(anonymous) @ persistent_stream.ts:599
-(anonymous) @ async_queue_impl.ts:138
-(anonymous) @ async_queue_impl.ts:330
-Promise.then
-yu @ async_queue_impl.ts:189
-enqueue @ async_queue_impl.ts:136
-enqueueAndForget @ async_queue_impl.ts:97
-(anonymous) @ persistent_stream.ts:597
-(anonymous) @ persistent_stream.ts:541
-vo @ webchannel_connection.ts:56
-(anonymous) @ webchannel_connection.ts:398
-(anonymous) @ webchannel_connection.ts:298
-ab @ webchannel_blob_es2018.js:25
-F @ webchannel_blob_es2018.js:23
-Z.ta @ webchannel_blob_es2018.js:85
-Rb @ webchannel_blob_es2018.js:30
-M.Y @ webchannel_blob_es2018.js:33
-M.ca @ webchannel_blob_es2018.js:31
-ab @ webchannel_blob_es2018.js:25
-F @ webchannel_blob_es2018.js:23
-Wc @ webchannel_blob_es2018.js:62
-e.bb @ webchannel_blob_es2018.js:63
-e.Ea @ webchannel_blob_es2018.js:63
-Lc @ webchannel_blob_es2018.js:57
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-[NEW] Explain Console errors by using Copilot in Edge: click
-         
-         to explain an error. 
-        Learn more
-        Don't show again
-logger.ts:117  [2025-12-16T13:58:37.454Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
-defaultLogHandler @ logger.ts:117
-warn @ logger.ts:209
-__PRIVATE_logWarn @ log.ts:76
-Xe @ watch_change.ts:515
-Je @ watch_change.ts:452
-__PRIVATE_onWatchStreamChange @ remote_store.ts:490
-onNext @ persistent_stream.ts:684
-(anonymous) @ persistent_stream.ts:554
-(anonymous) @ persistent_stream.ts:599
-(anonymous) @ async_queue_impl.ts:138
-(anonymous) @ async_queue_impl.ts:330
-Promise.then
-yu @ async_queue_impl.ts:189
-enqueue @ async_queue_impl.ts:136
-enqueueAndForget @ async_queue_impl.ts:97
-(anonymous) @ persistent_stream.ts:597
-(anonymous) @ persistent_stream.ts:541
-vo @ webchannel_connection.ts:56
-(anonymous) @ webchannel_connection.ts:398
-(anonymous) @ webchannel_connection.ts:298
-ab @ webchannel_blob_es2018.js:25
-F @ webchannel_blob_es2018.js:23
-Z.ta @ webchannel_blob_es2018.js:85
-Rb @ webchannel_blob_es2018.js:30
-M.Y @ webchannel_blob_es2018.js:33
-M.ca @ webchannel_blob_es2018.js:31
-ab @ webchannel_blob_es2018.js:25
-F @ webchannel_blob_es2018.js:23
-Wc @ webchannel_blob_es2018.js:62
-e.bb @ webchannel_blob_es2018.js:63
-e.Ea @ webchannel_blob_es2018.js:63
-Lc @ webchannel_blob_es2018.js:57
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-Promise.then
-Nc @ webchannel_blob_es2018.js:56
-e.Pa @ webchannel_blob_es2018.js:56
-logger.ts:117  [2025-12-16T13:59:07.873Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
-
+﻿
+tutor-portal.js:946 Conflict found with tutorial WYZt2k22umIupVm3uqK4 from 2025/12/16, 17:00:00 to 2025/12/16, 18:00:00
+logger.ts:117 
+ [2025-12-16T14:09:47.795Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
+defaultLogHandler	@	logger.ts:117
+warn	@	logger.ts:209
+__PRIVATE_logWarn	@	log.ts:76
+Xe	@	watch_change.ts:515
+Je	@	watch_change.ts:452
+__PRIVATE_onWatchStreamChange	@	remote_store.ts:490
+onNext	@	persistent_stream.ts:684
+(anonymous)	@	persistent_stream.ts:554
+(anonymous)	@	persistent_stream.ts:599
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+(anonymous)	@	persistent_stream.ts:597
+(anonymous)	@	persistent_stream.ts:541
+vo	@	webchannel_connection.ts:56
+(anonymous)	@	webchannel_connection.ts:398
+(anonymous)	@	webchannel_connection.ts:298
+[NEW] Explain Console errors by using Copilot in Edge: click 
+ to explain an error. Learn more
+Don't show again
+logger.ts:117 
+ [2025-12-16T14:09:47.976Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
+defaultLogHandler	@	logger.ts:117
+warn	@	logger.ts:209
+__PRIVATE_logWarn	@	log.ts:76
+Xe	@	watch_change.ts:515
+Je	@	watch_change.ts:452
+__PRIVATE_onWatchStreamChange	@	remote_store.ts:490
+onNext	@	persistent_stream.ts:684
+(anonymous)	@	persistent_stream.ts:554
+(anonymous)	@	persistent_stream.ts:599
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+(anonymous)	@	persistent_stream.ts:597
+(anonymous)	@	persistent_stream.ts:541
+vo	@	webchannel_connection.ts:56
+(anonymous)	@	webchannel_connection.ts:398
+(anonymous)	@	webchannel_connection.ts:298
+logger.ts:117 
+ [2025-12-16T14:10:04.341Z]  @firebase/firestore: Firestore (11.2.0): BloomFilter error:  {"name":"BloomFilterError"}
+defaultLogHandler	@	logger.ts:117
+warn	@	logger.ts:209
+__PRIVATE_logWarn	@	log.ts:76
+Xe	@	watch_change.ts:515
+Je	@	watch_change.ts:452
+__PRIVATE_onWatchStreamChange	@	remote_store.ts:490
+onNext	@	persistent_stream.ts:684
+(anonymous)	@	persistent_stream.ts:554
+(anonymous)	@	persistent_stream.ts:599
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+(anonymous)	@	persistent_stream.ts:597
+(anonymous)	@	persistent_stream.ts:541
+vo	@	webchannel_connection.ts:56
+(anonymous)	@	webchannel_connection.ts:398
+(anonymous)	@	webchannel_connection.ts:298
 
 
 
