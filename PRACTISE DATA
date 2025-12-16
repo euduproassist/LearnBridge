@@ -1,11 +1,11 @@
-student-portal.js:892 
- Uncaught (in promise) TypeError: Cannot set properties of null (setting 'innerHTML')
-    at loadChatContacts (student-portal.js:892:24)
-    at $.onclick (student-portal.js:139:90)
-loadChatContacts	@	student-portal.js:892
-$.onclick	@	student-portal.js:139
 
 
+student-portal.js:947 
+ Uncaught TypeError: Cannot read properties of null (reading 'classList')
+    at selectChatContact (student-portal.js:947:19)
+    at HTMLDivElement.<anonymous> (student-portal.js:920:9)
+selectChatContact	@	student-portal.js:947
+(anonymous)	@	student-portal.js:920
 
 
 
