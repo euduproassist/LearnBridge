@@ -706,9 +706,9 @@ await setDoc(doc(db, 'chats', chatId), { lastMessageAt: new Date().toISOString()
       try {
         const msgs = snap.docs.map(d=>({ id: d.id, ...d.data() }));
         messagesEl.innerHTML = msgs.map(m => `
-          <div style="margin-bottom:6px;display:flex;flex-direction:column;align-items:${m.from===myId?'flex-end':'flex-start'}">
+          <div style="margin-bottom:6px;display:flex;flex-direction:column;align-items:${m.sender===myId?'flex-end':'flex-start'}">
             <div style="background:${m.from===myId?'#0070a0':'#f0f0f0'};color:${m.from===myId?'#fff':'#333'};padding:8px;border-radius:8px;max-width:80%">${escapeHtml(m.text)}</div>
-            <div class="muted" style="font-size:11px;margin-top:4px">${new Date(m.createdAt).toLocaleTimeString()}</div>
+            <div class="muted" style="font-size:11px;margin-top:4px">${new Date(m.timestamp).toLocaleTimeString()}</div>
           </div>
         `).join('');
         messagesEl.scrollTop = messagesEl.scrollHeight;
