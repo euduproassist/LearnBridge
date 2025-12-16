@@ -523,47 +523,7 @@ async function loadSessionsList(uid, filterRole = null) {
   }
 }
 
-/* ---------- Load ratings list (student's own ratings) ---------- */
-async function loadRatingsList(uid, roleFilter = '', searchText = '') {
-  const container = $('ratingsList');
-  container.innerHTML = 'Loading ratings...';
-  try {
-    const ratingsCol = collection(db, 'ratings');
-    const q = query(ratingsCol, where('studentId','==',uid), orderBy('createdAt','desc'));
-    const snap = await getDocs(q);
-    
-    let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Client-side filter for role/search (less secure, but OK for low volume/user's own data)
-    if (roleFilter) docs = docs.filter(r => r.role === roleFilter);
-    if (searchText) docs = docs.filter(r => (r.personName||'').toLowerCase().includes(searchText.toLowerCase()));
 
-    const emptyEl = $('ratingsEmpty');
-    if (docs.length === 0) {
-      emptyEl.classList.remove('hidden');
-      container.innerHTML = '';
-      return;
-    } else {
-      emptyEl.classList.add('hidden');
-    }
-
-    const rows = docs.map(r => {
-      return `
-        <div class="profile-card" style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;justify-content:space-between">
-            <div><strong>${escapeHtml(r.personName)}</strong> <span class="muted">(${escapeHtml(r.role)})</span></div>
-            <div>${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</div>
-          </div>
-          <div class="muted" style="font-size:13px">${new Date(r.createdAt).toLocaleString()}</div>
-          <div>${escapeHtml(r.comment || '')}</div>
-        </div>
-      `;
-    }).join('');
-    container.innerHTML = `<div class="profiles-grid">${rows}</div>`; // Use profiles-grid for layout
-  } catch (err) {
-    console.error('loadRatingsList', err);
-    container.innerHTML = `<div class="empty">Failed to load ratings</div>`;
-  }
-}
 
 
 /* ---------- Search & Booking UI ---------- */
