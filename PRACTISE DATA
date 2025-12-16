@@ -1,3 +1,14 @@
+student-portal.js:1  Uncaught SyntaxError: Unexpected token '{' (at student-portal.js:1:8)
+
+
+
+
+
+
+
+
+
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
