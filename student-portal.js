@@ -137,6 +137,12 @@ async function initPortal(uid) {
   $('menuPending').onclick = () => { setActiveMenu('menuPending'); showSection('pendingSection'); loadPendingRequests(uid); };
   $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadRatingsList(uid); };
   $('menuChat').onclick = () => { setActiveMenu('menuChat'); showSection('chatSection'); loadChatContacts(uid); }; // New Chat Menu
+  // In initPortal or initial load area:
+// Initial state: Chat controls disabled until a contact is selected
+$('messageInput').disabled = true;
+$('sendMessageBtn').disabled = true;
+$('fileUploadBtn').disabled = true;
+
   
   $('menuLogout').onclick = async () => {
     try {
