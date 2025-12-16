@@ -1,43 +1,3 @@
-the error
-student-portal.js:1007 
- Chat listener failed:  FirebaseError: Missing or insufficient permissions.
-(anonymous)	@	student-portal.js:1007
-(anonymous)	@	bundle_reader_impl.ts:43
-setTimeout		
-Xa	@	bundle_reader_impl.ts:32
-error	@	async_observer.ts:54
-onError	@	event_manager.ts:485
-__PRIVATE_eventManagerOnWatchError	@	event_manager.ts:367
-__PRIVATE_removeAndCleanupTarget	@	sync_engine_impl.ts:941
-(anonymous)	@	sync_engine_impl.ts:732
-Promise.then		
-__PRIVATE_syncEngineRejectListen	@	sync_engine_impl.ts:731
-__PRIVATE_handleTargetError	@	remote_store.ts:655
-__PRIVATE_onWatchStreamChange	@	remote_store.ts:59
-onNext	@	persistent_stream.ts:684
-(anonymous)	@	persistent_stream.ts:554
-(anonymous)	@	persistent_stream.ts:599
-(anonymous)	@	async_queue_impl.ts:138
-(anonymous)	@	async_queue_impl.ts:330
-Promise.then		
-yu	@	async_queue_impl.ts:189
-enqueue	@	async_queue_impl.ts:136
-enqueueAndForget	@	async_queue_impl.ts:97
-(anonymous)	@	persistent_stream.ts:597
-(anonymous)	@	persistent_stream.ts:541
-vo	@	webchannel_connection.ts:56
-(anonymous)	@	webchannel_connection.ts:398
-(anonymous)	@	webchannel_connection.ts:298
-[NEW] Explain Console errors by using Copilot in Edge: click 
- to explain an error. Learn more
-Don't show again
-student-portal.js:1042 
- Error sending message: FirebaseError: Missing or insufficient permissions.
-sendMessage	@	student-portal.js:1042
-await in sendMessage		
-$.onclick	@	student-portal.js:181
-
-my rules 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -84,42 +44,47 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
-    /* ---------------- CHATS ---------------- */
+    /* ---------------- CHATS (STANDARDIZED NESTED STRUCTURE) ---------------- */
 
-    // --- 1. TOP-LEVEL chats (Tutor / Counsellor) ---
-    match /chats/{messageId} {
+    // NOTE: The top-level /chats/{messageId} rule has been removed 
+    // to enforce the correct nested path structure used by the client code.
 
-      function isTopLevelChatParticipant() {
-        return request.auth.uid == resource.data.from || 
-               request.auth.uid == resource.data.to;
-      }
-
-      allow create: if request.auth != null
-                 && request.auth.uid == request.resource.data.from;
-
-      allow read: if request.auth != null
-               && (isTopLevelChatParticipant() || isAdmin());
-
-      allow update, delete: if false;
-    }
-
-    // --- 2. NESTED chats (Student realtime chat) ---
+    // 1. NESTED chat messages: /chats/{chatID}/messages/{messageId}
     match /chats/{chatID}/messages/{messageId} {
 
-      // ✅ FIXED: use chatID directly (SAFE & CORRECT)
       function isNestedChatParticipant() {
+        // Ensures the current user's UID is one of the two IDs that form the chatID
         return chatID.split('__').includes(request.auth.uid);
       }
 
+      // User can read if they are a participant or an admin
       allow read: if request.auth != null
                && (isNestedChatParticipant() || isAdmin());
 
+      // User can create a message if they are a participant AND the senderId matches their UID
       allow create: if request.auth != null
                  && isNestedChatParticipant()
                  && request.auth.uid == request.resource.data.senderId;
 
       allow update, delete: if false;
     }
+    
+    // 2. CHAT DOCUMENT: /chats/{chatID} (Allows read/write of the parent document, e.g., for 'lastMessageAt' updates)
+    match /chats/{chatID} {
+        function isNestedChatParticipant() {
+            return chatID.split('__').includes(request.auth.uid);
+        }
+        
+        allow read, update: if request.auth != null 
+                         && (isNestedChatParticipant() || isAdmin());
+        // Students/Counsellors should not delete the main chat document
+        allow delete: if false; 
+        
+        // Allow creation for both users if it doesn't exist (when the first message is sent)
+        allow create: if request.auth != null 
+                   && isNestedChatParticipant();
+    }
+
 
     /* ---------------- SUPPORT TICKETS ---------------- */
     match /supportTickets/{ticketId} {
@@ -133,4 +98,3 @@ service cloud.firestore {
     }
   }
 }
-
