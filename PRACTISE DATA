@@ -1,4 +1,9 @@
-student-portal.js:1  Uncaught SyntaxError: Unexpected token '{' (at student-portal.js:1:8)
+student-portal.js:892 
+ Uncaught (in promise) TypeError: Cannot set properties of null (setting 'innerHTML')
+    at loadChatContacts (student-portal.js:892:24)
+    at $.onclick (student-portal.js:139:90)
+loadChatContacts	@	student-portal.js:892
+$.onclick	@	student-portal.js:139
 
 
 
