@@ -1,155 +1,136 @@
-/* ---------- CHAT (Feature 6 - Fully Implemented with Realtime) ---------- */
+the error
+student-portal.js:1007 
+ Chat listener failed:  FirebaseError: Missing or insufficient permissions.
+(anonymous)	@	student-portal.js:1007
+(anonymous)	@	bundle_reader_impl.ts:43
+setTimeout		
+Xa	@	bundle_reader_impl.ts:32
+error	@	async_observer.ts:54
+onError	@	event_manager.ts:485
+__PRIVATE_eventManagerOnWatchError	@	event_manager.ts:367
+__PRIVATE_removeAndCleanupTarget	@	sync_engine_impl.ts:941
+(anonymous)	@	sync_engine_impl.ts:732
+Promise.then		
+__PRIVATE_syncEngineRejectListen	@	sync_engine_impl.ts:731
+__PRIVATE_handleTargetError	@	remote_store.ts:655
+__PRIVATE_onWatchStreamChange	@	remote_store.ts:59
+onNext	@	persistent_stream.ts:684
+(anonymous)	@	persistent_stream.ts:554
+(anonymous)	@	persistent_stream.ts:599
+(anonymous)	@	async_queue_impl.ts:138
+(anonymous)	@	async_queue_impl.ts:330
+Promise.then		
+yu	@	async_queue_impl.ts:189
+enqueue	@	async_queue_impl.ts:136
+enqueueAndForget	@	async_queue_impl.ts:97
+(anonymous)	@	persistent_stream.ts:597
+(anonymous)	@	persistent_stream.ts:541
+vo	@	webchannel_connection.ts:56
+(anonymous)	@	webchannel_connection.ts:398
+(anonymous)	@	webchannel_connection.ts:298
+[NEW] Explain Console errors by using Copilot in Edge: click 
+ to explain an error. Learn more
+Don't show again
+student-portal.js:1042 
+ Error sending message: FirebaseError: Missing or insufficient permissions.
+sendMessage	@	student-portal.js:1042
+await in sendMessage		
+$.onclick	@	student-portal.js:181
 
-/** Loads a list of people the student has an active session (or chat) with. */
-async function loadChatContacts(uid, autoSelectContact = null) {
-  const listEl = $('chatList');
-  listEl.innerHTML = '<div class="empty">Finding your chat contacts...</div>';
-  
-  try {
-    // Find all unique people the student has sessions with (approved or pending)
-    const sessionsCol = collection(db, 'sessions');
-    const q = query(sessionsCol, where('studentId', '==', uid), where('status', 'in', ['approved', 'pending']));
-    const snap = await getDocs(q);
+my rules 
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-    const personIds = new Set();
-    snap.forEach(d => personIds.add(d.data().personId));
-
-    if (personIds.size === 0) {
-      listEl.innerHTML = '<div class="empty">No active sessions yet. Book a tutor!</div>';
-      openChatWindow(null);
-      return;
+    /* ---------------- GLOBAL HELPER FUNCTIONS ---------------- */
+    function isAdmin() {
+      // Uses custom admin claim (GOOD – keep this)
+      return request.auth != null && request.auth.token.admin == true;
     }
 
-    const contacts = [];
-    for (const pid of personIds) {
-        const userSnap = await getDoc(doc(db, 'users', pid));
-        if (userSnap.exists()) {
-            const u = userSnap.data();
-            contacts.push({ id: userSnap.id, name: u.name, role: u.role });
-        }
-    }
-    
-    listEl.innerHTML = '';
-    contacts.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'chat-item';
-        item.textContent = `${c.name} (${c.role})`;
-        item.onclick = () => openChatWindow(c);
-        listEl.appendChild(item);
-    });
-
-    // Auto-select the contact if provided (e.g., from search/booking)
-    if (autoSelectContact && autoSelectContact.id) {
-        const contact = contacts.find(c => c.id === autoSelectContact.id) || autoSelectContact;
-        openChatWindow(contact);
-    } else if (contacts.length > 0) {
-        openChatWindow(contacts[0]);
-    } else {
-        openChatWindow(null);
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      allow read: if request.auth != null; 
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-  } catch (err) {
-    console.error('loadChatContacts', err);
-    listEl.innerHTML = `<div class="empty">Failed to load contacts.</div>`;
-    openChatWindow(null);
+    /* ---------------- SESSIONS ---------------- */
+    match /sessions/{sessionId} {
+      function isSessionParticipant() {
+        return request.auth.uid == resource.data.studentId || 
+               request.auth.uid == resource.data.personId; 
+      }
+
+      // Required for conflict checks & chat contact loading
+      allow read: if request.auth != null; 
+
+      allow create: if request.auth != null
+                  && request.resource.data.studentId == request.auth.uid; 
+
+      allow update, delete: if request.auth != null
+                          && (isSessionParticipant() || isAdmin());
+    }
+
+    /* ---------------- RATINGS ---------------- */
+    match /ratings/{ratingId} {
+      allow create: if request.auth != null
+                 && request.resource.data.studentId == request.auth.uid; 
+      
+      allow read: if request.auth != null
+                && (isAdmin()
+                 || resource.data.studentId == request.auth.uid
+                 || resource.data.personId == request.auth.uid); 
+                 
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    /* ---------------- CHATS ---------------- */
+
+    // --- 1. TOP-LEVEL chats (Tutor / Counsellor) ---
+    match /chats/{messageId} {
+
+      function isTopLevelChatParticipant() {
+        return request.auth.uid == resource.data.from || 
+               request.auth.uid == resource.data.to;
+      }
+
+      allow create: if request.auth != null
+                 && request.auth.uid == request.resource.data.from;
+
+      allow read: if request.auth != null
+               && (isTopLevelChatParticipant() || isAdmin());
+
+      allow update, delete: if false;
+    }
+
+    // --- 2. NESTED chats (Student realtime chat) ---
+    match /chats/{chatID}/messages/{messageId} {
+
+      // ✅ FIXED: use chatID directly (SAFE & CORRECT)
+      function isNestedChatParticipant() {
+        return chatID.split('__').includes(request.auth.uid);
+      }
+
+      allow read: if request.auth != null
+               && (isNestedChatParticipant() || isAdmin());
+
+      allow create: if request.auth != null
+                 && isNestedChatParticipant()
+                 && request.auth.uid == request.resource.data.senderId;
+
+      allow update, delete: if false;
+    }
+
+    /* ---------------- SUPPORT TICKETS ---------------- */
+    match /supportTickets/{ticketId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && isAdmin();
+    }
+
+    /* ---------------- ADMIN OVERRIDE ---------------- */
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
   }
 }
 
-/** Opens a chat window and starts listening for messages. */
-function openChatWindow(contact) {
-    currentChatContact = contact;
-    
-    // Clear previous listener if active
-    if (unsubscribeChat) {
-        unsubscribeChat();
-        unsubscribeChat = null;
-    }
-
-    $('chatHeader').textContent = contact ? `Chatting with ${contact.name}` : 'Select a contact to start chatting';
-    $('messageInput').disabled = !contact;
-    $('sendMessageBtn').disabled = !contact;
-    $('fileUploadBtn').disabled = !contact;
-    $('chatList').querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-    
-    const messagesEl = $('chatMessages');
-    messagesEl.innerHTML = contact ? '<div class="empty" style="border:none">Loading messages...</div>' : '';
-
-    if (!contact) return;
-    
-    // Highlight the current contact
-    const activeItem = Array.from($('chatList').querySelectorAll('.chat-item')).find(el => el.textContent.includes(contact.name));
-    if (activeItem) activeItem.classList.add('active');
-
-    // Chat ID Convention: Order the IDs alphabetically to ensure both users use the same chat document ID
-    const chatID = [CURRENT_USER_ID, contact.id].sort().join('__');
-    
-    // --- START OF FIX: Using Top-Level Collection Query ---
-    // The student must query the top-level /chats collection using the chatId field, 
-    // to match the Counsellor/Tutor structure and the security rules.
-    const messagesQuery = query(
-        collection(db, 'chats'), 
-        where('chatId', '==', chatID),
-        orderBy('createdAt', 'asc') // Use 'createdAt' field as used by counsellor/tutor
-    );
-    // --- END OF FIX ---
-
-
-    // 🚨 Realtime Listener: Start listening for messages (Feature 6)
-    unsubscribeChat = onSnapshot(messagesQuery, (snapshot) => {
-        messagesEl.innerHTML = ''; // Clear existing
-        if (snapshot.empty) {
-            messagesEl.innerHTML = '<div class="empty" style="border:none">No messages yet. Say hello!</div>';
-            return;
-        }
-
-        snapshot.forEach(msgDoc => {
-            const m = msgDoc.data();
-            // NOTE: The field for checking sender must now be 'from' not 'senderId' to match the counsellor structure
-            const isSent = m.from === CURRENT_USER_ID; 
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-            
-            let content = escapeHtml(m.text || m.fileUrl || '—');
-            // Basic link rendering for files/docs
-            if (m.fileUrl) {
-                content = `<a href="${escapeHtml(m.fileUrl)}" target="_blank" style="color:inherit;text-decoration:underline;">${m.text || 'Shared File/Link'}</a>`;
-            }
-            msgDiv.innerHTML = content;
-            messagesEl.appendChild(msgDiv);
-        });
-        // Auto-scroll to bottom
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-    }, (error) => {
-        console.error("Chat listener failed: ", error);
-        messagesEl.innerHTML = '<div class="empty" style="border:none;color:red;">Error loading chat.</div>';
-    });
-}
-
-/** Sends a message to the currently selected contact (UPDATED TO TOP-LEVEL STRUCTURE). */
-async function sendMessage(uid) {
-    if (!currentChatContact) return;
-    const input = $('messageInput');
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    try {
-        const chatID = [uid, currentChatContact.id].sort().join('__');
-        
-        // --- START OF FIX: Using Top-Level Collection Write ---
-        // Add the message directly to the top-level 'chats' collection, matching the counsellor structure
-        await addDoc(collection(db, 'chats'), {
-            chatId: chatID,             // Field needed for the query filter
-            from: uid,                  // Matches counsellor's 'from' field
-            to: currentChatContact.id,  // Matches counsellor's 'to' field
-            text: text,
-            createdAt: new Date().toISOString(), // Use 'createdAt' field
-        });
-        // --- END OF FIX ---
-        
-        input.value = ''; // Clear input
-    } catch (error) {
-        console.error("Error sending message:", error);
-        alert('Failed to send message: ' + error.message);
-    }
-}
