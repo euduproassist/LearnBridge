@@ -314,7 +314,7 @@ async function loadDashboardMetrics() {
     $('liveSessions').textContent = snapLiveSessions.data().count;
 
     // --- 5.3. Issues & Reports ---
-    const issuesRef = collection(db, 'issues');
+    const issuesRef = collection(db, 'supportTickets');
     // FIX: Using Date object for 'createdAt' comparison
     const qIssuesToday = query(issuesRef, 
       where('createdAt', '>=', startOfToday),
