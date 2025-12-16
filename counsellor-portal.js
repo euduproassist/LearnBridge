@@ -717,8 +717,10 @@ await setDoc(doc(db, 'chats', chatId), { lastMessageAt: new Date().toISOString()
       }
     }
 
-
-    
+// NEW CODE - READING FROM NESTED /chats/{chatId}/messages
+const messagesRef = collection(db, 'chats', chatId, 'messages');
+const q = query(messagesRef, orderBy('timestamp','asc')); // Order by timestamp to match the student-portal write structure
+const unsubscribe = onSnapshot(q, renderMessages, (error) => {  
         console.error('Chat listener failed:', error);
         messagesEl.innerHTML = 'Failed to load messages.';
     });
