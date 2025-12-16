@@ -957,26 +957,7 @@ async function loadChatContacts(uid, autoSelectPerson = null) {
   }
 }
 
-/** Handles contact selection and sets up the chat window. */
-function selectChatContact(personId, personName) {
-    // Update active contact visual
-    document.querySelectorAll('.chat-contact').forEach(el => el.classList.remove('active'));
-    const selectedEl = $('chatContacts').querySelector(`.chat-contact[data-id="${personId}"]`);
-    if (selectedEl) selectedEl.classList.add('active');
 
-    // Update global state
-    currentChatContact = { id: personId, name: personName };
-    $('chatHeaderName').textContent = personName;
-    show('chatWindow');
-    $('chatEmpty').classList.add('hidden');
-  
-   $('messageInput').disabled = false;
-   $('sendMessageBtn').disabled = false;
-   $('fileUploadBtn').disabled = false;
-    
-    // Start chat listener
-    startChatListener(CURRENT_USER_ID, personId);
-}
 
 /** Starts the real-time listener for messages in the nested collection. */
 function startChatListener(myId, theirId) {
