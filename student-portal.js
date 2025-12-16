@@ -1,5 +1,4 @@
-
-import { auth, db } from './firebase-config.js';
+Import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 import {
   collection, query, where, getDocs, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, orderBy, limit, onSnapshot
@@ -18,7 +17,6 @@ function escapeHtml(s) {
   if (s === undefined || s === null) return ''; 
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&quot;',"'":'&#39;'}[c])); 
 }
-
 
 
 let CURRENT_USER_ID = null;
@@ -742,65 +740,96 @@ async function openRatingModal(person) {
   const modal = document.createElement('div'); modal.className = 'modal-back';
   modal.innerHTML = `
     <div class="modal">
-      <h3>Rate ${escapeHtml(person.name || '')}</h3>
+      <h3>Rate ${person.role === 'tutor' ? 'Tutor' : 'Counsellor'} — ${escapeHtml(person.name||'')}</h3>
       <div>
-        <label>Stars (0-5)</label>
-        <div id="ratingStars" style="font-size:22px;margin:8px 0;cursor:pointer">
-          <span data-star="1">☆</span><span data-star="2">☆</span><span data-star="3">☆</span><span data-star="4">☆</span><span data-star="5">☆</span>
-        </div>
-        <textarea id="ratingComment" rows="3" style="width:100%;margin-bottom:8px" placeholder="Optional comments..."></textarea>
+        <label>Star Rating (1-5)</label>
+        <select id="rate_stars" style="width:100%;margin-bottom:8px">
+          <option value="5">5 Stars (Excellent)</option>
+          <option value="4">4 Stars (Good)</option>
+          <option value="3" selected>3 Stars (Average)</option>
+          <option value="2">2 Stars (Poor)</option>
+          <option value="1">1 Star (Very Poor)</option>
+        </select>
+        <label>Comment/Feedback</label>
+        <textarea id="rate_comment" rows="3" style="width:100%;margin-bottom:8px"></textarea>
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn" id="ratingSend">Send to Admin</button>
-          <button class="btn secondary" id="ratingCancel">Cancel</button>
+          <button class="btn" id="rate_confirm">Submit Rating</button>
+          <button class="btn secondary" id="rate_cancel">Cancel</button>
         </div>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
+  $('rate_cancel').onclick = () => modal.remove();
 
-  let selected = 5; 
-  const starsEl = modal.querySelector('#ratingStars');
-  function renderStars(n) {
-    starsEl.querySelectorAll('span').forEach(span => {
-      const s = Number(span.getAttribute('data-star'));
-      span.textContent = s <= n ? '★' : '☆';
-    });
-  }
-  renderStars(selected);
-  starsEl.querySelectorAll('span').forEach(span => {
-    span.addEventListener('click', () => {
-      selected = Number(span.getAttribute('data-star'));
-      renderStars(selected);
-    });
-  });
+  $('rate_confirm').onclick = async () => {
+    const stars = $('rate_stars').value;
+    const comment = $('rate_comment').value.trim();
 
-  modal.querySelector('#ratingCancel').onclick = () => modal.remove();
-  modal.querySelector('#ratingSend').onclick = async () => {
-    const comment = modal.querySelector('#ratingComment').value.trim();
+    if (!comment && Number(stars) < 3) {
+      if (!confirm('You gave a low rating without comment. Submit anyway?')) return;
+    }
+
     try {
       // 🚨 Production Change: Call secure server function for mutation
       await callServerFunction('submitRating', {
-        personId: person.id || '',
-        personName: person.name || '',
-        role: person.role || '',
-        stars: selected,
-        comment
+        personId: person.id,
+        personName: person.name,
+        role: person.role,
+        stars: stars,
+        comment: comment
       });
 
-      alert('Thanks — your rating was submitted.');
+      alert('Rating submitted successfully.');
       modal.remove();
-      const uid = CURRENT_USER_ID;
-      await loadUserRatingsCount(uid);
-      await loadRatingsList(uid); 
+      await loadUserRatingsCount(CURRENT_USER_ID);
     } catch (err) {
-      console.error('saveRating error', err);
+      console.error('Rating submission error:', err);
       alert('Failed to submit rating: ' + err.message);
     }
   };
 }
 
-/* ---------- Helpers: Session Conflict Check (Robust Overlap Logic) ---------- */
-// This logic matches the requirement of the callServerFunction for secure scheduling.
+/* ---------- Support function ---------- */
+async function sendSupport(uid) {
+    const title = $('supportTitle').value.trim();
+    const message = $('supportMessage').value.trim();
+    const priority = $('supportPriority').value;
+    if (!title || !message) {
+        alert('Please fill out both the title and message fields.');
+        return;
+    }
+    try {
+        // 🚨 Production Change: Call secure server function for mutation
+        await callServerFunction('submitSupportTicket', { title, message, priority });
+        alert('Support ticket submitted successfully. An administrator will review your request.');
+        $('supportTitle').value = '';
+        $('supportMessage').value = '';
+    } catch (err) {
+        console.error('Support ticket submission error:', err);
+        alert('Failed to submit support ticket: ' + err.message);
+    }
+}
+
+/* ---------- Google Calendar Helper (remains same) ---------- */
+function generateGoogleCalendarLink({ title, details, location, start, end }) {
+    const formatTime = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
+    const startTime = formatTime(start);
+    const endTime = formatTime(end);
+
+    const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: title,
+        details: details,
+        location: location,
+        dates: `${startTime}/${endTime}`
+    });
+
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+
+/* ---------- Helpers: Session Conflict Check (remains same) ---------- */
 async function checkConflictForPerson(personId, desiredISO, durationMinutes = 60) {
   try {
     const sessionsCol = collection(db, 'sessions');
@@ -821,228 +850,176 @@ async function checkConflictForPerson(personId, desiredISO, durationMinutes = 60
       const existingDuration = Number(s.duration || durationMinutes);
       const existingEnd = new Date(existingStart.getTime() + existingDuration * 60 * 1000);
 
-      // Check for overlap: Start of desired < End of existing AND End of desired > Start of existing
       const isOverlapping = (desiredStart < existingEnd) && (desiredEnd > existingStart);
       
       if (isOverlapping) {
-        console.log(`[SERVER CHECK] Conflict found with appointment ${d.id}`);
+        console.log(`Conflict found with appointment ${d.id} from ${existingStart.toLocaleString()} to ${existingEnd.toLocaleString()}`);
         return true;
       }
     }
     return false;
   } catch (err) {
-    console.error('[SERVER CHECK] Conflict check failed', err);
+    console.error('checkConflictForPerson', err);
     return false;
   }
 }
 
-// Attempts to find the next available slot starting 1 hour after the desired time
+/* findNextAvailable(personId, desiredISO) => returns ISO string or null (remains same) */
 async function findNextAvailable(personId, desiredISO) {
   try {
     const base = new Date(desiredISO);
-    for (let i = 1; i <= 10; i++) { // Check up to 10 subsequent hours
-      const cand = new Date(base.getTime() + i * 60 * 60 * 1000); 
+    for (let i = 1; i <= 24; i++) {
+      const cand = new Date(base.getTime() + i * 60 * 60 * 1000);
       const iso = cand.toISOString();
-      // Ensure we use the robust conflict check here
-      const conflict = await checkConflictForPerson(personId, iso); 
+      const conflict = await checkConflictForPerson(personId, iso);
       if (!conflict) return iso;
     }
     return null;
   } catch (err) {
-    console.error('[SERVER CHECK] findNextAvailable failed', err);
+    console.error('findNextAvailable', err);
     return null;
   }
 }
 
+/* ---------- Chat Functionality FIX ---------- */
 
-/* Google calendar link */
-function generateGoogleCalendarLink({ title, details, location, start, end }) {
-  const fmt = (d) => {
-    return d.toISOString().replace(/-|:|\.\d+|Z/g, '').slice(0, 15); // YYYYMMDDTHHMMSS
-  };
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: title,
-    details: details,
-    location: location || '',
-    dates: `${fmt(start)}/${fmt(end)}`
-  });
-  return `https://www.google.com/calendar/render?${params.toString()}`;
-}
+/** Generates a consistent chatId for two users. */
+function chatIdFor(a,b) { return [a,b].sort().join('__'); }
 
-/* ---------- Support (Report an Issue) ---------- */
-async function sendSupport(uid) {
-  const title = $('supportTitle').value.trim();
-  const msg = $('supportMessage').value.trim();
-  const priority = $('supportPriority').value;
-
-  if (!title || !msg) return alert('Enter a title and description');
-  try {
-    // 🚨 Production Change: Call secure server function for mutation
-    await callServerFunction('submitSupportTicket', {
-        title, message: msg, priority
-    });
-    
-    alert('Support ticket submitted.');
-    $('supportTitle').value = '';
-    $('supportMessage').value = '';
-  } catch (err) {
-    console.error('sendSupport', err);
-    alert('Failed to send support: ' + err.message);
-  }
-}
-
-/* ---------- CHAT (Feature 6 - Fully Implemented with Realtime) ---------- */
-
-/** Loads a list of people the student has an active session (or chat) with. */
-async function loadChatContacts(uid, autoSelectContact = null) {
-  const listEl = $('chatList');
-  listEl.innerHTML = '<div class="empty">Finding your chat contacts...</div>';
+/** Loads contacts (Tutors/Counsellors) and initiates chat listener if a contact is auto-selected. */
+async function loadChatContacts(uid, autoSelectPerson = null) {
+  const contactsEl = $('chatContacts');
+  contactsEl.innerHTML = 'Loading contacts...';
   
   try {
-    // Find all unique people the student has sessions with (approved or pending)
-    const sessionsCol = collection(db, 'sessions');
-    const q = query(sessionsCol, where('studentId', '==', uid), where('status', 'in', ['approved', 'pending']));
-    const snap = await getDocs(q);
+    // 1. Find all Tutors and Counsellors
+    const usersCol = collection(db, 'users');
+    const qRef = query(usersCol, where('role','in',['tutor','counsellor']));
+    const snap = await getDocs(qRef);
+    const people = snap.docs.map(d => ({ id: d.id, ...d.data(), role: d.data().role || 'person' }));
 
-    const personIds = new Set();
-    snap.forEach(d => personIds.add(d.data().personId));
-
-    if (personIds.size === 0) {
-      listEl.innerHTML = '<div class="empty">No active sessions yet. Book a tutor!</div>';
-      openChatWindow(null);
+    if (people.length === 0) {
+      contactsEl.innerHTML = '<div class="empty" style="padding:10px">No staff available for chat.</div>';
       return;
     }
 
-    const contacts = [];
-    for (const pid of personIds) {
-        const userSnap = await getDoc(doc(db, 'users', pid));
-        if (userSnap.exists()) {
-            const u = userSnap.data();
-            contacts.push({ id: userSnap.id, name: u.name, role: u.role });
-        }
+    contactsEl.innerHTML = people.map(p => `
+      <div class="chat-contact" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name||'—')}" data-role="${escapeHtml(p.role)}">
+        <img src="${escapeHtml(p.profilePic||'assets/logos/uj.png')}" alt="photo" class="profile-photo"/>
+        <div style="flex:1"><strong>${escapeHtml(p.name||'—')}</strong><div class="muted">${escapeHtml(p.role)}</div></div>
+        <span class="badge" id="unread-${escapeHtml(p.id)}"></span>
+      </div>
+    `).join('');
+
+    // Attach click handlers
+    contactsEl.querySelectorAll('.chat-contact').forEach(contactEl => {
+      contactEl.addEventListener('click', () => {
+        const id = contactEl.dataset.id;
+        const name = contactEl.dataset.name;
+        // Select contact and open chat window
+        selectChatContact(id, name);
+      });
+      // Optionally, add a real-time listener for *unread counts* here.
+    });
+    
+    // Auto-select if a person was passed (e.g., from search/booking button)
+    if (autoSelectPerson && autoSelectPerson.id) {
+        selectChatContact(autoSelectPerson.id, autoSelectPerson.name);
     }
     
-    listEl.innerHTML = '';
-    contacts.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'chat-item';
-        item.textContent = `${c.name} (${c.role})`;
-        item.onclick = () => openChatWindow(c);
-        listEl.appendChild(item);
-    });
-
-    // Auto-select the contact if provided (e.g., from search/booking)
-    if (autoSelectContact && autoSelectContact.id) {
-        const contact = contacts.find(c => c.id === autoSelectContact.id) || autoSelectContact;
-        openChatWindow(contact);
-    } else if (contacts.length > 0) {
-        openChatWindow(contacts[0]);
-    } else {
-        openChatWindow(null);
-    }
-
   } catch (err) {
     console.error('loadChatContacts', err);
-    listEl.innerHTML = `<div class="empty">Failed to load contacts.</div>`;
-    openChatWindow(null);
+    contactsEl.innerHTML = '<div class="empty" style="padding:10px">Failed to load contacts.</div>';
   }
 }
 
-/** Opens a chat window and starts listening for messages. */
-function openChatWindow(contact) {
-    currentChatContact = contact;
-    
-    // Clear previous listener if active
-    if (unsubscribeChat) {
-        unsubscribeChat();
-        unsubscribeChat = null;
-    }
+/** Handles contact selection and sets up the chat window. */
+function selectChatContact(personId, personName) {
+    // Update active contact visual
+    document.querySelectorAll('.chat-contact').forEach(el => el.classList.remove('active'));
+    const selectedEl = $(`chatContacts`).querySelector(`[data-id="${personId}"]`);
+    if (selectedEl) selectedEl.classList.add('active');
 
-    $('chatHeader').textContent = contact ? `Chatting with ${contact.name}` : 'Select a contact to start chatting';
-    $('messageInput').disabled = !contact;
-    $('sendMessageBtn').disabled = !contact;
-    $('fileUploadBtn').disabled = !contact;
-    $('chatList').querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+    // Update global state
+    currentChatContact = { id: personId, name: personName };
+    $('chatHeaderName').textContent = personName;
+    show('chatWindow');
+    $('chatEmpty').classList.add('hidden');
+    
+    // Start chat listener
+    startChatListener(CURRENT_USER_ID, personId);
+}
+
+/** Starts the real-time listener for messages in the nested collection. */
+function startChatListener(myId, theirId) {
+    const chatId = chatIdFor(myId, theirId);
+    
+    // 1. Cleanup existing listener if it exists
+    if (unsubscribeChat) unsubscribeChat();
     
     const messagesEl = $('chatMessages');
-    messagesEl.innerHTML = contact ? '<div class="empty" style="border:none">Loading messages...</div>' : '';
-
-    if (!contact) return;
+    messagesEl.innerHTML = '<div class="empty">Loading messages...</div>';
     
-    // Highlight the current contact
-    const activeItem = Array.from($('chatList').querySelectorAll('.chat-item')).find(el => el.textContent.includes(contact.name));
-    if (activeItem) activeItem.classList.add('active');
+    // 2. 🚨 CRITICAL FIX: Reference the nested messages collection 🚨
+    const messagesRef = collection(db, 'chats', chatId, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'asc')); // Order chronologically
 
-    // Chat ID Convention: Order the IDs alphabetically to ensure both users use the same chat document ID
-    const chatID = [CURRENT_USER_ID, contact.id].sort().join('__');
-    const chatRef = doc(db, 'chats', chatID);
-    const messagesQuery = query(collection(chatRef, 'messages'), orderBy('timestamp', 'asc'));
-
-    // 🚨 Realtime Listener: Start listening for messages (Feature 6)
-    unsubscribeChat = onSnapshot(messagesQuery, (snapshot) => {
-        messagesEl.innerHTML = ''; // Clear existing
-        if (snapshot.empty) {
-            messagesEl.innerHTML = '<div class="empty" style="border:none">No messages yet. Say hello!</div>';
-            return;
-        }
-
-        snapshot.forEach(msgDoc => {
-            const m = msgDoc.data();
-            const isSent = m.senderId === CURRENT_USER_ID;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+    // 3. Setup new listener
+    unsubscribeChat = onSnapshot(q, (snapshot) => {
+        // Render messages
+        const msgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        messagesEl.innerHTML = msgs.map(m => {
+            // Use 'senderId' for consistency, falling back to 'from' if needed
+            const sender = m.senderId || m.from; 
+            const isMe = sender === myId;
+            const style = isMe ? 'background:#ff7a00;color:#fff;align-self:flex-end;' : 'background:#e0e0e0;color:#333;align-self:flex-start;';
             
-            let content = escapeHtml(m.text || m.fileUrl || '—');
-            // Basic link rendering for files/docs
-            if (m.fileUrl) {
-                content = `<a href="${escapeHtml(m.fileUrl)}" target="_blank" style="color:inherit;text-decoration:underline;">${m.text || 'Shared File/Link'}</a>`;
-            }
-            msgDiv.innerHTML = content;
-            messagesEl.appendChild(msgDiv);
-        });
-        // Auto-scroll to bottom
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+            return `
+            <div style="display:flex;flex-direction:column;width:100%">
+              <div style="max-width:70%;padding:10px;border-radius:15px;margin:2px;${style}">
+                ${escapeHtml(m.text)}
+              </div>
+              <small class="muted" style="font-size:10px;margin-top:2px;${isMe ? 'text-align:right;margin-right:15px;' : 'text-align:left;margin-left:15px;'}">${new Date(m.timestamp).toLocaleTimeString()}</small>
+            </div>
+          `;
+        }).join('');
+        messagesEl.scrollTop = messagesEl.scrollHeight; // Auto-scroll to bottom
+        
     }, (error) => {
-        console.error("Chat listener failed: ", error);
-        messagesEl.innerHTML = '<div class="empty" style="border:none;color:red;">Error loading chat.</div>';
+        console.error('Chat Listener Error:', error);
+        messagesEl.innerHTML = `<div class="empty" style="color:red">Failed to load chat: ${error.message}</div>`;
     });
 }
 
 /** Sends a message to the currently selected contact. */
-async function sendMessage(uid) {
-    if (!currentChatContact) return;
-    const input = $('messageInput');
-    const text = input.value.trim();
+async function sendMessage(myId) {
+  if (!currentChatContact) return alert('Please select a contact to chat with.');
+  const theirId = currentChatContact.id;
+  const chatId = chatIdFor(myId, theirId);
+  const inputEl = $('messageInput');
+  const txt = inputEl.value.trim();
+  if (!txt) return;
 
-    if (!text) return;
+  try {
+    // 🚨 CRITICAL FIX: Reference the nested messages collection for writing 🚨
+    const messagesRef = collection(db, 'chats', chatId, 'messages');
+    await addDoc(messagesRef, {
+      senderId: myId, // CRITICAL: Use 'senderId' consistently
+      text: txt, 
+      timestamp: new Date().toISOString()
+    });
+    
+    // Update the parent chat document with a timestamp/last message
+    await setDoc(doc(db, 'chats', chatId), { lastMessageAt: new Date().toISOString() }, { merge: true });
 
-    try {
-        const chatID = [uid, currentChatContact.id].sort().join('__');
-        const chatRef = doc(db, 'chats', chatID);
-        const messagesRef = collection(chatRef, 'messages');
-
-        // Ensure chat document exists (optional, Firestore handles creation implicitly)
-        await setDoc(chatRef, { 
-            studentId: uid, 
-            personId: currentChatContact.id,
-            lastMessage: new Date().toISOString()
-        }, { merge: true });
-
-        // Add the message
-        await addDoc(messagesRef, {
-            senderId: uid,
-            text: text,
-            timestamp: new Date().toISOString(),
-            read: false, // For read receipts (Feature 6)
-        });
-
-        input.value = ''; // Clear input
-    } catch (error) {
-        console.error("Error sending message:", error);
-        alert('Failed to send message: ' + error.message);
-    }
-} 
+    inputEl.value = '';
+    // Input is cleared, listener handles display and scroll
+  } catch (err) {
+    console.error('send chat', err);
+    alert('Failed to send message: ' + err.message);
+  }
+}
+ 
 
 
 
