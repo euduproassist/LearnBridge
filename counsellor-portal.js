@@ -684,9 +684,7 @@ export async function openChatWindow(userObj) {
       const txt = inputEl.value.trim();
       if (!txt) return;
       try {
-        await addDoc(collection(db,'chats'), {
-          chatId, from: myId, to: theirId, text: txt, createdAt: new Date().toISOString()
-        });
+
         inputEl.value = '';
       } catch (err) {
         console.error('send chat', err);
