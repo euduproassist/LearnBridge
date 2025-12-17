@@ -1,43 +1,29 @@
-Subject:
-Student-Led Academic Support Pilot Proposal (Varsity College Pretoria)
-
-Email body:
-
-Dear [Academic Programme Manager’s Name],
-
-My name is Tshepo Napo, a first-year Computer Science student at Varsity College Pretoria (Student Number: ST10486480).
-
-I have developed a working prototype of an academic support platform that coordinates tutoring, counselling, and student-administration interactions. The platform is fully functional with role-based access for students, tutors, counsellors, and admins, and is already structured to support secure data handling via Firebase. It is designed for educational use and not a commercial product at this stage.
-
-I would like to propose a supervised, limited 6-month pilot within one department at Varsity College Pretoria. The objectives of this pilot are to:
-
-Validate the platform in a real academic environment
-
-Provide practical support for students and staff
-
-Collect feedback to improve the system for wider use
-
-For this pilot, I am seeking:
-
-Institutional supervision to ensure safe and effective use
-
-University hosting for secure and reliable operation
-
-Permission to run the pilot with a limited number of users
-
-A small student innovation support stipend to sustain the project while I continue full-time studies
-
-I would greatly appreciate the opportunity to demonstrate the platform briefly and discuss how it aligns with Varsity College’s teaching and student-support objectives.
-
-Thank you for your time and consideration. I look forward to your response.
-
-Kind regards,
-Tshepo Napo
+​Subject: Proposal: Pilot Implementation of Student Success & Support Ecosystem
+​Dear [Academic Programme Manager’s Name],
+​My name is Tshepo Napo, a first-year Computer Science student here at Varsity College Pretoria.
+​I am writing to propose a supervised 6-month pilot of a platform I have developed called LearnBridge. It is a 4-tier ecosystem designed to centralize and automate the coordination of peer-tutoring, student wellness/counselling workflows, and administrative oversight.
+​The system is currently a fully functional prototype built on a Firebase backend, featuring dedicated portals for:
+​Students: To request and track academic support.
+​Tutors: To log sessions and manage peer-support schedules.
+​Counsellors: To manage wellness interventions securely.
+​Administrators: To access real-time data on student engagement and support utilization.
+​The Pilot Objectives:
+I am looking to move this from a controlled environment into a live academic setting to:
+​Verify the system’s effectiveness in improving student support accessibility.
+​Gather faculty and student feedback for further technical refinement.
+​Streamline the manual administrative tasks currently associated with peer-tutoring.
+​Support & Implementation:
+To ensure this pilot is successful and professional, I am seeking:
+​Academic Supervision: I would welcome the opportunity to run this under the guidance of a faculty mentor to ensure institutional alignment.
+​Institutional Permission: To test the platform within a specific department or module.
+​Project Support Grant: A student innovation stipend to cover the operational costs, technical maintenance, and time required to manage the ecosystem during the 6-month period.
+​I have a live demo ready and would value a 10-minute opportunity to show you the Admin Dashboard and discuss how this project can support our campus's student success goals.
+​Thank you for your time and for supporting student-led innovation.
+​Kind regards,
+​Tshepo Napo
 First-Year Computer Science Student
-Varsity College Pretoria
-Student Number: ST10486480
-Email: [Your Email]
-Phone: [Your Phone Number]
+Varsity College Pretoria | ST10486480
+[Your Phone Number]
 
 
 
