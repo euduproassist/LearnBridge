@@ -51,3 +51,300 @@ To focus on this project and ensure its success, I am seeking a Student Innovati
 ​Kind regards,
 ​Tshepo Napo
 [Phone Number]
+
+
+
+
+
+
+1. Admin Dashboard (Landing Page)
+
+Purpose: High-level visibility & quick control
+
+Top Metrics (Real-time cards):
+
+Total Active Users (Students / Tutors / Counselors)
+
+Pending Approvals (Tutors & Counselors)
+
+Upcoming Sessions (Today / This Week)
+
+Pending Booking Requests
+
+Reported Issues (Urgent / Normal)
+
+Average Platform Rating
+
+Sessions Completed (This Month)
+
+Visuals:
+
+Calendar view (all approved sessions)
+
+Alerts panel (urgent issues, no-show spikes, system warnings)
+
+Activity feed (recent approvals, cancellations, reports)
+
+Quick Actions:
+
+Approve Users
+
+Resolve Issues
+
+Broadcast Notification
+
+Suspend Account
+
+2. User Management
+
+Full control over all users
+
+View Users
+
+Filter by:
+
+Role (Student / Tutor / Counselor)
+
+Department
+
+Status (Active / Pending / Suspended)
+
+Rating (Tutors/Counselors)
+
+Each user card shows:
+
+Name + profile picture
+
+School email
+
+Role
+
+Account status
+
+Last login
+
+Number of sessions
+
+Actions:
+
+Approve / Reject tutor or counselor accounts
+
+Suspend / Reactivate users
+
+Reset user password (force reset)
+
+Edit limited profile fields (admin override)
+
+View full activity history
+
+3. Session Management (Global Control)
+
+Admin sees ALL sessions
+
+Displays:
+
+Student name
+
+Tutor/Counselor name
+
+Date & time
+
+Mode (online / in-person)
+
+Status (Upcoming / Completed / Cancelled / No-show)
+
+Reason/request message
+
+Actions:
+
+Cancel session (with reason)
+
+Force reschedule
+
+Mark as completed (admin override)
+
+Flag suspicious activity
+
+View session history per user
+
+Smart Flags:
+
+Repeated cancellations
+
+Frequent no-shows
+
+Overbooking attempts
+
+4. Booking Requests Oversight
+
+Admin visibility into all pending & approved requests
+
+Shows:
+
+Request status
+
+Who approved/rejected
+
+Suggested reschedules
+
+Conflicts (double booking, availability mismatch)
+
+Actions:
+
+Override tutor decisions
+
+Resolve disputes
+
+Approve on behalf of tutor (optional university policy)
+
+5. Ratings & Feedback Management (Quality Assurance)
+
+Critical for universities
+
+View:
+
+All ratings & comments
+
+Average rating per tutor/counselor
+
+Trends (weekly/monthly)
+
+Low-rating alerts (e.g. <3 stars)
+
+Actions:
+
+Flag inappropriate reviews
+
+Remove abusive feedback
+
+Contact tutor/counselor
+
+Request follow-up from student
+
+Generate quality reports for departments
+
+6. Reports & Issue Resolution Center
+
+Centralized issue inbox from students and tutors
+
+Each report shows:
+
+Reporter (student/tutor)
+
+Issue title & description
+
+Priority (Urgent / Normal)
+
+Category (Technical, Behavior, Scheduling)
+
+Related session (if any)
+
+Actions:
+
+Assign issue to admin/support staff
+
+Update status (Open / In Progress / Resolved)
+
+Communicate with reporter
+
+Escalate serious misconduct
+
+Maintain resolution history (audit trail)
+
+7. Notifications & Announcements
+
+Admin-controlled communication
+
+Broadcast Notifications:
+
+To all users
+
+By role (Students only, Tutors only)
+
+By department
+
+Channels:
+
+In-app
+
+Email
+
+SMS (if enabled)
+
+Examples:
+
+Maintenance notices
+
+Policy updates
+
+Exam-period tutoring reminders
+
+8. Approval & Compliance Management
+
+University trust layer
+
+Approve tutors/counselors only after verification
+
+View uploaded qualifications (if required)
+
+Enforce university rules:
+
+Max sessions per week
+
+Allowed locations
+
+Online vs in-person policies
+
+9. Analytics & Reports
+
+Exportable for university leadership
+
+Reports:
+
+Session usage by department
+
+Peak booking times
+
+Tutor performance reports
+
+Student engagement levels
+
+Issue resolution times
+
+Formats:
+
+CSV / PDF
+
+Monthly & semester reports
+
+10. System Settings & Security
+
+Admin-only configuration
+
+Settings:
+
+Allowed university email domains
+
+OTP expiry time
+
+Rate limits (OTP, login attempts)
+
+Enable/disable features (chat, ratings, SMS)
+
+Session duration rules
+
+Security:
+
+Audit logs (logins, changes, approvals)
+
+Suspicious activity detection
+
+Optional 2FA enforcement
+
+11. Admin Roles (Optional but Enterprise-Ready)
+
+Super Admin (full access)
+
+Department Admin
+
+Support Admin (issues only)
