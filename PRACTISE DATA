@@ -1,17 +1,3 @@
-gamebridge/
-├── index.html
-├── login.html
-├── dashboard.html
-├── css/
-│   └── style.css
-├── js/
-│   ├── auth.js
-│   ├── app.js
-│   └── firebase-config.js
-├── manifest.json
-├── sw.js
-
-
 I hear you—I'll pivot the focus. Since there is no payout for the user, the entire "GameBridge" PWA changes from a "Reward Site" into a Premium Game Discovery & Demo Portal.
 From the client's perspective, they aren't looking for money; they are looking for entertainment and exclusivity. Here is how the journey works when the user is simply there to discover and play:
 Phase 1: The Gateway (The "VIP Gamer" Feel)
