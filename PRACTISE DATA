@@ -18,6 +18,23 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/users/$(staffId)).data.role in ['tutor', 'counsellor'];
     }
 
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      allow read: if request.auth != null; 
+      
+      // 1. CREATE: Allow new users to save their profile if they aren't trying to be Admin
+      allow create: if request.auth != null 
+                  && request.auth.uid == userId 
+                  && request.resource.data.role != 'admin';
+
+      // 2. UPDATE: Allow users to change their info, but block them from changing their role
+      allow update: if request.auth != null && (
+          (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+          || isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
 
 
     /* ---------------- SESSIONS ---------------- */
