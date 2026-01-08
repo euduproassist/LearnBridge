@@ -1,1 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
+    /* ---------------- GLOBAL HELPER FUNCTIONS ---------------- */
+    function isAdmin() {
+      // Assumes custom admin claim has been set via Firebase Auth Admin SDK
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Check if the given UID belongs to a valid staff member (Tutor or Counsellor)
+    function isStaff(staffId) {
+        return get(/databases/$(database)/documents/users/$(staffId)).data.role in ['tutor', 'counsellor'];
+    }
+
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      allow read: if request.auth != null; 
+      
+      // Allow self-update, but prevent changing the 'role' field unless you are an Admin
+      allow write: if request.auth != null && (
+          (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+          || isAdmin()
+      );
+    }
+
+    /* ---------------- SESSIONS ---------------- */
+    match /sessions/{sessionId} {
+      function isSessionParticipant() {
+        return request.auth.uid == resource.data.studentId || 
+               request.auth.uid == resource.data.personId; 
+      }
+
+      // 1. READ: Only participants and Admin can read specific sessions.
+      allow read: if request.auth != null && (isSessionParticipant() || isAdmin()); 
+
+      // 2. CREATE: Must be authenticated, set own studentId, AND the personId must be valid staff.
+      allow create: if request.auth != null
+                  && request.resource.data.studentId == request.auth.uid
+                  && isStaff(request.resource.data.personId); 
+
+      // 3. UPDATE/DELETE: Only participants and Admin (needs further refinement in a real app, 
+      //    but acceptable for this level of portal simulation).
+      allow update, delete: if request.auth != null && (isSessionParticipant() || isAdmin());
+    }
+
+    /* ---------------- RATINGS ---------------- */
+    match /ratings/{ratingId} {
+      // CREATE: Must be authenticated and set their own studentId
+      allow create: if request.auth != null
+                 && request.resource.data.studentId == request.auth.uid; 
+      
+      // READ: Admin, Student (their own), or Staff (ratings directed at them)
+      allow read: if request.auth != null
+                && (isAdmin()
+                 || resource.data.studentId == request.auth.uid
+                 || resource.data.personId == request.auth.uid); 
+                 
+      // UPDATE/DELETE: Admin only
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+    /* ---------------- CHATS (STANDARDIZED NESTED STRUCTURE) ---------------- */
+
+    function isNestedChatParticipant(chatID) {
+      // 1. Ensure the user is authenticated.
+      // 2. Ensures the current user's UID is one of the two IDs that form the chatID (a__b).
+      let uids = chatID.split('__');
+      return request.auth != null
+             && uids.size() == 2
+             && (uids[0] == request.auth.uid || uids[1] == request.auth.uid);
+    }
+    
+    // 1. CHAT DOCUMENT: /chats/{chatID}
+    match /chats/{chatID} {
+        // READ/UPDATE: Participants or Admin
+        allow read, update: if isNestedChatParticipant(chatID) || isAdmin();
+        
+        // CREATE: Participants (when first message is sent)
+        allow create: if isNestedChatParticipant(chatID);
+        
+        // DELETE: Only Admin
+        allow delete: if isAdmin(); 
+    }
+
+    // 2. NESTED chat messages: /chats/{chatID}/messages/{messageId}
+    match /chats/{chatID}/messages/{messageId} {
+
+      // READ: Participants or Admin
+      allow read: if isNestedChatParticipant(chatID) || isAdmin();
+
+      // CREATE: Participant, AND senderId must match their authenticated UID
+      allow create: if isNestedChatParticipant(chatID)
+                 && request.auth.uid == request.resource.data.senderId
+                 && request.resource.data.keys().hasAll(['senderId', 'text', 'timestamp']);
+                 
+      // UPDATE/DELETE: Disallow entirely (Messages should be immutable)
+      allow update, delete: if false;
+    }
+    
+    /* ---------------- SUPPORT TICKETS ---------------- */
+    match /supportTickets/{ticketId} {
+      // CREATE: Any authenticated user (student/staff)
+      allow create: if request.auth != null;
+      
+      // READ/UPDATE/DELETE: Admin only (for internal management)
+      allow read, update, delete: if isAdmin();
+      
+      // Student Read (can read their own submitted tickets)
+      allow read: if request.auth.uid == resource.data.studentId;
+    }
+    
+    /* ---------------- ADMIN OVERRIDE (Redundant but harmless due to other rules) ---------------- */
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
