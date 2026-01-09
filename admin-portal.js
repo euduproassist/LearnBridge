@@ -62,7 +62,7 @@ const STATE = {
 const ALL_SECTION_IDS = [
   'dashboardSection', 'manageUsersSection', 'sessionManagementSection', 
   'bookingRequestsSection', 'issuesReportsSection', 'ratingsAnalyticsSection', 
-  'universitySettingsSection', 'notificationsControlSection', 'reportsAuditSection', 
+  'notificationsControlSection', 'reportsAuditSection', 
   'adminProfileSection'
 ];
 
@@ -99,10 +99,6 @@ function showSection(idToShow) {
       break;
     case 'ratingsAnalyticsSection':
       loadOverallAnalytics();
-      break;
-    case 'universitySettingsSection':
-      loadUniversitySettings();
-      loadSystemPolicies(); // <-- Added policy load from previous fix
       break;
     case 'notificationsControlSection': // <-- NEW: Now loads notification history
       loadNotificationHistory();
@@ -159,9 +155,7 @@ async function initAdminPortal(uid) {
   // --- 3.2. Quick Action Wiring ---
   $('quickApproveTutors').onclick = () => showSection('manageUsersSection');
   $('quickViewIssues').onclick = () => showSection('issuesReportsSection');
-  $('quickManageModules').onclick = () => showSection('universitySettingsSection');
   $('quickSendAnnouncement').onclick = () => showSection('notificationsControlSection');
-  $('quickOpenSettings').onclick = () => showSection('universitySettingsSection');
   $('quickAnalyticsPanel').onclick = () => showSection('ratingsAnalyticsSection');
   
   // --- 3.3. Initial Data Load & Display ---
@@ -1166,211 +1160,6 @@ async function loadOverallAnalytics() {
 }
 
 
-
-
-
-
-/* -------------------------------------------
- * 13. University Settings (Modules/Departments)
- * ------------------------------------------- */
-
-/**
- * Loads and renders the University Settings data (Departments, Modules).
- */
-async function loadUniversitySettings() {
-  const containerDept = $('departmentList');
-  const containerModule = $('moduleList');
-  if (!containerDept || !containerModule) return;
-  containerDept.innerHTML = 'Loading departments...';
-  containerModule.innerHTML = 'Loading modules...';
-
-  try {
-    // 13.1. Load Departments
-    const deptSnap = await getDocs(query(collection(db, 'departments'), orderBy('name', 'asc')));
-    const departments = deptSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    containerDept.innerHTML = departments.map(d => `
-        <div class="setting-item">
-            <span>${escapeHtml(d.name)}</span>
-            <button class="btn secondary btn-sm edit-dept" data-id="${d.id}" data-name="${d.name}">Edit</button>
-        </div>
-    `).join('');
-    containerDept.querySelectorAll('.edit-dept').forEach(btn => btn.onclick = (e) => handleEditDepartment(e.target.dataset.id, e.target.dataset.name));
-
-    // 13.2. Load Modules (for simplicity, only show top 50)
-    const moduleSnap = await getDocs(query(collection(db, 'modules'), orderBy('name', 'asc'), limit(50)));
-    const modules = moduleSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    containerModule.innerHTML = modules.map(m => `
-        <div class="setting-item">
-            <span>${escapeHtml(m.name)} (${escapeHtml(m.code)}) - Dept: ${escapeHtml(m.department || 'N/A')}</span>
-            <div style="display:flex;gap:5px;">
-                <button class="btn secondary btn-sm edit-module" data-id="${m.id}" data-name="${m.name}" data-code="${m.code}">Edit</button>
-                <button class="btn danger btn-sm delete-module" data-id="${m.id}">Delete</button>
-            </div>
-        </div>
-    `).join('');
-    containerModule.querySelectorAll('.edit-module').forEach(btn => btn.onclick = (e) => handleEditModule(e.target.dataset.id, e.target.dataset.name, e.target.dataset.code));
-    // Delete module listener
-    containerModule.querySelectorAll('.delete-module').forEach(btn => btn.onclick = (e) => handleDeleteModule(e.target.dataset.id));
-    
-    // NEW: Load System Policies after settings lists are done
-    loadSystemPolicies();
-
-  } catch (err) {
-    console.error('loadUniversitySettings failed', err);
-    containerDept.innerHTML = '<div class="empty">Failed to load departments.</div>';
-    containerModule.innerHTML = '<div class="empty">Failed to load modules.</div>';
-  }
-}
-
-
-/**
- * Handles adding a new department.
- */
-async function handleAddDepartment() {
-  const deptName = prompt('Enter new Department Name:');
-  if (!deptName || deptName.trim() === '') return;
-  try {
-    await addDoc(collection(db, 'departments'), { name: deptName.trim(), createdAt: new Date().toISOString() });
-    alert('Department added.');
-    loadUniversitySettings();
-  } catch (err) {
-    console.error('Add department failed', err);
-    alert('Failed to add department: ' + err.message);
-  }
-}
-
-/**
- * Handles editing a department name (simple prompt modal).
- * @param {string} id - Department ID.
- * @param {string} currentName - Current name.
- */
-async function handleEditDepartment(id, currentName) {
-  const newName = prompt('Edit Department Name:', currentName);
-  if (!newName || newName.trim() === currentName) return;
-  try {
-    await updateDoc(doc(db, 'departments', id), { name: newName.trim() });
-    alert('Department name updated.');
-    loadUniversitySettings();
-  } catch (err) {
-    console.error('Edit department failed', err);
-    alert('Failed to update department: ' + err.message);
-  }
-}
-
-/**
- * Handles adding a new module.
- */
-async function handleAddModule() {
-  const moduleName = prompt('Enter new Module Name:');
-  const moduleCode = prompt('Enter new Module Code:');
-  if (!moduleName || !moduleCode) return;
-  try {
-    await addDoc(collection(db, 'modules'), { 
-      name: moduleName.trim(), 
-      code: moduleCode.trim(), 
-      createdAt: new Date().toISOString() 
-    });
-    alert('Module added.');
-    loadUniversitySettings();
-  } catch (err) {
-    console.error('Add module failed', err);
-    alert('Failed to add module: ' + err.message);
-  }
-}
-
-/**
- * Handles editing a module (simple prompt modal).
- * @param {string} id - Module ID.
- * @param {string} currentName - Current name.
- * @param {string} currentCode - Current code.
- */
-async function handleEditModule(id, currentName, currentCode) {
-  const newName = prompt('Edit Module Name:', currentName);
-  const newCode = prompt('Edit Module Code:', currentCode);
-  if ((!newName && !newCode) || (newName === currentName && newCode === currentCode)) return;
-  
-  try {
-    const payload = {};
-    if (newName && newName !== currentName) payload.name = newName.trim();
-    if (newCode && newCode !== currentCode) payload.code = newCode.trim();
-    
-    if (Object.keys(payload).length > 0) {
-      await updateDoc(doc(db, 'modules', id), payload);
-      alert('Module updated.');
-      loadUniversitySettings();
-    }
-  } catch (err) {
-    console.error('Edit module failed', err);
-    alert('Failed to update module: ' + err.message);
-  }
-}
-/**
- * Loads the global system policies (e.g., max booking time, admin emails)
- * and populates the settings form fields.
- */
-async function loadSystemPolicies() {
-  const policiesRef = doc(db, 'settings', 'policies');
-  try {
-    const snap = await getDoc(policiesRef);
-    const policies = snap.exists() ? snap.data() : {};
-
-    // Assuming form fields exist with these IDs in universitySettingsSection
-    $('policyMaxBookingHours').value = policies.maxBookingHours || 2;
-    $('policyMaxSessionsPerWeek').value = policies.maxSessionsPerWeek || 3;
-    $('policyAdminContactEmail').value = policies.adminContactEmail || 'admin@university.ac.za';
-    $('policyTutorAutoApprove').checked = !!policies.tutorAutoApprove;
-
-  } catch (err) {
-    console.error('loadSystemPolicies failed', err);
-    alert('Failed to load system policies.');
-  }
-}
-
-/**
- * Saves the updated system policies.
- */
-async function saveSystemPolicies() {
-  try {
-    const policiesRef = doc(db, 'settings', 'policies');
-    
-    const payload = {
-      maxBookingHours: Number($('policyMaxBookingHours').value),
-      maxSessionsPerWeek: Number($('policyMaxSessionsPerWeek').value),
-      adminContactEmail: $('policyAdminContactEmail').value.trim(),
-      tutorAutoApprove: $('policyTutorAutoApprove').checked,
-      updatedAt: new Date().toISOString(),
-      updatedBy: STATE.uid
-    };
-    
-    // Use setDoc with merge to create or update the policies document
-    await setDoc(policiesRef, payload, { merge: true });
-    alert('System Policies updated successfully.');
-    loadSystemPolicies(); // Refresh
-  } catch (err) {
-    console.error('saveSystemPolicies failed', err);
-    alert('Failed to save system policies: ' + err.message);
-  }
-}
-
-
-/**
- * Handles deleting a Module.
- * NOTE: This is a critical action. Only include if necessary.
- * @param {string} id - Module ID.
- */
-async function handleDeleteModule(id) {
-    if (!confirm('WARNING: Delete this module? This cannot be undone and may break existing user data.')) return;
-    try {
-        await deleteDoc(doc(db, 'modules', id));
-        alert('Module deleted successfully.');
-        loadUniversitySettings();
-    } catch (err) {
-        console.error('Delete module failed', err);
-        alert('Failed to delete module: ' + err.message);
-    }
-}
 /* -------------------------------------------
  * 14. Notifications Control
  * ------------------------------------------- */
@@ -1528,7 +1317,6 @@ function setupAllEventListeners() {
     $('menuBookingRequests').onclick = () => { setActiveMenu('menuBookingRequests'); showSection('bookingRequestsSection'); };
     $('menuIssuesReports').onclick = () => { setActiveMenu('menuIssuesReports'); showSection('issuesReportsSection'); };
     $('menuRatingsAnalytics').onclick = () => { setActiveMenu('menuRatingsAnalytics'); showSection('ratingsAnalyticsSection'); };
-    $('menuUniversitySettings').onclick = () => { setActiveMenu('menuUniversitySettings'); showSection('universitySettingsSection'); };
     $('menuNotificationsControl').onclick = () => { setActiveMenu('menuNotificationsControl'); showSection('notificationsControlSection'); };
     $('menuReportsAudit').onclick = () => { setActiveMenu('menuReportsAudit'); showSection('reportsAuditSection'); };
     $('menuAdminProfile').onclick = () => { setActiveMenu('menuAdminProfile'); showSection('adminProfileSection'); };
@@ -1554,11 +1342,7 @@ function setupAllEventListeners() {
       }
     };
     
-    // --- University Settings Actions ---
-    $('addDepartmentBtn').onclick = handleAddDepartment;
-    $('addModuleBtn').onclick = handleAddModule;
-    $('savePoliciesBtn').onclick = saveSystemPolicies; // Ties the policy form button to the save function
-    
+
     // --- Notifications Control Actions ---
     $('sendAnnouncementBtn').onclick = sendSystemAnnouncement;
     
