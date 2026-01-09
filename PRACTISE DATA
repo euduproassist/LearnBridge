@@ -20,10 +20,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /* ---------------- GLOBAL HELPER FUNCTIONS ---------------- */
-    function isAdmin() {
-      // Assumes custom admin claim has been set via Firebase Auth Admin SDK
-      return request.auth != null && request.auth.token.admin == true;
-    }
+
     
     // Check if the given UID belongs to a valid staff member (Tutor or Counsellor)
     function isStaff(staffId) {
