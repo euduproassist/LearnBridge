@@ -1,5 +1,17 @@
-signup.html:84 FirebaseError: Missing or insufficient permissions.
-(anonymous)	@	signup.html:84
+admin-portal.js:350 loadDashboardMetrics failed FirebaseError: Missing or insufficient permissions.
+loadDashboardMetrics	@	admin-portal.js:350
+await in loadDashboardMetrics		
+initAdminPortal	@	admin-portal.js:169
+await in initAdminPortal		
+(anonymous)	@	admin-portal.js:134
+(anonymous)	@	auth_impl.ts:744
+Promise.then		
+registerStateListener	@	auth_impl.ts:744
+onAuthStateChanged	@	auth_impl.ts:545
+onAuthStateChanged	@	index.ts:211
+(anonymous)	@	admin-portal.js:125
+
+
 
 
 
