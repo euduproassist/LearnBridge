@@ -97,6 +97,32 @@ if (user.emailVerified && !data.lastVerifiedDate) {
       }
     });
 
+// Updated Forgot password: allow any valid email format
+document.getElementById('forgotLink').addEventListener('click', async (e) => {
+  e.preventDefault();
+  
+  const email = prompt('Enter your registered email address:');
+  
+  // 1. Check if the user actually typed something
+  if (!email) return;
+
+  // 2. Simple regex to check for a basic email format (replaces the @uj.ac.za check)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  try {
+    // Firebase will check if this email exists in your Auth database
+    await sendPasswordResetEmail(auth, email);
+    alert('If an account exists for ' + email + ', a password reset link has been sent. Please check your inbox.');
+  } catch (err) {
+    // Handle specific Firebase errors (like user-not-found) or general network errors
+    console.error("Reset Error:", err);
+    alert('Error: ' + err.message);
+  }
+});
 
   </script>
 </body>
