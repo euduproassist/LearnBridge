@@ -41,6 +41,46 @@
     }
 
 
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) return popup('Enter email and password');
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const user = cred.user;
+
+    // Refresh to get latest verification status
+    await user.reload();
+
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      await auth.signOut();
+      return popup('User profile not found. Please sign up or contact support.');
+    }
+
+    const data = docSnap.data();
+
+    // 1. Check if Firebase says email is verified
+    if (!user.emailVerified) {
+      await sendEmailVerification(user);
+      return popup('Please verify your email. A link has been sent to your inbox.');
+    }
+
+    // 🔑 CORRECT REDIRECT BY ROLE
+    if (data.role === 'student') window.location.href = 'student-portal.html';
+    else if (data.role === 'tutor') window.location.href = 'tutor-portal.html';
+    else if (data.role === 'counsellor') window.location.href = 'counsellor-portal.html';
+    else if (data.role === 'admin') window.location.href = 'admin-portal.html';
+    else window.location.href = 'student-portal.html';
+
+  } catch (err) {
+    let msg = err.code === 'auth/user-not-found' ? 'User not found or incorrect password.' : (err.message || 'Login failed.');
+    popup('Login failed: ' + msg);
+  }
+});
 
 
 // Updated Forgot password: allow any valid email format
