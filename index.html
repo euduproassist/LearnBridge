@@ -58,6 +58,30 @@
             return popup('User profile not found. Please sign up or contact support.');
         }
         
+      const data = docSnap.data();
+const now = new Date();
+const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000;
+const lastVerified = data.lastVerifiedDate ? new Date(data.lastVerifiedDate) : null;
+
+// 1. Check if Firebase says email is verified
+if (!user.emailVerified) {
+    await user.sendEmailVerification();
+    return popup('Please verify your email. A link has been sent to your inbox.');
+}
+
+// 2. Check the 14-day rotation
+if (!lastVerified || (now - lastVerified) > fourteenDaysInMs) {
+    // If more than 14 days, force a new verification
+    await user.sendEmailVerification();
+    // Reset the internal flag so they have to click the link again
+    await updateDoc(docRef, { lastVerifiedDate: null }); 
+    return popup('14 days passed. A new verification link sent to your inbox.');
+}
+
+// If they just verified now, update the date
+if (user.emailVerified && !data.lastVerifiedDate) {
+    await updateDoc(docRef, { lastVerifiedDate: now.toISOString() });
+}
 
  
         // 🔑 CORRECT REDIRECT BY ROLE (FIXED TYPOS HERE)
