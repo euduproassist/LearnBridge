@@ -55,6 +55,14 @@
       const department = document.getElementById('department').value.trim();
 
       // Validation
+      // New relaxed validation
+if (!email || !email.includes('@')) return popup({ msg: 'Enter a valid email' });
+
+// Regex: 8+ chars, at least one number, at least one special character
+const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+if (!passwordRegex.test(password)) {
+  return popup({ msg: 'Password must be 8+ chars, include a number and a special character' });
+}
 
       if (!role) return popup({ msg: 'Please select a role' });
 
