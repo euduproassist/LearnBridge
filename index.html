@@ -74,7 +74,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
     // 2. Check the 14-day rotation
     if (!lastVerified || (now - lastVerified) > fourteenDaysInMs) {
-      await sendEmailVerification();
+      await sendEmailVerification(user);
       await updateDoc(docRef, { lastVerifiedDate: null });
       return popup('14 days passed. A new verification link sent to your inbox.');
     }
