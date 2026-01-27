@@ -55,12 +55,7 @@
       const department = document.getElementById('department').value.trim();
 
       // Validation
-      if (!fullName) return popup({ msg: 'Enter full name' });
-      if (!email || !email.includes('@')) return popup({ msg: 'Enter a valid email' });
-      if (!email.endsWith('@uj.ac.za')) return popup({ msg: 'Email must end with @uj.ac.za' });
-      if (password.length < 8 || !/\d/.test(password) || !password.includes('_')) {
-        return popup({ msg: 'Password must be 8+ chars, include a number and underscore _' });
-      }
+
       if (!role) return popup({ msg: 'Please select a role' });
 
       try {
