@@ -97,19 +97,7 @@ if (user.emailVerified && !data.lastVerifiedDate) {
       }
     });
 
-    // Forgot password: prompt for email, then send reset link
-    document.getElementById('forgotLink').addEventListener('click', async (e)=>{
-      e.preventDefault();
-      const email = prompt('Enter your registered university email:');
-      if (!email) return;
-      if (!email.endsWith('@uj.ac.za')) { alert('Email must end with @uj.ac.za'); return; }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent. Check your inbox.');
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    });
+
   </script>
 </body>
 </html>
