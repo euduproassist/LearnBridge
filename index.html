@@ -40,62 +40,7 @@
       setTimeout(()=> p.style.display='none', 3000);
     }
 
-    document.getElementById('loginBtn').addEventListener('click', async ()=>{
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      if (!email || !password) return popup('Enter email and password');
 
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        const user = cred.user;
-
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        
-        if (!docSnap.exists()) {
-            // Log out user who somehow bypassed signup process
-            await auth.signOut(); 
-            return popup('User profile not found. Please sign up or contact support.');
-        }
-        
-      const data = docSnap.data();
-const now = new Date();
-const fourteenDaysInMs = 14 * 24 * 60 * 60 * 1000;
-const lastVerified = data.lastVerifiedDate ? new Date(data.lastVerifiedDate) : null;
-
-// 1. Check if Firebase says email is verified
-if (!user.emailVerified) {
-    await user.sendEmailVerification();
-    return popup('Please verify your email. A link has been sent to your inbox.');
-}
-
-// 2. Check the 14-day rotation
-if (!lastVerified || (now - lastVerified) > fourteenDaysInMs) {
-    // If more than 14 days, force a new verification
-    await user.sendEmailVerification();
-    // Reset the internal flag so they have to click the link again
-    await updateDoc(docRef, { lastVerifiedDate: null }); 
-    return popup('14 days passed. A new verification link sent to your inbox.');
-}
-
-// If they just verified now, update the date
-if (user.emailVerified && !data.lastVerifiedDate) {
-    await updateDoc(docRef, { lastVerifiedDate: now.toISOString() });
-}
-
- 
-        // 🔑 CORRECT REDIRECT BY ROLE (FIXED TYPOS HERE)
-        if (data.role === 'student') window.location.href = 'student-portal.html';
-        else if (data.role === 'tutor') window.location.href = 'tutor-portal.html';
-        else if (data.role === 'counsellor') window.location.href = 'counsellor-portal.html';
-        else if (data.role === 'admin') window.location.href = 'admin-portal.html'; // Assuming a generic 'admin' role
-        else window.location.href = 'student-portal.html'; // Default safe redirect
-        
-      } catch (err) {
-        let msg = err.code === 'auth/user-not-found' ? 'User not found or incorrect password.' : (err.message || 'Login failed.');
-        popup('Login failed: ' + msg);
-      }
-    });
 
 // Updated Forgot password: allow any valid email format
 document.getElementById('forgotLink').addEventListener('click', async (e) => {
