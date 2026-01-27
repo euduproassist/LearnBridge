@@ -58,12 +58,7 @@
             return popup('User profile not found. Please sign up or contact support.');
         }
         
-        const data = docSnap.data();
-        
-        // Update email verification status if it was verified outside this session
-        if (user.emailVerified && !data.emailVerified) {
-            await updateDoc(docRef, { emailVerified: true });
-        }
+
  
         // 🔑 CORRECT REDIRECT BY ROLE (FIXED TYPOS HERE)
         if (data.role === 'student') window.location.href = 'student-portal.html';
