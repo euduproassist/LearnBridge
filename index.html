@@ -68,13 +68,13 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     // 1. Check if Firebase says email is verified
     // 🚨 FIX 2: Ensure this is checked as a property (no parentheses)
     if (!user.emailVerified) {
-      await user.sendEmailVerification(user);
+      await sendEmailVerification(user);
       return popup('Please verify your email. A link has been sent to your inbox.');
     }
 
     // 2. Check the 14-day rotation
     if (!lastVerified || (now - lastVerified) > fourteenDaysInMs) {
-      await user.sendEmailVerification();
+      await sendEmailVerification();
       await updateDoc(docRef, { lastVerifiedDate: null });
       return popup('14 days passed. A new verification link sent to your inbox.');
     }
