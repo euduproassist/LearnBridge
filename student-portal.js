@@ -35,6 +35,33 @@ async function callServerFunction(name, payload) {
     console.log(`[Server Call] Executing secure function: ${name}`, payload);
     const uid = CURRENT_USER_ID;
 
+    // --- SECURE BOOKING/UPDATE LOGIC (MODIFIED FOR MULTI-SLOT) ---
+    if (name === 'requestSession') {
+        const { role, person, preferredSlots, mode, note } = payload;
+        
+        // 1. **Server-Side Session Creation:**
+        // Instead of a single 'datetime', we store the student's 'preferredSlots'.
+        // The 'datetime' remains null until the tutor picks one from the bucket.
+        const sessionsCol = collection(db, 'sessions');
+        const sessionObj = {
+            role, 
+            personId: person.id || '', 
+            tutorId: role === 'tutor' ? person.id : '',
+            counsellorId: role === 'counsellor' ? person.id : '', 
+            studentId: uid,
+            personName: person.name || '', 
+            preferredSlots: preferredSlots, // The array of 3-5 ISO strings
+            datetime: null,                 // Initially null
+            venue: '',                      // Initially empty
+            mode: mode || 'online',
+            status: 'pending', 
+            notes: note || '', 
+            createdAt: new Date().toISOString()
+        };
+        
+        const docRef = await addDoc(sessionsCol, sessionObj);
+        return { sessionId: docRef.id }; 
+    }
 
 
     // --- SECURE CANCELLATION/UPDATE LOGIC ---
