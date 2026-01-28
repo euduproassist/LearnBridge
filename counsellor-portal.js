@@ -399,7 +399,66 @@ async function loadLessonHistory(uid) {
   }
 }
 
+async function handleCompleteTutorial(sessionId) {
+  if (!confirm('Mark this tutorial as completed?')) return;
+  try {
+    const sRef = doc(db, 'sessions', sessionId);
+    const snap = await getDoc(sRef);
+    const s = snap.data();
+    
+    const startTime = s.startedAt ? new Date(s.startedAt) : new Date();
+    const endTime = new Date();
+    const durationMs = endTime - startTime;
+    const durationMins = Math.round(durationMs / 60000);
 
+    await updateDoc(sRef, { 
+      status: 'completed', 
+      completedAt: endTime.toISOString(),
+      actualDuration: durationMins 
+    });
+
+    alert(`Tutorial marked complete.`);
+    
+    // CRITICAL: Refresh both views so the data moves from "Upcoming" to "History"
+    await loadUpcomingTutorials(STATE.uid); 
+    await loadLessonHistory(STATE.uid); // Ensure history is fresh
+    await loadDashboard(STATE.uid);      // Update stats on dashboard
+  } catch (err) {
+    console.error('handleCompleteTutorial', err);
+    alert('Failed to complete: ' + err.message);
+  }
+}
+
+
+/* ---------- Action: Start Tutorial ---------- */
+async function handleStartTutorial(sessionId) {
+  try {
+    const sRef = doc(db, 'sessions', sessionId);
+    const snap = await getDoc(sRef);
+    if (!snap.exists()) return alert('Tutorial not found');
+    const s = snap.data();
+    
+    // MODIFIED: Removed the 'return' so in-person sessions can proceed
+    // We just set the status to in-progress and record the start time
+    await updateDoc(sRef, { 
+      status: 'in-progress', 
+      startedAt: new Date().toISOString() 
+    });
+
+    alert('Tutorial started. Time tracking is now active.');
+    
+    // Only open chat window automatically for online sessions
+    if (s.mode === 'online') {
+      openChatWindow({ id: s.studentId, name: s.studentName, photo: s.studentPhoto });
+    }
+
+    // refresh the list to show the "Finish" button
+    await loadUpcomingTutorials(STATE.uid);
+  } catch (err) {
+    console.error('handleStartTutorial', err);
+    alert('Failed to start tutorial: ' + err.message);
+  }
+}
 
 /* ---------- CLIENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
 async function loadClientRequests(uid) {
