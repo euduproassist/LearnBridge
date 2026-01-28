@@ -430,35 +430,7 @@ async function handleCompleteTutorial(sessionId) {
 }
 
 
-/* ---------- Action: Start Tutorial ---------- */
-async function handleStartTutorial(sessionId) {
-  try {
-    const sRef = doc(db, 'sessions', sessionId);
-    const snap = await getDoc(sRef);
-    if (!snap.exists()) return alert('Tutorial not found');
-    const s = snap.data();
-    
-    // MODIFIED: Removed the 'return' so in-person sessions can proceed
-    // We just set the status to in-progress and record the start time
-    await updateDoc(sRef, { 
-      status: 'in-progress', 
-      startedAt: new Date().toISOString() 
-    });
 
-    alert('Tutorial started. Time tracking is now active.');
-    
-    // Only open chat window automatically for online sessions
-    if (s.mode === 'online') {
-      openChatWindow({ id: s.studentId, name: s.studentName, photo: s.studentPhoto });
-    }
-
-    // refresh the list to show the "Finish" button
-    await loadUpcomingAppointments(STATE.uid);
-  } catch (err) {
-    console.error('handleStartTutorial', err);
-    alert('Failed to start tutorial: ' + err.message);
-  }
-}
 
 /* ---------- CLIENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
 async function loadClientRequests(uid) {
