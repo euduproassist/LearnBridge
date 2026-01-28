@@ -684,6 +684,113 @@ function computeAvailability(u) {
   } catch (e) { return false; }
 }
 
+/* ---------- Booking modal (Modified for Multi-Slot Preference) ---------- */
+async function openBookingModal(role, person) {
+  let selectedSlots = []; // To store the bucket of 3-5 choices
+
+  const modal = document.createElement('div'); modal.className = 'modal-back';
+  modal.innerHTML = `
+    <div class="modal" style="width: 500px;">
+      <h3>Book ${role === 'tutor' ? 'Tutor' : 'Counsellor'} — ${escapeHtml(person.name||'')}</h3>
+      <div>
+        <label>Topic / What do you need help with?</label>
+        <textarea id="bk_note" rows="2" style="width:100%;margin-bottom:8px"></textarea>
+        
+        <label><b>Add Preferred Time Slots (Pick 3-5)</b></label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+          <input id="bk_dt_picker" type="datetime-local" style="flex:1; margin-bottom:0;"/>
+          <button class="btn" id="add_slot_btn" style="padding:5px 15px;">Add</button>
+        </div>
+        
+        <div id="slot_list_bucket" style="margin-bottom:15px; max-height:120px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:8px; background:#f9f9f9;">
+          <div class="muted" style="text-align:center">No slots added yet.</div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label>Mode</label>
+            <select id="bk_mode" style="width:100%">
+              <option value="online">Online</option>
+              <option value="in-person">In-person</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="bk_confirm">Submit Request</button>
+          <button class="btn secondary" id="bk_cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Helper to refresh the visual list of slots
+  const renderBucket = () => {
+    const bucketEl = $('slot_list_bucket');
+    if (selectedSlots.length === 0) {
+      bucketEl.innerHTML = '<div class="muted" style="text-align:center">No slots added yet.</div>';
+      return;
+    }
+    bucketEl.innerHTML = selectedSlots.map((iso, idx) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:6px 10px; margin-bottom:5px; border-radius:5px; border:1px solid #eee; font-size:13px;">
+        <span>📅 ${new Date(iso).toLocaleString()}</span>
+        <button style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;" data-idx="${idx}">✕</button>
+      </div>
+    `).join('');
+
+    // Attach delete listeners to the 'X' buttons
+    bucketEl.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        selectedSlots.splice(btn.dataset.idx, 1);
+        renderBucket();
+      };
+    });
+  };
+
+  // Add slot button logic
+  $('add_slot_btn').onclick = () => {
+    const val = $('bk_dt_picker').value;
+    if (!val) return alert('Please select a date and time first.');
+    const iso = new Date(val).toISOString();
+    
+    if (selectedSlots.length >= 5) return alert('Maximum 5 slots allowed.');
+    if (selectedSlots.includes(iso)) return alert('This slot is already in your bucket.');
+    
+    selectedSlots.push(iso);
+    renderBucket();
+    $('bk_dt_picker').value = ''; // Clear picker for next one
+  };
+
+  $('bk_cancel').onclick = () => modal.remove();
+
+  $('bk_confirm').onclick = async () => {
+    const note = $('bk_note').value.trim();
+    const mode = $('bk_mode').value;
+
+    if (selectedSlots.length < 1) return alert('Please add at least one preferred time slot.');
+
+    try {
+        // Send the ARRAY 'preferredSlots' instead of a single 'desiredISO'
+        await callServerFunction('requestSession', {
+            role, 
+            person, 
+            preferredSlots: selectedSlots, 
+            mode, 
+            note
+        });
+
+        alert('Request submitted! The ' + role + ' will pick one of your available times.');
+        modal.remove();
+        await loadPendingRequests(CURRENT_USER_ID); 
+        await updateNotifBadge(CURRENT_USER_ID);
+
+    } catch (err) {
+        console.error('Booking error:', err);
+        alert('Booking failed: ' + err.message);
+    }
+  };
+}
 
 
 /* ---------- Ratings modal ---------- */
