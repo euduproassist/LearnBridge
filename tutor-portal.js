@@ -240,79 +240,7 @@ async function loadDashboard(uid) {
   }
 }
 
-/* ---------- Tutorials List (Modified to show Venue/Location) ---------- */
-async function loadUpcomingTutorials(uid) {
-  const container = $('sessionList');
-  if (!container) return;
-  container.innerHTML = 'Loading tutorials...';
-  
-  try {
-    const sessionsCol = collection(db, 'sessions');
-    // Looking for approved sessions where a specific datetime has been locked in
-    const q = query(sessionsCol, where('personId','==', uid), where('status','==','approved'), orderBy('datetime','asc'));
-    const snap = await getDocs(q);
-    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    if (sessions.length === 0) {
-      container.innerHTML = '<div class="empty">No upcoming tutorials.</div>';
-      return;
-    }
-
-    // Updated Table Header to include "Venue/Location"
-    container.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Student</th>
-            <th>Module</th>
-            <th>Venue / Location</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>`;
-      
-    const tbody = container.querySelector('tbody');
-
-    sessions.forEach(s => {
-      const dt = s.datetime ? new Date(s.datetime) : null;
-      // Note: We show upcoming, but also allow starting if it's very soon
-      if (!dt) return;
-
-      const tr = elCreate('tr');
-      tr.innerHTML = `
-        <td>${dt.toLocaleString()}</td>
-        <td>${escapeHtml(s.studentName || 'Student')}</td>
-        <td>${escapeHtml(s.module || s.course || 'General')}</td>
-        <td>
-          <span style="font-weight:600; color:#006064;">
-            ${s.mode === 'in-person' ? '📍 ' : '💻 '} 
-            ${escapeHtml(s.venue || s.mode)}
-          </span>
-        </td>
-        <td>
-          <button class="btn secondary start-session" data-id="${s.id}">Start</button>
-          <button class="btn secondary chat-session" data-sid="${s.studentId}" data-sname="${s.studentName}">Chat</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Handlers
-    container.querySelectorAll('.start-session').forEach(btn => 
-      btn.onclick = (e) => handleStartTutorial(e.target.dataset.id)
-    );
-    
-    container.querySelectorAll('.chat-session').forEach(btn => 
-      btn.onclick = (e) => openChatWindow({ id: e.target.dataset.sid, name: e.target.dataset.sname })
-    );
-  
-  } catch (err) {
-    console.error('loadUpcomingTutorials', err);
-    container.innerHTML = '<div class="empty">Failed to load tutorials.</div>';
-  }
-}
 
 
 /* ---------- Action: Start Tutorial (was handleStartSession) ---------- */
