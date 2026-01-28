@@ -453,7 +453,7 @@ async function handleStartTutorial(sessionId) {
     }
 
     // refresh the list to show the "Finish" button
-    await loadUpcomingTutorials(STATE.uid);
+    await loadUpcomingAppointments(STATE.uid);
   } catch (err) {
     console.error('handleStartTutorial', err);
     alert('Failed to start tutorial: ' + err.message);
