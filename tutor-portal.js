@@ -324,6 +324,99 @@ async function loadUpcomingTutorials(uid) {
   }
 }
 
+/* ---------- Lesson History with Loading & Empty States ---------- */
+async function loadLessonHistory(uid) {
+  const container = $('historyList');
+  if (!container) return;
+
+  // 1. Show Loading State immediately
+  container.innerHTML = `
+    <div style="text-align:center; padding: 40px;">
+      <div class="spinner" style="margin-bottom:10px;">⏳</div>
+      <p class="muted">Fetching your lesson history...</p>
+    </div>`;
+
+  try {
+    const q = query(
+      collection(db, 'sessions'), 
+      where('personId', '==', uid), 
+      where('status', '==', 'completed'), 
+      orderBy('completedAt', 'desc')
+    );
+    
+    const snap = await getDocs(q);
+    
+    // 2. Handle No History (Empty State)
+    if (snap.empty) {
+      container.innerHTML = `
+        <div class="empty">
+          <p style="font-size: 1.2rem; color: #888;">📜 No completed lessons yet.</p>
+          <p class="muted">Once you finish a tutorial session, it will appear here.</p>
+        </div>`;
+      return;
+    }
+
+    // 3. Render History Data
+    container.innerHTML = snap.docs.map(doc => {
+      const s = doc.data();
+      const start = s.startedAt ? new Date(s.startedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+      const end = s.completedAt ? new Date(s.completedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+      
+      return `
+        <div class="profile-card" style="margin-bottom:15px; border-left: 5px solid #006064;">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div>
+              <h4 style="color:#006064; margin:0;">${escapeHtml(s.module || 'General')}</h4>
+              <p style="font-size:13px; margin:4px 0;"><strong>Student:</strong> ${escapeHtml(s.studentName)}</p>
+            </div>
+            <div style="text-align:right">
+              <span class="badge" style="background:#eee; color:#333;">${new Date(s.datetime).toLocaleDateString()}</span>
+            </div>
+          </div>
+          <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:13px;">
+            <div><strong>Time:</strong> ${start} — ${end} (${s.actualDuration || 0} mins)</div>
+            <div><strong>Mode:</strong> ${escapeHtml(s.mode)}</div>
+            <div><strong>Venue:</strong> ${escapeHtml(s.venue || 'N/A')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('loadHistory', err);
+    container.innerHTML = '<div class="empty">Error loading history. Please try again.</div>';
+  }
+}
+
+async function handleCompleteTutorial(sessionId) {
+  if (!confirm('Mark this tutorial as completed?')) return;
+  try {
+    const sRef = doc(db, 'sessions', sessionId);
+    const snap = await getDoc(sRef);
+    const s = snap.data();
+    
+    const startTime = s.startedAt ? new Date(s.startedAt) : new Date();
+    const endTime = new Date();
+    const durationMs = endTime - startTime;
+    const durationMins = Math.round(durationMs / 60000);
+
+    await updateDoc(sRef, { 
+      status: 'completed', 
+      completedAt: endTime.toISOString(),
+      actualDuration: durationMins 
+    });
+
+    alert(`Tutorial marked complete.`);
+    
+    // CRITICAL: Refresh both views so the data moves from "Upcoming" to "History"
+    await loadUpcomingTutorials(STATE.uid); 
+    await loadLessonHistory(STATE.uid); // Ensure history is fresh
+    await loadDashboard(STATE.uid);      // Update stats on dashboard
+  } catch (err) {
+    console.error('handleCompleteTutorial', err);
+    alert('Failed to complete: ' + err.message);
+  }
+}
 
 
 /* ---------- Action: Start Tutorial (was handleStartSession) ---------- */
