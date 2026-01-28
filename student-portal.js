@@ -454,76 +454,7 @@ async function loadSessionSummaries(uid) {
   }
 }
 
-async function loadSessionsList(uid, filterRole = null) {
-  const container = $('sessionList');
-  container.innerHTML = 'Loading sessions...';
-  try {
-    const sessionsCol = collection(db, 'sessions');
-    let q;
-    if (filterRole) q = query(sessionsCol, where('studentId','==',uid), where('status','==','approved'), where('role','==',filterRole), orderBy('datetime','asc'));
-    else q = query(sessionsCol, where('studentId','==',uid), where('status','==','approved'), orderBy('datetime','asc'));
-    const snap = await getDocs(q);
-    const sessions = snap.docs.map(d=>({ id:d.id, ...d.data() }));
 
-    // Filter out past sessions
-    const upcomingSessions = sessions.filter(s => new Date(s.datetime) >= new Date());
-
-    if (upcomingSessions.length === 0) {
-      container.innerHTML = '<div class="empty">No upcoming sessions found.</div>';
-      return;
-    }
-    const rows = upcomingSessions.map(s => {
-      const datetime = new Date(s.datetime).toLocaleString();
-      // Visual cue for mode
-      const modeClass = s.mode === 'online' ? 'session-online' : 'session-inperson';
-      return `<tr data-id="${s.id}" data-date="${s.datetime||''}" data-mode="${escapeHtml(s.mode||'online')}">
-        <td>${escapeHtml(s.personName||'—')}</td><td>${escapeHtml(datetime)}</td><td class="${modeClass}">${escapeHtml(s.mode||'—')}</td>
-        <td>
-          <button class="cancel-btn btn secondary">Cancel</button>
-          <button class="update-btn btn">Update</button>
-        </td></tr>`;
-    }).join('');
-    container.innerHTML = `<table><thead><tr><th>Person</th><th>Date & Time</th><th>Mode</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
-    
-    // Cancel action
-    container.querySelectorAll('.cancel-btn').forEach(btn => {
-      btn.addEventListener('click', async (ev) => {
-        const id = ev.target.closest('tr').dataset.id;
-        if (!confirm('Cancel this session?')) return;
-        try {
-           // 🚨 Production Change: Use secure server function for mutation
-          await callServerFunction('updateSessionStatus', { sessionId: id, status: 'cancelled' });
-          alert('Session cancelled.');
-          await loadSessionsList(uid, filterRole);
-          await loadSessionSummaries(uid);
-        } catch (err) { console.error(err); alert('Failed to cancel: '+err.message); }
-      });
-    });
-
-    // Update action (reschedule/mode)
-    container.querySelectorAll('.update-btn').forEach(btn => {
-      btn.addEventListener('click', async (ev) => {
-        const tr = ev.target.closest('tr');
-        const id = tr.dataset.id;
-        const newISO = prompt('Enter new date & time (YYYY-MM-DDTHH:MM) e.g. 2025-12-10T14:00', tr.dataset.date.substring(0, 16));
-        if (!newISO) return;
-        if (isNaN(new Date(newISO))) { alert('Invalid date'); return; }
-        const newMode = prompt('Enter new mode (online / in-person)', tr.dataset.mode);
-        if (!newMode) return;
-        try {
-          // 🚨 Production Change: Use secure server function for mutation
-          await callServerFunction('updateSessionDetails', { sessionId: id, datetime: new Date(newISO).toISOString(), mode: newMode });
-          alert('Session updated.');
-          await loadSessionsList(uid, filterRole);
-          await loadSessionSummaries(uid);
-        } catch (err) { console.error(err); alert('Failed to update: '+err.message); }
-      });
-    });
-  } catch (err) {
-    console.error('loadSessionsList', err);
-    container.innerHTML = `<div class="empty">Failed to load sessions</div>`;
-  }
-}
 
 /* ---------- Load ratings list (student's own ratings) ---------- */
 async function loadRatingsList(uid, roleFilter = '', searchText = '') {
