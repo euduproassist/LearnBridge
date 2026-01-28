@@ -335,33 +335,71 @@ async function loadUpcomingAppointments(uid) {
   }
 }
 
+/* ---------- Lesson History with Loading & Empty States ---------- */
+async function loadLessonHistory(uid) {
+  const container = $('historyList');
+  if (!container) return;
 
+  // 1. Show Loading State immediately
+  container.innerHTML = `
+    <div style="text-align:center; padding: 40px;">
+      <div class="spinner" style="margin-bottom:10px;">⏳</div>
+      <p class="muted">Fetching your lesson history...</p>
+    </div>`;
 
-/* ---------- Action: Start session (UPDATED terminology) ---------- */
-async function handleStartSession(sessionId) {
   try {
-    const sRef = doc(db, 'sessions', sessionId);
-    const snap = await getDoc(sRef);
-    if (!snap.exists()) return alert('Appointment not found');
-    const s = snap.data();
+    const q = query(
+      collection(db, 'sessions'), 
+      where('personId', '==', uid), 
+      where('status', '==', 'completed'), 
+      orderBy('completedAt', 'desc')
+    );
     
-    // check mode online and time window
-    if (s.mode !== 'online') {
-      return alert('This appointment is not online. Start in-person appointments at the scheduled location.');
+    const snap = await getDocs(q);
+    
+    // 2. Handle No History (Empty State)
+    if (snap.empty) {
+      container.innerHTML = `
+        <div class="empty">
+          <p style="font-size: 1.2rem; color: #888;">📜 No completed lessons yet.</p>
+          <p class="muted">Once you finish a tutorial session, it will appear here.</p>
+        </div>`;
+      return;
     }
-    // Set status to in-progress
-    await updateDoc(sRef, { status: 'in-progress', startedAt: new Date().toISOString() });
-    alert('Appointment started. You can now chat / share materials.');
-    
-    // open chat window automatically
-    openChatWindow({ id: s.studentId, name: s.studentName, photo: s.studentPhoto });
-    // refresh
-    await loadUpcomingAppointments(STATE.uid);
+
+    // 3. Render History Data
+    container.innerHTML = snap.docs.map(doc => {
+      const s = doc.data();
+      const start = s.startedAt ? new Date(s.startedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+      const end = s.completedAt ? new Date(s.completedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+      
+      return `
+        <div class="profile-card" style="margin-bottom:15px; border-left: 5px solid #006064;">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div>
+              <h4 style="color:#006064; margin:0;">${escapeHtml(s.module || 'General')}</h4>
+              <p style="font-size:13px; margin:4px 0;"><strong>Student:</strong> ${escapeHtml(s.studentName)}</p>
+            </div>
+            <div style="text-align:right">
+              <span class="badge" style="background:#eee; color:#333;">${new Date(s.datetime).toLocaleDateString()}</span>
+            </div>
+          </div>
+          <hr style="margin:10px 0; border:0; border-top:1px solid #eee;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:13px;">
+            <div><strong>Time:</strong> ${start} — ${end} (${s.actualDuration || 0} mins)</div>
+            <div><strong>Mode:</strong> ${escapeHtml(s.mode)}</div>
+            <div><strong>Venue:</strong> ${escapeHtml(s.venue || 'N/A')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
   } catch (err) {
-    console.error('handleStartSession', err);
-    alert('Failed to start appointment: ' + err.message);
+    console.error('loadHistory', err);
+    container.innerHTML = '<div class="empty">Error loading history. Please try again.</div>';
   }
 }
+
+
 
 /* ---------- CLIENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
 async function loadClientRequests(uid) {
