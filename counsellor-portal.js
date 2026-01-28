@@ -239,52 +239,7 @@ async function loadDashboard(uid) {
   }
 }
 
-/* ---------- Appointments List (renamed from loadUpcomingSessions) ---------- */
-async function loadUpcomingAppointments(uid) {
-  const container = $('sessionList');
-  if (!container) return;
-  container.innerHTML = 'Loading appointments...';
-  
-  try {
-    const sessionsCol = collection(db, 'sessions');
-    const q = query(sessionsCol, where('personId','==', uid), where('status','==','approved'), orderBy('datetime','asc'));
-    const snap = await getDocs(q);
-    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    if (sessions.length === 0) {
-      container.innerHTML = '<div class="empty">No upcoming appointments.</div>';
-      return;
-    }
-
-    container.innerHTML = '<table><thead><tr><th>Time</th><th>Client</th><th>Service</th><th>Mode</th><th>Actions</th></tr></thead><tbody>';
-    sessions.forEach(s => {
-      const dt = s.datetime ? new Date(s.datetime) : null;
-      if (!dt || dt < new Date()) return;
-
-      const tr = elCreate('tr');
-      tr.innerHTML = `
-        <td>${dt.toLocaleString()}</td>
-        <td>${escapeHtml(s.studentName || 'Client')}</td>
-        <td>${escapeHtml(s.module || s.course || 'General')}</td>
-        <td>${escapeHtml(s.mode)}</td>
-        <td>
-          <button class="btn secondary start-session" data-id="${s.id}">Start Appointment</button>
-          <button class="btn secondary reschedule-session" data-id="${s.id}">Reschedule</button>
-        </td>
-      `;
-      container.querySelector('tbody').appendChild(tr);
-    });
-    container.innerHTML += '</tbody></table>';
-
-    // Handlers
-    container.querySelectorAll('.start-session').forEach(btn => btn.onclick = (e) => handleStartSession(e.target.dataset.id));
-    // container.querySelectorAll('.reschedule-session').forEach(btn => btn.onclick = (e) => openRescheduleRequestModal(e.target.dataset.id));
-  
-  } catch (err) {
-    console.error('loadUpcomingAppointments', err);
-    container.innerHTML = '<div class="empty">Failed to load appointments.</div>';
-  }
-}
 
 /* ---------- Action: Start session (UPDATED terminology) ---------- */
 async function handleStartSession(sessionId) {
