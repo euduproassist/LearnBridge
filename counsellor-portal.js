@@ -240,6 +240,100 @@ async function loadDashboard(uid) {
   }
 }
 
+/* ---------- Appointments List (Modified for In-Progress & Venue) ---------- */
+async function loadUpcomingAppointments(uid) {
+  const container = $('sessionList');
+  if (!container) return;
+  container.innerHTML = 'Loading appointments...';
+  
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    // MODIFIED: Fetch both 'approved' and 'in-progress' to keep active sessions visible
+    const q = query(sessionsCol, 
+      where('personId', '==', uid), 
+      where('status', 'in', ['approved', 'in-progress']), 
+      orderBy('datetime', 'asc')
+    );
+    
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (sessions.length === 0) {
+      container.innerHTML = '<div class="empty">No upcoming appointments.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Time / Status</th>
+            <th>Client</th>
+            <th>Service</th>
+            <th>Location / Venue</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+
+    const tbody = container.querySelector('tbody');
+
+    sessions.forEach(s => {
+      const dt = s.datetime ? new Date(s.datetime) : null;
+      if (!dt) return;
+
+      const isInProgress = s.status === 'in-progress';
+      const tr = elCreate('tr');
+      
+      // Visual feedback: green border for active sessions
+      if (isInProgress) tr.style.borderLeft = "4px solid #2e7d32";
+
+      tr.innerHTML = `
+        <td>
+          ${dt.toLocaleString()}<br>
+          ${isInProgress ? '<span class="badge" style="background:#2e7d32; font-size:10px;">IN-PROGRESS</span>' : ''}
+        </td>
+        <td>${escapeHtml(s.studentName || 'Client')}</td>
+        <td>${escapeHtml(s.module || s.course || 'General')}</td>
+        <td>
+          <span style="font-weight:600; color:#006064;">
+            ${s.mode === 'in-person' ? '📍 ' : '💻 '} 
+            ${escapeHtml(s.venue || s.mode)}
+          </span>
+        </td>
+        <td>
+          ${isInProgress 
+            ? `<button class="btn complete-session" data-id="${s.id}" style="background:#2e7d32">Finish</button>`
+            : `<button class="btn secondary start-session" data-id="${s.id}">Start</button>`
+          }
+          <button class="btn secondary chat-session" data-sid="${s.studentId}" data-sname="${s.studentName}">Chat</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Event Handlers
+    container.querySelectorAll('.start-session').forEach(btn => 
+      btn.onclick = (e) => handleStartSession(e.target.dataset.id)
+    );
+    
+    container.querySelectorAll('.complete-session').forEach(btn => 
+      btn.onclick = (e) => handleCompleteTutorial(e.target.dataset.id) 
+    );
+    
+    container.querySelectorAll('.chat-session').forEach(btn => 
+      btn.onclick = (e) => openChatWindow({ 
+        id: e.target.dataset.sid, 
+        name: e.target.dataset.sname 
+      })
+    );
+  
+  } catch (err) {
+    console.error('loadUpcomingAppointments', err);
+    container.innerHTML = '<div class="empty">Failed to load appointments.</div>';
+  }
+}
 
 
 
