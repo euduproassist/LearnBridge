@@ -35,32 +35,7 @@ async function callServerFunction(name, payload) {
     console.log(`[Server Call] Executing secure function: ${name}`, payload);
     const uid = CURRENT_USER_ID;
 
-    // --- SECURE BOOKING/UPDATE LOGIC ---
-    if (name === 'requestSession') {
-        const { role, person, desiredISO, mode, note } = payload;
-        
-        // 1. **Server-Side Conflict Check & Availability:**
-        // We simulate the server doing the check securely (client can't bypass).
-        const conflict = await checkConflictForPerson(person.id, desiredISO); 
-        let finalISO = desiredISO;
-        let suggestedSlot = null;
-        if (conflict) {
-            suggestedSlot = await findNextAvailable(person.id, desiredISO);
-            if (!suggestedSlot) throw new Error("Slot conflicts, and no alternative could be suggested.");
-            finalISO = suggestedSlot;
-        }
 
-        // 2. **Server-Side Session Creation:**
-        const sessionsCol = collection(db, 'sessions');
-        const sessionObj = {
-            role, personId: person.id || '', tutorId: role === 'tutor' ? person.id : '',
-            counsellorId: role === 'counsellor' ? person.id : '', studentId: uid,
-            personName: person.name || '', datetime: finalISO, mode: mode || 'online',
-            status: 'pending', notes: note || '', createdAt: new Date().toISOString()
-        };
-        const docRef = await addDoc(sessionsCol, sessionObj);
-        return { sessionId: docRef.id, finalISO }; // Return result to client
-    }
 
     // --- SECURE CANCELLATION/UPDATE LOGIC ---
     if (name === 'updateSessionStatus' || name === 'updateSessionDetails') {
