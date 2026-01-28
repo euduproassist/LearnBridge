@@ -313,6 +313,121 @@ async function handleStartTutorial(sessionId) {
   }
 }
 
+/* ---------- STUDENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
+async function loadStudentRequests(uid) {
+  const container = $('incomingList'); 
+  const emptyEl = $('incomingEmpty'); 
+  if (!container) return;
+  container.innerHTML = 'Loading incoming student requests...';
+  hide('incomingEmpty');
+
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    // Querying for 'pending' sessions (where preferredSlots bucket exists)
+    const q = query(sessionsCol, where('personId','==', uid), where('status','==','pending'), orderBy('createdAt','desc'));
+    const snap = await getDocs(q);
+    const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (requests.length === 0) {
+      container.innerHTML = '';
+      show('incomingEmpty');
+      return;
+    }
+    hide('incomingEmpty');
+    
+    container.innerHTML = '';
+    requests.forEach(req => {
+        const preferredSlots = req.preferredSlots || [];
+        
+        const card = document.createElement('div');
+        card.className = 'profile-card';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.gap = '10px';
+        
+        card.innerHTML = `
+            <div style="display:flex;gap:12px;align-items:center">
+                <img src="${escapeHtml(req.studentPhoto || 'assets/logos/uj.png')}" class="profile-photo" style="width:50px;height:50px"/>
+                <div style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <strong>${escapeHtml(req.studentName || 'Student')}</strong>
+                        <span class="badge" style="background:#006064">${escapeHtml(req.mode).toUpperCase()}</span>
+                    </div>
+                    <div class="muted">Topic: ${escapeHtml(req.notes || 'General Tutorial')}</div>
+                </div>
+            </div>
+
+            <div style="background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #eee;">
+                <p style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555;">CHOOSE ONE SLOT TO APPROVE:</p>
+                <div class="slot-buttons" style="display:flex; flex-direction:column; gap:6px;">
+                    ${preferredSlots.map((iso, idx) => `
+                        <button class="btn secondary approve-specific-slot" 
+                                data-iso="${iso}" 
+                                style="text-align:left; font-size:13px; border:1px solid #006064; background:#fff; color:#006064;">
+                            Option ${idx + 1}: ${new Date(iso).toLocaleString()}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;">
+                <button class="btn secondary reject-req" style="color:#d73a3a">Reject All</button>
+                <button class="btn secondary chat-req">Chat with Student</button>
+            </div>
+        `;
+        container.appendChild(card);
+        
+        // --- Approval Logic with Venue Prompt ---
+        card.querySelectorAll('.approve-specific-slot').forEach(btn => {
+          btn.onclick = async () => {
+            const selectedISO = btn.dataset.iso;
+            let venue = 'Online (Link in Chat)';
+
+            // If in-person, force a Venue entry
+            if (req.mode === 'in-person') {
+              const userVenue = prompt("Please enter the Venue for this in-person session (e.g., Library Level 2, Room 405):");
+              if (!userVenue) return; // Cancel if they don't provide a venue
+              venue = userVenue;
+            }
+
+            try {
+                const sRef = doc(db, 'sessions', req.id);
+                await updateDoc(sRef, { 
+                    status: 'approved', 
+                    datetime: selectedISO, // The chosen slot is locked in
+                    venue: venue,           // The tutor-defined location
+                    approvedAt: new Date().toISOString(),
+                    preferredSlots: null    // Clear the bucket
+                });
+                
+                alert(`Tutorial confirmed for ${new Date(selectedISO).toLocaleString()} at ${venue}`);
+                await loadStudentRequests(uid);
+                await loadPendingCounts(uid);
+            } catch (err) {
+                alert("Approval failed: " + err.message);
+            }
+          };
+        });
+        
+        // Reject Handler
+        card.querySelector('.reject-req').onclick = async () => {
+          if (!confirm('Reject this request and all suggested slots?')) return;
+          await updateDoc(doc(db,'sessions',req.id), { status: 'rejected', rejectedAt: new Date().toISOString() });
+          await loadStudentRequests(uid);
+          await loadPendingCounts(uid);
+        };
+
+        // Chat Handler
+        card.querySelector('.chat-req').onclick = () => {
+          openChatWindow({ id: req.studentId, name: req.studentName, photo: req.studentPhoto });
+        };
+    });
+
+  } catch (err) {
+    console.error('loadStudentRequests', err);
+    container.innerHTML = `<div class="empty">Failed to load incoming requests</div>`;
+  }
+}
 
 
 /* Update pending count UI (remains same) */
