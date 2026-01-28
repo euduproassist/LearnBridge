@@ -430,6 +430,35 @@ async function handleCompleteTutorial(sessionId) {
 }
 
 
+/* ---------- Action: Start Session ---------- */
+async function handleStartTutorial(sessionId) {
+  try {
+    const sRef = doc(db, 'sessions', sessionId);
+    const snap = await getDoc(sRef);
+    if (!snap.exists()) return alert('Appointment not found');
+    const s = snap.data();
+    
+    // 1. Update status to 'in-progress' and record the start time
+    await updateDoc(sRef, { 
+      status: 'in-progress', 
+      startedAt: new Date().toISOString() 
+    });
+
+    alert('Session started. Time tracking is now active.');
+    
+    // 2. Automatically open chat for online sessions
+    if (s.mode === 'online') {
+      openChatWindow({ id: s.studentId, name: s.studentName, photo: s.studentPhoto });
+    }
+
+    // 3. REFRESH: This must match your actual function name
+    await loadUpcomingAppointments(STATE.uid); 
+    
+  } catch (err) {
+    console.error('handleStartTutorial', err);
+    alert('Failed to start session: ' + err.message);
+  }
+}
 
 
 /* ---------- CLIENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
