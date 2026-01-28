@@ -454,6 +454,121 @@ async function loadSessionSummaries(uid) {
   }
 }
 
+/* ---------- Sessions List (Modified to show assigned Venue) ---------- */
+async function loadSessionsList(uid, filterRole = null) {
+  const container = $('sessionList');
+  if (!container) return;
+  container.innerHTML = 'Loading sessions...';
+  
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    let q;
+    // Query for approved sessions only
+    if (filterRole) {
+      q = query(sessionsCol, where('studentId', '==', uid), where('status', '==', 'approved'), where('role', '==', filterRole), orderBy('datetime', 'asc'));
+    } else {
+      q = query(sessionsCol, where('studentId', '==', uid), where('status', '==', 'approved'), orderBy('datetime', 'asc'));
+    }
+    
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Filter out past sessions
+    const upcomingSessions = sessions.filter(s => s.datetime && new Date(s.datetime) >= new Date());
+
+    if (upcomingSessions.length === 0) {
+      container.innerHTML = '<div class="empty">No upcoming sessions found.</div>';
+      return;
+    }
+
+    // Header updated: Added "Location / Venue"
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Staff Member</th>
+            <th>Date & Time</th>
+            <th>Location / Venue</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+
+    const tbody = container.querySelector('tbody');
+
+    upcomingSessions.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-id', s.id);
+      tr.setAttribute('data-date', s.datetime || '');
+      tr.setAttribute('data-mode', s.mode || 'online');
+
+      const dt = new Date(s.datetime).toLocaleString();
+      
+      tr.innerHTML = `
+        <td>
+          <strong>${escapeHtml(s.personName || 'Staff')}</strong><br>
+          <small class="muted">${escapeHtml(s.role || '')}</small>
+        </td>
+        <td>${dt}</td>
+        <td>
+          <span style="font-weight:600; color:#006064;">
+            ${s.mode === 'in-person' ? '📍 ' : '💻 '} 
+            ${escapeHtml(s.venue || s.mode)}
+          </span>
+        </td>
+        <td>
+          <button class="update-btn btn">Reschedule</button>
+          <button class="cancel-btn btn secondary">Cancel</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // --- Action Handlers ---
+
+    // Cancel Action
+    container.querySelectorAll('.cancel-btn').forEach(btn => {
+      btn.onclick = async (ev) => {
+        const id = ev.target.closest('tr').dataset.id;
+        if (!confirm('Are you sure you want to cancel this appointment?')) return;
+        try {
+          await callServerFunction('updateSessionStatus', { sessionId: id, status: 'cancelled' });
+          alert('Session cancelled.');
+          await loadSessionsList(uid, filterRole);
+          await loadSessionSummaries(uid);
+        } catch (err) { alert('Error: ' + err.message); }
+      };
+    });
+
+    // Update/Reschedule Action
+    container.querySelectorAll('.update-btn').forEach(btn => {
+      btn.onclick = async (ev) => {
+        const tr = ev.target.closest('tr');
+        const id = tr.dataset.id;
+        const newISO = prompt('Enter new date & time (YYYY-MM-DDTHH:MM):', tr.dataset.date.substring(0, 16));
+        if (!newISO) return;
+        
+        const newMode = prompt('Enter mode (online / in-person):', tr.dataset.mode);
+        if (!newMode) return;
+
+        try {
+          await callServerFunction('updateSessionDetails', { 
+            sessionId: id, 
+            datetime: new Date(newISO).toISOString(), 
+            mode: newMode 
+          });
+          alert('Request sent. Note: Changes may require staff re-approval.');
+          await loadSessionsList(uid, filterRole);
+        } catch (err) { alert('Update failed: ' + err.message); }
+      };
+    });
+
+  } catch (err) {
+    console.error('loadSessionsList', err);
+    container.innerHTML = `<div class="empty">Failed to load sessions</div>`;
+  }
+}
 
 
 /* ---------- Load ratings list (student's own ratings) ---------- */
