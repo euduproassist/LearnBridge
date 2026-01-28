@@ -315,7 +315,7 @@ async function loadUpcomingAppointments(uid) {
 
     // Event Handlers
     container.querySelectorAll('.start-session').forEach(btn => 
-      btn.onclick = (e) => handleStartSession(e.target.dataset.id)
+      btn.onclick = (e) => handleStartTutorial(e.target.dataset.id)
     );
     
     container.querySelectorAll('.complete-session').forEach(btn => 
@@ -453,7 +453,7 @@ async function handleStartTutorial(sessionId) {
     }
 
     // refresh the list to show the "Finish" button
-    await loadUpcomingTutorials(STATE.uid);
+    await loadUpcomingAppointments(STATE.uid);
   } catch (err) {
     console.error('handleStartTutorial', err);
     alert('Failed to start tutorial: ' + err.message);
