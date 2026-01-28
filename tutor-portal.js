@@ -241,6 +241,86 @@ async function loadDashboard(uid) {
 }
 
 
+async function loadUpcomingTutorials(uid) {
+  const container = $('sessionList');
+  if (!container) return;
+  container.innerHTML = 'Loading tutorials...';
+  
+  try {
+    const sessionsCol = collection(db, 'sessions');
+    // MODIFIED: Include both approved and in-progress
+    const q = query(sessionsCol, 
+      where('personId','==', uid), 
+      where('status','in', ['approved', 'in-progress']), 
+      orderBy('datetime','asc')
+    );
+    const snap = await getDocs(q);
+    const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (sessions.length === 0) {
+      container.innerHTML = '<div class="empty">No upcoming or active tutorials.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Time / Status</th>
+            <th>Student</th>
+            <th>Module</th>
+            <th>Venue / Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+      
+    const tbody = container.querySelector('tbody');
+
+    sessions.forEach(s => {
+      const dt = s.datetime ? new Date(s.datetime) : null;
+      if (!dt) return;
+
+      const isInProgress = s.status === 'in-progress';
+      const tr = elCreate('tr');
+      
+      // Visual feedback for active lessons
+      if(isInProgress) tr.style.borderLeft = "4px solid #2e7d32";
+
+      tr.innerHTML = `
+        <td>
+          ${dt.toLocaleString()}<br>
+          ${isInProgress ? '<span class="badge" style="background:#2e7d32">IN-PROGRESS</span>' : ''}
+        </td>
+        <td>${escapeHtml(s.studentName || 'Student')}</td>
+        <td>${escapeHtml(s.module || 'General')}</td>
+        <td>
+          <span style="font-weight:600; color:#006064;">
+            ${s.mode === 'in-person' ? '📍 ' : '💻 '} 
+            ${escapeHtml(s.venue || s.mode)}
+          </span>
+        </td>
+        <td>
+          ${isInProgress 
+            ? `<button class="btn complete-session" data-id="${s.id}" style="background:#2e7d32">Finish</button>`
+            : `<button class="btn secondary start-session" data-id="${s.id}">Start</button>`
+          }
+          <button class="btn secondary chat-session" data-sid="${s.studentId}" data-sname="${s.studentName}">Chat</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    container.querySelectorAll('.start-session').forEach(btn => btn.onclick = (e) => handleStartTutorial(e.target.dataset.id));
+    container.querySelectorAll('.complete-session').forEach(btn => btn.onclick = (e) => handleCompleteTutorial(e.target.dataset.id));
+    container.querySelectorAll('.chat-session').forEach(btn => btn.onclick = (e) => openChatWindow({ id: e.target.dataset.sid, name: e.target.dataset.sname }));
+  
+  } catch (err) {
+    console.error('loadUpcomingTutorials', err);
+    container.innerHTML = '<div class="empty">Failed to load tutorials.</div>';
+  }
+}
 
 
 /* ---------- Action: Start Tutorial (was handleStartSession) ---------- */
