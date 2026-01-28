@@ -420,7 +420,7 @@ async function handleCompleteTutorial(sessionId) {
     alert(`Tutorial marked complete.`);
     
     // CRITICAL: Refresh both views so the data moves from "Upcoming" to "History"
-    await loadUpcomingTutorials(STATE.uid); 
+    await loadUpcomingAppointments(STATE.uid); 
     await loadLessonHistory(STATE.uid); // Ensure history is fresh
     await loadDashboard(STATE.uid);      // Update stats on dashboard
   } catch (err) {
