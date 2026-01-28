@@ -419,31 +419,7 @@ async function handleCompleteTutorial(sessionId) {
 }
 
 
-/* ---------- Action: Start Tutorial (was handleStartSession) ---------- */
-async function handleStartTutorial(sessionId) {
-  try {
-    const sRef = doc(db, 'sessions', sessionId);
-    const snap = await getDoc(sRef);
-    if (!snap.exists()) return alert('Tutorial not found');
-    const s = snap.data();
-    
-    // check mode online and time window
-    if (s.mode !== 'online') {
-      return alert('This tutorial is not online. Start in-person tutorials at the scheduled location.');
-    }
-    // Set status to in-progress
-    await updateDoc(sRef, { status: 'in-progress', startedAt: new Date().toISOString() });
-    alert('Tutorial started. You can now chat / share materials.');
-    
-    // open chat window automatically
-    openChatWindow({ id: s.studentId, name: s.studentName, photo: s.studentPhoto });
-    // refresh
-    await loadUpcomingTutorials(STATE.uid);
-  } catch (err) {
-    console.error('handleStartTutorial', err);
-    alert('Failed to start tutorial: ' + err.message);
-  }
-}
+
 
 /* ---------- STUDENT REQUESTS (Modified for Multi-Slot & Venue Prompt) ---------- */
 async function loadStudentRequests(uid) {
