@@ -48,6 +48,8 @@ async function initPortal(uid) {
   $('menuRatings').onclick = () => { setActiveMenu('menuRatings'); showSection('ratingsSection'); loadTutorFeedback(uid); };
   $('menuReport').onclick = () => { setActiveMenu('menuReport'); showSection('reportSection'); };
   $('menuProfile').onclick = () => { setActiveMenu('menuProfile'); showSection('profileSection'); loadProfile(uid); };
+  $('menuHistory').onclick = () => { setActiveMenu('menuHistory'); showSection('historySection'); loadLessonHistory(uid); };
+
 
   // Quick actions on dashboard
   $('updateAvailabilityQuick').onclick = () => { setActiveMenu('menuAvailability'); showSection('availabilitySection'); openAvailabilityEditor(uid); };
