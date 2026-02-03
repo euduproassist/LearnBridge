@@ -23,7 +23,7 @@
 
     <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
     <p><a href="#" id="forgotLink" class="forgot">Forgot Password?</a></p>
-    <p class="footer">© 2025 University of Johannesburg | LearnBridge</p>
+    <p class="footer">© 2025 EMERIS | LearnBridge</p>
   </div>
 
   <script type="module">
@@ -92,7 +92,7 @@ document.getElementById('forgotLink').addEventListener('click', async (e) => {
   // 1. Check if the user actually typed something
   if (!email) return;
 
-  // 2. Simple regex to check for a basic email format (replaces the @uj.ac.za check)
+  // 2. Simple regex to check for a basic email format 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     alert('Please enter a valid email address.');
