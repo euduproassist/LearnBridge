@@ -191,20 +191,7 @@ async function loadAdminProfile(uid) {
       return;
     }
     
-    STATE.profile = profile || {};
-    
-    // Update main header info (Simplified DOM update)
-    const displayName = profile?.name || 'Admin User';
-    const headerElement = document.querySelector('.user-info');
-    if (headerElement) {
-        // Find the element displaying the name/role and update it
-        // Assuming there is an element with class 'admin-display-name' in your header HTML.
-        // If not, use the robust selector below:
-        const span = headerElement.querySelector('span');
-        if (span) {
-             span.textContent = `Admin: ${displayName} • `;
-        }
-    }
+
 
     // Populate profile section
     if (profile) {
