@@ -63,6 +63,11 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
     const data = docSnap.data();
 
+        // Update the last login time in the database
+    await updateDoc(docRef, {
+      lastLogin: serverTimestamp()
+    });
+
     // 1. Check if Firebase says email is verified
     if (!user.emailVerified) {
       await sendEmailVerification(user);
