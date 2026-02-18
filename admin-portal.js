@@ -436,7 +436,7 @@ function renderUserTable(users, container) {
       <td>${escapeHtml(u.role || 'student')}</td>
       <td>${escapeHtml(u.email || '—')}</td>
       <td><span class="tag ${statusTagClass}">${escapeHtml(u.status || 'active')}</span></td>
-      
+      <td>${u.lastLogin && u.lastLogin.seconds ? new Date(u.lastLogin.seconds * 1000).toLocaleDateString() : (u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never')}</td>
       <td>${u.totalSessions || 0}</td>
       <td>${u.avgRating || 'N/A'}</td>
       <td>
