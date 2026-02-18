@@ -191,6 +191,15 @@ async function loadAdminProfile(uid) {
       return;
     }
     
+    STATE.profile = profile || {};
+    
+    // Update the Header Name Display using the specific ID
+    const displayName = profile?.name || 'Admin User';
+    const nameSpan = $('adminDisplayName'); 
+    if (nameSpan) {
+        // This sets the name and adds the dot separator
+        nameSpan.textContent = `Admin: ${displayName} • `;
+    }
 
 
     // Populate profile section
