@@ -227,6 +227,14 @@ $('fileUploadBtn').disabled = true;
   await loadPendingRequests(uid); 
   await loadUserRatingsCount(uid);
 
+  // Set the "Find Tutor" button to open the dashboard
+  $('heroFindTutor').onclick = () => {
+    showSection('dashboardSection');
+  };
+
+  // Start with the Hero Section visible instead of the Dashboard
+  showSection('heroSection');
+  setActiveMenu('menuDashboard'); 
 
 }
 
