@@ -143,12 +143,12 @@
         /* Special Styling for specific buttons like the image */
         .btn-glow {
             background: linear-gradient(90deg, #004d8c, #003057);
-            box-shadow: 0 4px 15px rgba(0, 48, 87, 0.3);
+            box-shadow: 0 0 20px rgba(0, 123, 255, 0.6);
         }
 
         /* Bottom Navigation Bar */
         .bottom-nav {
-            background: rgba(255, 225, 225, 0.85);
+            background: rgba(255, 225, 225, 0.98);
             backdrop-filter: blur(10px);
             height: 8vh;
             display: flex;
@@ -170,14 +170,15 @@
             font-size: 0.7rem;
             text-decoration: none;
             padding: 8px 12px;
-            border-radius: 12px;
             transition: all 0.3s ease;
-            height: 90%;         
+            height: 100%;
+            border-top: 3px solid transparent;
         }
 
         .nav-item.active {
-            color: white;
-            background-color: var(--primary-blue);
+            color: var(--primary-blue);
+            background-color: rgba(0, 48, 87, 0.08);
+            border-top: 3px solid var(--primary-blue);
             font-weight: 700;
         }
 
