@@ -227,21 +227,15 @@ $('fileUploadBtn').disabled = true;
   await loadPendingRequests(uid); 
   await loadUserRatingsCount(uid);
 
-  // Set the "Find Tutor" button to open the dashboard
-  $('heroFindTutor').onclick = () => {
-    showSection('dashboardSection');
-  };
-
-  // Start with the Hero Section visible instead of the Dashboard
-  showSection('heroSection');
-  setActiveMenu('menuDashboard'); 
-
+  // show dashboard
+  setActiveMenu('menuDashboard');
+  showSection('dashboardSection');
 }
 
 
 /* ---------- Section toggling ---------- */
 function showSection(idToShow) {
-  const sections = ['heroSection','dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection', 'chatSection', 'ratingsSection'];
+  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection', 'chatSection', 'ratingsSection'];
   sections.forEach(s => {
     const el = $(s);
     if (!el) return;
@@ -267,7 +261,6 @@ async function loadProfile(uid) {
       $('summaryYear').textContent = profile.year || '—';
       $('summaryDepartment').textContent = profile.department || '—';
       $('summaryCourse').textContent = profile.course || '—';
-      $('heroUserName').textContent = profile.name || 'Student';
     } else {
       $('profileEmail').textContent = auth.currentUser ? auth.currentUser.email : '';
     }
@@ -1155,6 +1148,12 @@ async function sendMessage(myId) {
     alert('Failed to send message: ' + err.message);
   }
 }
+ 
+
+
+
+
+
  
 
 
