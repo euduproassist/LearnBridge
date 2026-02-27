@@ -39,4 +39,21 @@ document.getElementById('findTutorBtn').addEventListener('click', () => {
     window.location.href = 'student-portal.html';
 });
 
+// Logic to switch the "Blue Cover" between tabs
+const navItems = document.querySelectorAll('.nav-item');
+
+navItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+        // Prevent page jump
+        e.preventDefault(); 
+        
+        // Remove 'active' from all tabs
+        navItems.forEach(nav => nav.classList.remove('active'));
+        
+        // Add 'active' to the one we clicked
+        this.classList.add('active');
+    });
+});
+
+
 
