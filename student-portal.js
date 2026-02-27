@@ -227,15 +227,13 @@ $('fileUploadBtn').disabled = true;
   await loadPendingRequests(uid); 
   await loadUserRatingsCount(uid);
 
-  // show dashboard
-  setActiveMenu('menuDashboard');
-  showSection('dashboardSection');
+
 }
 
 
 /* ---------- Section toggling ---------- */
 function showSection(idToShow) {
-  const sections = ['dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection', 'chatSection', 'ratingsSection'];
+  const sections = ['heroSection','dashboardSection','searchSection','sessionsSection','profileSection','supportSection','notificationsSection','pendingSection', 'chatSection', 'ratingsSection'];
   sections.forEach(s => {
     const el = $(s);
     if (!el) return;
@@ -261,6 +259,7 @@ async function loadProfile(uid) {
       $('summaryYear').textContent = profile.year || '—';
       $('summaryDepartment').textContent = profile.department || '—';
       $('summaryCourse').textContent = profile.course || '—';
+      $('heroUserName').textContent = profile.name || 'Student';
     } else {
       $('profileEmail').textContent = auth.currentUser ? auth.currentUser.email : '';
     }
