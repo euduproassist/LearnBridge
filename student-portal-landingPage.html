@@ -229,6 +229,25 @@
                     <button class="hub-btn" onclick="alert('Module coming soon!')">View schedules</button>
                 </div>
 
+                    <div id="tutorExplorerView" style="display:none; flex:1; flex-direction:column; min-height:0;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button id="backToGridBtn" style="background:none; border:none; color:var(--primary-blue); font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+            ← Back to Hub
+        </button>
+        <h3 style="color:var(--primary-blue); margin:0;">Available Tutors</h3>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:15px;">
+        <input id="tutorSearchInput" type="text" placeholder="Search Module or Name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
+        <select id="tutorFilterDept" style="padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
+            <option value="">All Depts</option>
+            <option value="Science">Science</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Commerce">Commerce</option>
+            <option value="Humanities">Humanities</option>
+        </select>
+    </div>
+
                 <div class="hub-card">
                     <img src="https://png.pngtree.com/png-clipart/20230817/original/pngtree-helping-with-homework-black-glyph-icon-activity-people-icon-vector-picture-image_10944873.png" alt="tutor">
                     <h3>Student Tutor Hub</h3>
@@ -478,25 +497,6 @@
         </div>
     </div>
 </div>
-
-    <div id="tutorExplorerView" style="display:none; flex:1; flex-direction:column; min-height:0;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <button id="backToGridBtn" style="background:none; border:none; color:var(--primary-blue); font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
-            ← Back to Hub
-        </button>
-        <h3 style="color:var(--primary-blue); margin:0;">Available Tutors</h3>
-    </div>
-
-    <div style="display:flex; gap:8px; margin-bottom:15px;">
-        <input id="tutorSearchInput" type="text" placeholder="Search Module or Name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
-        <select id="tutorFilterDept" style="padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
-            <option value="">All Depts</option>
-            <option value="Science">Science</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Commerce">Commerce</option>
-            <option value="Humanities">Humanities</option>
-        </select>
-    </div>
 
     <div id="tutorListContainer" style="flex:1; overflow-y:auto; padding-bottom:80px;">
         </div>
