@@ -76,8 +76,22 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
+      /* ---------------- MESSAGING (Corrected Syntax) ---------------- */
+    function isThreadParticipant(threadID) {
+      // We use .contains() because threadID is a string like "UID1_UID2"
+      return request.auth != null && threadID.contains(request.auth.uid);
+    }
+    
+    match /threads/{threadID} {
+        allow read, update, create: if isThreadParticipant(threadID) || isAdmin();
+        allow delete: if isAdmin(); 
 
-
+        match /messages/{messageId} {
+          allow read: if isThreadParticipant(threadID) || isAdmin();
+          allow create: if isThreadParticipant(threadID) 
+                     && request.auth.uid == request.resource.data.senderId;
+        }
+    }
 
     /* ---------------- NOTIFICATIONS ---------------- */
     match /notifications/{notiId} {
