@@ -35,6 +35,9 @@ onAuthStateChanged(auth, async (user) => {
 
 // Navigation Logic
 document.getElementById('findTutorBtn').addEventListener('click', () => {
+document.querySelector('.grid-container').style.display = 'none';
+document.getElementById('tutorExplorerView').style.display = 'flex';
+loadTutors();
 
 });
 
@@ -840,6 +843,11 @@ document.getElementById('chatBackBtn').onclick = openChatList;
 document.getElementById('closeInboxBtn').onclick = () => {
     if(unsubChat) unsubChat();
     document.getElementById('inboxModal').style.display = 'none';
+};
+
+document.getElementById('backToGridBtn').onclick = () => {
+    document.getElementById('tutorExplorerView').style.display = 'none';
+    document.querySelector('.grid-container').style.display = 'grid';
 };
 
 
