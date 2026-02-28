@@ -417,6 +417,50 @@
     </div>
 </div>
 
+    <div id="inboxModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center;">
+    <div style="background:white; width:95%; max-width:500px; height:85vh; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+        
+        <div style="background:var(--primary-blue); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <button id="chatBackBtn" style="display:none; background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">←</button>
+            <h2 id="inboxHeaderTitle" style="font-size:1.1rem;">Messages</h2>
+            <button id="closeInboxBtn" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div id="inboxTabs" style="display:flex; border-bottom:1px solid #eee;">
+            <button id="viewChatsTab" style="flex:1; padding:12px; border:none; background:white; border-bottom:3px solid var(--primary-blue); font-weight:bold; cursor:pointer;">Chats</button>
+            <button id="viewUsersTab" style="flex:1; padding:12px; border:none; background:white; color:#888; cursor:pointer;">Find People</button>
+        </div>
+
+        <div style="padding:10px; background:#f9f9f9;">
+            <input id="inboxSearch" type="text" placeholder="Search..." style="width:100%; padding:8px 12px; border-radius:20px; border:1px solid #ddd; font-size:0.9rem;">
+        </div>
+
+        <div id="inboxScrollArea" style="flex:1; overflow-y:auto; padding:10px;">
+            </div>
+
+        <div id="inboxPagination" style="padding:10px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+            <button id="prevInboxPage" style="background:none; border:none; color:var(--primary-blue); font-weight:bold; cursor:pointer;">Previous</button>
+            <span id="inboxPageInfo">Page 1 of 1</span>
+            <button id="nextInboxPage" style="background:none; border:none; color:var(--primary-blue); font-weight:bold; cursor:pointer;">Next</button>
+        </div>
+
+        <div id="chatInputArea" style="display:none; padding:10px; border-top:1px solid #eee; background:white;">
+            <div id="quotaWarning" style="font-size:0.7rem; color:red; margin-bottom:5px; display:none;">Daily quota reached (10/10)</div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <label style="cursor:pointer;">
+                    <img src="https://img.icons8.com/material-rounded/24/003057/plus.png" style="width:20px;">
+                    <input type="file" id="chatFile" style="display:none;">
+                </label>
+                <input id="chatMsgInput" type="text" placeholder="Type a message..." style="flex:1; padding:10px; border-radius:20px; border:1px solid #ddd; outline:none;">
+                <button id="sendChatBtn" style="background:var(--primary-blue); color:white; border:none; width:40px; height:40px; border-radius:50%; cursor:pointer;">➤</button>
+            </div>
+            <div style="text-align:center; margin-top:5px;">
+                <button id="voiceNoteBtn" style="background:none; border:none; color:#888; font-size:0.75rem; cursor:pointer;">Hold to Record VN (Max 2min)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
   
     <script type="module" src="student-portal-landingPage.js"></script>
 </body>
