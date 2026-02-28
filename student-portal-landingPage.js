@@ -117,36 +117,7 @@ document.getElementById('sendTicketBtn').onclick = async () => {
     }
 };
 
-// Load Ticket History (The "Suggested Add-on")
-async function loadTicketHistory() {
-    const historyDiv = document.getElementById('ticketHistory');
-    const user = auth.currentUser;
-    if (!user) return;
 
-    try {
-        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
-        const snap = await getDocs(q);
-        
-        if (snap.empty) {
-            historyDiv.innerHTML = "No tickets yet.";
-            return;
-        }
-
-        historyDiv.innerHTML = snap.docs.map(doc => {
-            const t = doc.data();
-            const color = t.status === 'open' ? '#FF7A00' : '#28a745';
-            return `
-                <div style="border-left:3px solid ${color}; padding:5px 10px; margin-bottom:8px; background:#f9f9f9;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <b>${t.title}</b>
-                        <span style="color:${color}">${t.status}</span>
-                    </div>
-                </div>`;
-        }).join('');
-    } catch (e) {
-        historyDiv.innerHTML = "Log in to see history.";
-    }
-}
 
 // Open Profile Modal
 document.querySelectorAll('.nav-item').forEach(item => {
