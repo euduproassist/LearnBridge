@@ -121,6 +121,8 @@ match /supportTickets/{ticketId} {
     match /{document=**} {
       allow read, write: if isAdmin();
     }
+  }
+}
 
 
 
