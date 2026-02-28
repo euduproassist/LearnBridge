@@ -850,5 +850,8 @@ document.getElementById('backToGridBtn').onclick = () => {
     document.querySelector('.grid-container').style.display = 'grid';
 };
 
+document.getElementById('closeRatingsBtn').onclick = () => document.getElementById('ratingsModal').style.display = 'none';
+document.getElementById('closeBookingsBtn').onclick = () => document.getElementById('bookingsModal').style.display = 'none';
+document.getElementById('closeAlertsBtn').onclick = () => document.getElementById('alertsModal').style.display = 'none';
 
 
