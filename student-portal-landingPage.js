@@ -126,14 +126,14 @@ async function loadTicketHistory() {
 
         historyDiv.innerHTML = snap.docs.map(doc => {
             const t = doc.data();
-            const color = t.status === 'open' ? '#FF7A00' : '#28a745';
+            const color = t.status === 'open' ? '#003057' : '#003057';
             return `
                 <div style="border-left:3px solid ${color}; padding:8px; margin-bottom:8px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <b style="display:block;">${t.title}</b>
                         <small style="color:${color}">${t.status.toUpperCase()}</small>
                     </div>
-                    <button onclick="deleteTicket('${doc.id}')" style="background:none; border:none; color:#d73a3a; cursor:pointer; font-size:1.2rem; font-weight:bold; padding:0 5px;">&times;</button>
+                    <button onclick="deleteTicket('${doc.id}')" style="background:none; border:none; color:#003057; cursor:pointer; font-size:1.2rem; font-weight:bold; padding:0 5px;">&times;</button>
                 </div>`;
         }).join('');
     } catch (e) {
@@ -275,7 +275,7 @@ async function loadUserRatings() {
                             <span style="display:block; font-weight:700; color:var(--primary-blue); font-size:0.9rem;">${r.personName}</span>
                             <small style="color:#888; text-transform:capitalize;">${r.role}</small>
                         </div>
-                        <span style="color:#FF7A00; font-size:0.9rem;">${stars}</span>
+                        <span style="color:#003057; font-size:0.9rem;">${stars}</span>
                     </div>
                     <p style="color:#555; font-size:0.8rem; line-height:1.4; font-style:italic;">"${r.comment || 'No comment provided.'}"</p>
                     <div style="text-align:right; margin-top:5px;">
@@ -311,7 +311,7 @@ function switchBookingTab(tab) {
 
     if (tab === 'upcoming') {
         upBtn.style.background = '#003057'; upBtn.style.color = 'white';
-        penBtn.style.background = 'transparent'; penBtn.style.color = '#666';
+        penBtn.style.background = 'transparent'; penBtn.style.color = '#000';
         loadUpcomingSessions();
     } else {
         penBtn.style.background = '#003057'; penBtn.style.color = 'white';
@@ -358,7 +358,7 @@ async function loadUpcomingSessions() {
                     <div style="margin-top:4px;">📍 Location: <b>${s.venue || s.mode || 'TBA'}</b></div>
                 </div>
                 <div style="margin-top:12px; display:flex; gap:8px;">
-                    <button onclick="cancelBooking('${s.id}')" style="flex:1; background:#fff1f1; color:#d73a3a; border:1px solid #ffcdd2; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; font-weight:600;">Cancel</button>
+                    <button onclick="cancelBooking('${s.id}')" style="flex:1; background:#fff; color:#000; border:1px solid #003057; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; font-weight:600;">Cancel</button>
                 </div>
             </div>
         `).join('');
@@ -394,7 +394,7 @@ async function loadPendingRequests() {
                     <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
                     <p style="font-size:0.75rem; color:#000; margin-bottom:8px;">Waiting for tutor to pick a slot...</p>
                     <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
-                        <span style="font-size:0.7rem; font-weight:700; color:#555; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
+                        <span style="font-size:0.7rem; font-weight:700; color:#000; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
                         ${slots.map(t => `<div style="font-size:0.75rem; color:#000;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
                     </div>
                     <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:var(--primary-blue); border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:white;">Withdraw Request</button>
