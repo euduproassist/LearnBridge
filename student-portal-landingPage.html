@@ -393,7 +393,31 @@
     </div>
 </div>
 
-    
+    <div id="alertsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:500px; border-radius:24px; padding:25px; box-shadow:0 15px 35px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #003057; padding-bottom: 12px; margin-bottom: 15px;">
+            <h2 style="color:#003057; font-size:1.4rem;">Notifications</h2>
+            <button id="closeAlertsBtn" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:#999;">&times;</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; justify-content: space-between;">
+            <button id="markAllReadBtn" style="background:none; border:1px solid #003057; color:#003057; padding:5px 10px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Mark all read</button>
+            <button id="deleteAllAlertsBtn" style="background:none; border:1px solid #cc0000; color:#cc0000; padding:5px 10px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Clear All</button>
+        </div>
+
+        <div id="alertsListContainer" style="overflow-y:auto; flex:1; padding-right:5px;">
+            </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+            <button id="prevPageBtn" style="background:#f0f0f0; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">&larr; Prev</button>
+            <span id="pageInfo" style="font-size:0.8rem; color:#666;">Page 1 of 1</span>
+            <button id="nextPageBtn" style="background:#f0f0f0; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Next &rarr;</button>
+        </div>
+    </div>
+</div>
+
+  
     <script type="module" src="student-portal-landingPage.js"></script>
 </body>
 </html>
