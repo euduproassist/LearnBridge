@@ -70,19 +70,6 @@ navItems.forEach(item => {
     });
 });
 
-
-// --- Support Ticket Logic ---
-
-// Open Modal when Support tab is clicked
-document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.textContent.includes('Support')) {
-        item.addEventListener('click', () => {
-            document.getElementById('supportModal').style.display = 'flex';
-            loadTicketHistory();
-        });
-    }
-});
-
 // Close Modal
 document.getElementById('closeSupportBtn').onclick = () => {
     document.getElementById('supportModal').style.display = 'none';
@@ -147,17 +134,6 @@ async function loadTicketHistory() {
         historyDiv.innerHTML = "Error loading history.";
     }
 }
-
-
-// Open Profile Modal
-document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.textContent.includes('Profile')) {
-        item.addEventListener('click', () => {
-            document.getElementById('profileModal').style.display = 'flex';
-            loadProfileData();
-        });
-    }
-});
 
 // --- Profile Logic ---
 
