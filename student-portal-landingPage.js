@@ -315,7 +315,7 @@ function switchBookingTab(tab) {
         loadUpcomingSessions();
     } else {
         penBtn.style.background = '#003057'; penBtn.style.color = 'white';
-        upBtn.style.background = 'transparent'; upBtn.style.color = '#666';
+        upBtn.style.background = 'transparent'; upBtn.style.color = '#000';
         loadPendingRequests();
     }
 }
@@ -323,7 +323,7 @@ function switchBookingTab(tab) {
 async function loadUpcomingSessions() {
     const container = document.getElementById('bookingsListContainer');
     const user = auth.currentUser;
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Loading confirmed sessions...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#000;">Loading confirmed sessions...</div>`;
 
     try {
         // Query for APPROVED sessions only
@@ -345,13 +345,13 @@ async function loadUpcomingSessions() {
         }
 
         container.innerHTML = sessions.map(s => `
-            <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid #28a745; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+            <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                 <div style="display:flex; justify-content:space-between; align-items:start;">
                     <div>
                         <b style="color:var(--primary-blue); display:block; font-size:1rem;">${s.personName}</b>
-                        <small style="color:#777; text-transform:uppercase; letter-spacing:0.5px;">${s.role}</small>
+                        <small style="color:#000; text-transform:uppercase; letter-spacing:0.5px;">${s.role}</small>
                     </div>
-                    <span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:6px; font-size:0.7rem; font-weight:700;">CONFIRMED</span>
+                    <span style="background:var(--primary-blue); color:white; padding:4px 8px; border-radius:6px; font-size:0.7rem; font-weight:700;">CONFIRMED</span>
                 </div>
                 <div style="margin-top:10px; font-size:0.85rem; color:#444;">
                     <div>📅 ${new Date(s.datetime).toLocaleDateString()} at ${new Date(s.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
@@ -371,7 +371,7 @@ async function loadUpcomingSessions() {
 async function loadPendingRequests() {
     const container = document.getElementById('bookingsListContainer');
     const user = auth.currentUser;
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Checking request status...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#000;">Checking request status...</div>`;
 
     try {
         const q = query(collection(db, 'sessions'), 
@@ -390,14 +390,14 @@ async function loadPendingRequests() {
             const s = doc.data();
             const slots = s.preferredSlots || [];
             return `
-                <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--accent-orange); border-radius:12px; padding:15px; margin-bottom:12px;">
+                <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
                     <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
-                    <p style="font-size:0.75rem; color:#888; margin-bottom:8px;">Waiting for tutor to pick a slot...</p>
+                    <p style="font-size:0.75rem; color:#000; margin-bottom:8px;">Waiting for tutor to pick a slot...</p>
                     <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
                         <span style="font-size:0.7rem; font-weight:700; color:#555; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
-                        ${slots.map(t => `<div style="font-size:0.75rem; color:#666;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
+                        ${slots.map(t => `<div style="font-size:0.75rem; color:#000;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
                     </div>
-                    <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:#eee; border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:#555;">Withdraw Request</button>
+                    <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:var(--primary-blue); border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:white;">Withdraw Request</button>
                 </div>
             `;
         }).join('');
