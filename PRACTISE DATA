@@ -188,6 +188,16 @@ service cloud.firestore {
       // UPDATE/DELETE: Disallow entirely (Messages should be immutable)
       allow update, delete: if false;
     }
+
+    /* ---------------- NOTIFICATIONS ---------------- */
+    match /notifications/{notiId} {
+      // Students can only read and update (mark as read) their own notifications
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Usually, only the system or admin creates these, but for testing we allow authenticated users
+      allow create: if request.auth != null;
+    }
+
     
 /* ---------------- SUPPORT TICKETS ---------------- */
 match /supportTickets/{ticketId} {
