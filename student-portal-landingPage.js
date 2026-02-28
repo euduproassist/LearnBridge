@@ -147,6 +147,121 @@ async function loadTicketHistory() {
     }
 }
 
+let allTutors = [];
+let filteredTutors = [];
+let tutorPage = 1;
+const tutorLimit = 5;
+
+
+async function loadTutors() {
+    const container = document.getElementById('tutorListContainer');
+    container.innerHTML = "<p style='text-align:center;'>Searching for tutors...</p>";
+
+    try {
+        const q = query(collection(db, 'tutors'), orderBy('name'));
+        const snap = await getDocs(q);
+        allTutors = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        applyTutorFilters();
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = "Error loading tutors.";
+    }
+}
+
+function applyTutorFilters() {
+    const searchTerm = document.getElementById('tutorSearchInput').value.toLowerCase();
+    const deptFilter = document.getElementById('tutorFilterDept').value;
+
+    filteredTutors = allTutors.filter(t => {
+        const matchesSearch = t.name.toLowerCase().includes(searchTerm) || 
+                             (t.modules && t.modules.some(m => m.toLowerCase().includes(searchTerm)));
+        const matchesDept = deptFilter === "" || t.department === deptFilter;
+        return matchesSearch && matchesDept;
+    });
+
+    renderTutorList();
+}
+
+function renderTutorList() {
+    const container = document.getElementById('tutorListContainer');
+    const start = (tutorPage - 1) * tutorLimit;
+    const end = start + tutorLimit;
+    const paginated = filteredTutors.slice(start, end);
+
+    document.getElementById('tutorPageInfo').textContent = `Page ${tutorPage} of ${Math.ceil(filteredTutors.length / tutorLimit) || 1}`;
+
+    container.innerHTML = paginated.map(t => `
+        <div style="background:white; border-radius:15px; padding:15px; margin-bottom:12px; border:1px solid #e1e8f5; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <img src="${t.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:50px; height:50px; border-radius:50%; border:2px solid var(--primary-blue);">
+                <div style="flex:1;">
+                    <b style="color:var(--primary-blue); font-size:1rem;">${t.name}</b>
+                    <small style="display:block; color:#666;">${t.modules ? t.modules.join(', ') : 'General'}</small>
+                </div>
+                <div style="text-align:right;">
+                    <span style="color:#003057; font-weight:700;">★ ${t.rating || '5.0'}</span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button onclick="initiateBooking('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Book</button>
+                <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; background:white; color:#003057; border:1px solid #003057; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Chat</button>
+                <button onclick="initiateRating('${t.id}', '${t.name}')" style="flex:1; background:#f0f0f0; border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Rate</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Search Listeners
+document.getElementById('tutorSearchInput').oninput = () => { tutorPage = 1; applyTutorFilters(); };
+document.getElementById('tutorFilterDept').onchange = () => { tutorPage = 1; applyTutorFilters(); };
+
+
+window.initiateBooking = async (tutorId, tutorName) => {
+    const topic = prompt(`What topic do you need help with for ${tutorName}?`);
+    if (!topic) return;
+    
+    const slots = prompt("Enter 2 preferred dates/times (e.g., Monday 2pm, Tuesday 10am):");
+    if (!slots) return;
+
+    const mode = confirm("Press OK for Online, CANCEL for In-Person") ? "Online" : "In-Person";
+
+    try {
+        await addDoc(collection(db, 'sessions'), {
+            studentId: auth.currentUser.uid,
+            tutorId: tutorId,
+            personName: tutorName,
+            role: 'tutor',
+            topic: topic,
+            preferredSlots: [slots],
+            mode: mode,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+        alert("Booking request sent! Check 'My Bookings' for updates.");
+    } catch (e) { alert("Booking failed."); }
+};
+
+window.initiateRating = async (tutorId, tutorName) => {
+    const stars = prompt("Rate 1 to 5 stars:");
+    if (!stars || stars < 1 || stars > 5) return alert("Invalid rating.");
+    
+    const comment = prompt("Leave a brief comment:");
+    
+    try {
+        await addDoc(collection(db, 'ratings'), {
+            studentId: auth.currentUser.uid,
+            tutorId: tutorId,
+            personName: tutorName,
+            role: 'tutor',
+            stars: parseInt(stars),
+            comment: comment,
+            createdAt: new Date().toISOString()
+        });
+        alert("Thank you for your feedback!");
+    } catch (e) { alert("Rating failed."); }
+};
+
+
 // --- Profile Logic ---
 
 const avatars = [
