@@ -155,23 +155,7 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
-      /* ---------------- MESSAGING (Renamed to match your JS) ---------------- */
-    function isThreadParticipant(threadID) {
-      // Updated to single underscore '_' to match your JS .join('_')
-      let uids = threadID.split('_'); 
-      return request.auth != null && (request.auth.uid in uids);
-    }
-    
-    match /threads/{threadID} {
-        allow read, update, create: if isThreadParticipant(threadID) || isAdmin();
-        allow delete: if isAdmin(); 
 
-        match /messages/{messageId} {
-          allow read: if isThreadParticipant(threadID) || isAdmin();
-          allow create: if isThreadParticipant(threadID) 
-                     && request.auth.uid == request.resource.data.senderId;
-        }
-    }
 
 
     /* ---------------- NOTIFICATIONS ---------------- */
