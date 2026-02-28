@@ -238,4 +238,14 @@ document.getElementById('closeProfileBtn').onclick = () => {
     document.getElementById('profileModal').style.display = 'none';
 };
 
+window.deleteTicket = async (ticketId) => {
+    if (confirm("Delete this ticket record?")) {
+        try {
+            await deleteDoc(doc(db, 'supportTickets', ticketId));
+            loadTicketHistory(); // Refresh the list
+        } catch (err) {
+            alert("Delete failed.");
+        }
+    }
+};
 
