@@ -461,6 +461,36 @@
     </div>
 </div>
 
+    <div id="tutorExplorerView" style="display:none; flex:1; flex-direction:column; min-height:0;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <button id="backToGridBtn" style="background:none; border:none; color:var(--primary-blue); font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+            ← Back to Hub
+        </button>
+        <h3 style="color:var(--primary-blue); margin:0;">Available Tutors</h3>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:15px;">
+        <input id="tutorSearchInput" type="text" placeholder="Search Module or Name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
+        <select id="tutorFilterDept" style="padding:10px; border-radius:10px; border:1px solid #ddd; font-size:0.85rem;">
+            <option value="">All Depts</option>
+            <option value="Science">Science</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Commerce">Commerce</option>
+            <option value="Humanities">Humanities</option>
+        </select>
+    </div>
+
+    <div id="tutorListContainer" style="flex:1; overflow-y:auto; padding-bottom:80px;">
+        </div>
+
+    <div id="tutorPagination" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-top:1px solid #eee; background:#F2F5F8;">
+        <button id="prevTutorPage" style="background:#ddd; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Prev</button>
+        <span id="tutorPageInfo" style="font-size:0.8rem; color:#666;">Page 1</span>
+        <button id="nextTutorPage" style="background:#ddd; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Next</button>
+    </div>
+</div>
+
+
   
     <script type="module" src="student-portal-landingPage.js"></script>
 </body>
