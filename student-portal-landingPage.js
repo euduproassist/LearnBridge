@@ -117,6 +117,36 @@ document.getElementById('sendTicketBtn').onclick = async () => {
     }
 };
 
+async function loadTicketHistory() {
+    const historyDiv = document.getElementById('ticketHistory');
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            historyDiv.innerHTML = "No tickets yet.";
+            return;
+        }
+
+        historyDiv.innerHTML = snap.docs.map(doc => {
+            const t = doc.data();
+            const color = t.status === 'open' ? '#FF7A00' : '#28a745';
+            return `
+                <div style="border-left:3px solid ${color}; padding:8px; margin-bottom:8px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b style="display:block;">${t.title}</b>
+                        <small style="color:${color}">${t.status.toUpperCase()}</small>
+                    </div>
+                    <button onclick="deleteTicket('${doc.id}')" style="background:none; border:none; color:#d73a3a; cursor:pointer; font-size:1.2rem; font-weight:bold; padding:0 5px;">&times;</button>
+                </div>`;
+        }).join('');
+    } catch (e) {
+        historyDiv.innerHTML = "Error loading history.";
+    }
+}
 
 
 // Open Profile Modal
