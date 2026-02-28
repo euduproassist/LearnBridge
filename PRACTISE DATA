@@ -106,6 +106,20 @@ service cloud.firestore {
       allow update, delete: if false;
     }
     
+/* ---------------- SUPPORT TICKETS ---------------- */
+match /supportTickets/{ticketId} {
+  // CREATE: Any logged-in user can create a ticket
+  allow create: if request.auth != null;
+  
+  // READ: Admin can see all; Students can see only their own
+  allow read: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.studentId);
+  
+  // UPDATE: Admin only (for changing status to 'resolved')
+  allow update: if isAdmin();
+
+  // DELETE: Admin can delete, OR the student who created it can delete it
+  allow delete: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.studentId);
+}
 
     
     /* ---------------- ADMIN OVERRIDE (Redundant but harmless due to other rules) ---------------- */
