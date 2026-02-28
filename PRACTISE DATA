@@ -157,6 +157,19 @@ service cloud.firestore {
 
 
 
+    /* ---------------- MESSAGING (FIXED) ---------------- */
+    match /threads/{threadID} {
+      // FIX: Use .contains() for string IDs like "UID1_UID2"
+      allow read, update, create: if request.auth != null && (threadID.contains(request.auth.uid) || isAdmin());
+      allow delete: if isAdmin(); 
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null && (threadID.contains(request.auth.uid) || isAdmin());
+        allow create: if request.auth != null && threadID.contains(request.auth.uid) 
+                     && request.auth.uid == request.resource.data.senderId;
+      }
+    }
+
 
     /* ---------------- NOTIFICATIONS ---------------- */
     match /notifications/{notiId} {
