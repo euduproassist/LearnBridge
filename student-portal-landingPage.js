@@ -39,6 +39,36 @@ document.getElementById('findTutorBtn').addEventListener('click', () => {
     window.location.href = 'student-portal.html';
 });
 
+// --- Integrated Navigation Logic ---
+const navItems = document.querySelectorAll('.nav-item');
+
+navItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault(); 
+        const tabText = this.textContent.trim();
+        
+        // 1. UI Reset (Icons & Lines)
+        navItems.forEach(nav => {
+            nav.classList.remove('active');
+            const icon = nav.querySelector('img');
+            if (icon) icon.src = icon.src.replace('003057', '888888');
+        });
+
+        // 2. UI Activate
+        this.classList.add('active');
+        const activeIcon = this.querySelector('img');
+        if (activeIcon) activeIcon.src = activeIcon.src.replace('888888', '003057');
+
+        // 3. Trigger Modals based on text
+        if (tabText.includes('Support-tickets')) {
+            document.getElementById('supportModal').style.display = 'flex';
+            loadTicketHistory();
+        } else if (tabText.includes('Profile')) {
+            document.getElementById('profileModal').style.display = 'flex';
+            loadProfileData();
+        }
+    });
+});
 
 
 // --- Support Ticket Logic ---
