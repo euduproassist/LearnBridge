@@ -68,7 +68,7 @@ navItems.forEach(item => {
             loadUserRatings();
         } else if (tabText.includes('Alerts')) {
             document.getElementById('alertsModal').style.display = 'flex';
-            loadNotifications();
+            renderNotifications();
         } else if (tabText.includes('My Bookings')) {
             document.getElementById('bookingsModal').style.display = 'flex';
             switchBookingTab('upcoming'); // Initial load
