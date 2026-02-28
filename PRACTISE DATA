@@ -72,43 +72,7 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
 
-    /* ---------------- CHATS (STANDARDIZED NESTED STRUCTURE) ---------------- */
 
-    function isNestedChatParticipant(chatID) {
-      // 1. Ensure the user is authenticated.
-      // 2. Ensures the current user's UID is one of the two IDs that form the chatID (a__b).
-      let uids = chatID.split('__');
-      return request.auth != null
-             && uids.size() == 2
-             && (uids[0] == request.auth.uid || uids[1] == request.auth.uid);
-    }
-    
-    // 1. CHAT DOCUMENT: /chats/{chatID}
-    match /chats/{chatID} {
-        // READ/UPDATE: Participants or Admin
-        allow read, update: if isNestedChatParticipant(chatID) || isAdmin();
-        
-        // CREATE: Participants (when first message is sent)
-        allow create: if isNestedChatParticipant(chatID);
-        
-        // DELETE: Only Admin
-        allow delete: if isAdmin(); 
-    }
-
-    // 2. NESTED chat messages: /chats/{chatID}/messages/{messageId}
-    match /chats/{chatID}/messages/{messageId} {
-
-      // READ: Participants or Admin
-      allow read: if isNestedChatParticipant(chatID) || isAdmin();
-
-      // CREATE: Participant, AND senderId must match their authenticated UID
-      allow create: if isNestedChatParticipant(chatID)
-                 && request.auth.uid == request.resource.data.senderId
-                 && request.resource.data.keys().hasAll(['senderId', 'text', 'timestamp']);
-                 
-      // UPDATE/DELETE: Disallow entirely (Messages should be immutable)
-      allow update, delete: if false;
-    }
 
     /* ---------------- NOTIFICATIONS ---------------- */
     match /notifications/{notiId} {
