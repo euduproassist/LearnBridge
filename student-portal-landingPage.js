@@ -167,6 +167,9 @@ async function loadProfileData() {
     const user = auth.currentUser;
     if (!user) return;
 
+   // Reset fields to show fresh data is coming
+    document.getElementById('prof_name').placeholder = "Loading...";
+
     // Build Avatar Picker
     const picker = document.getElementById('avatarPicker');
     picker.innerHTML = avatars.map(url => `
