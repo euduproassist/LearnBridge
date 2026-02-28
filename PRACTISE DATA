@@ -1,3 +1,129 @@
+Rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------------- GLOBAL HELPER FUNCTIONS ---------------- */
+    function isAdmin() {
+     return request.auth != null && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+   }
+    
+    // Check if the given UID belongs to a valid staff member (Tutor or Counsellor)
+    function isStaff(staffId) {
+        return get(/databases/$(database)/documents/users/$(staffId)).data.role in ['tutor', 'counsellor'];
+    }
+
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      allow read: if request.auth != null; 
+      
+      // 1. CREATE: Allow new users to save their profile if they aren't trying to be Admin
+      allow create: if request.auth != null 
+                  && request.auth.uid == userId 
+                  && request.resource.data.role != 'admin';
+
+      // 2. UPDATE: Allow users to change their info, but block them from changing their role
+      allow update: if request.auth != null && (
+          (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+          || isAdmin()
+      );
+
+      allow delete: if isAdmin();
+
+      // FIX: Add this for the message quota logic in your JS
+      match /quotas/{quotaId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+
+    /* ---------------- SESSIONS ---------------- */
+    match /sessions/{sessionId} {
+      function isSessionParticipant() {
+        return request.auth.uid == resource.data.studentId || 
+               request.auth.uid == resource.data.personId; 
+      }
+
+      // 1. READ: Only participants and Admin can read specific sessions.
+      allow read: if request.auth != null && (isSessionParticipant() || isAdmin()); 
+
+      // 2. CREATE: Must be authenticated, set own studentId, AND the personId must be valid staff.
+      allow create: if request.auth != null
+                  && request.resource.data.studentId == request.auth.uid
+                  && isStaff(request.resource.data.personId); 
+
+      // 3. UPDATE/DELETE: Only participants and Admin (needs further refinement in a real app, 
+      //    but acceptable for this level of portal simulation).
+      allow update, delete: if request.auth != null && (isSessionParticipant() || isAdmin());
+    }
+
+    /* ---------------- RATINGS ---------------- */
+    match /ratings/{ratingId} {
+      // CREATE: Must be authenticated and set their own studentId
+      allow create: if request.auth != null
+                 && request.resource.data.studentId == request.auth.uid; 
+      
+      // READ: Admin, Student (their own), or Staff (ratings directed at them)
+      allow read: if request.auth != null
+                && (isAdmin()
+                 || resource.data.studentId == request.auth.uid
+                 || resource.data.personId == request.auth.uid); 
+                 
+      // UPDATE/DELETE: Admin only
+      allow update, delete: if request.auth != null && isAdmin();
+    }
+
+      /* ---------------- MESSAGING (Renamed to match your JS) ---------------- */
+    function isThreadParticipant(threadID) {
+      // Updated to single underscore '_' to match your JS .join('_')
+      let uids = threadID.split('_'); 
+      return request.auth != null && (request.auth.uid in uids);
+    }
+    
+    match /threads/{threadID} {
+        allow read, update, create: if isThreadParticipant(threadID) || isAdmin();
+        allow delete: if isAdmin(); 
+
+        match /messages/{messageId} {
+          allow read: if isThreadParticipant(threadID) || isAdmin();
+          allow create: if isThreadParticipant(threadID) 
+                     && request.auth.uid == request.resource.data.senderId;
+        }
+    }
+
+
+    /* ---------------- NOTIFICATIONS ---------------- */
+    match /notifications/{notiId} {
+      // Students can only read and update (mark as read) their own notifications
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Usually, only the system or admin creates these, but for testing we allow authenticated users
+      allow create: if request.auth != null;
+    }
+
+    
+/* ---------------- SUPPORT TICKETS ---------------- */
+match /supportTickets/{ticketId} {
+  // CREATE: Any logged-in user can create a ticket
+  allow create: if request.auth != null;
+  
+  // READ: Admin can see all; Students can see only their own
+  allow read: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.studentId);
+  
+  // UPDATE: Admin only (for changing status to 'resolved')
+  allow update: if isAdmin();
+
+  // DELETE: Admin can delete, OR the student who created it can delete it
+  allow delete: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.studentId);
+}
+
+    
+    /* ---------------- ADMIN OVERRIDE (Redundant but harmless due to other rules) ---------------- */
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
 
 
 
