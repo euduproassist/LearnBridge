@@ -229,3 +229,62 @@ window.deleteTicket = async (ticketId) => {
     }
 };
 
+// Close Ratings Modal
+document.getElementById('closeRatingsBtn').onclick = () => {
+    document.getElementById('ratingsModal').style.display = 'none';
+};
+
+// Search & Filter listeners
+document.getElementById('rate_search_input').oninput = () => loadUserRatings();
+document.getElementById('rate_filter_role').onchange = () => loadUserRatings();
+document.getElementById('refreshRatingsBtn').onclick = () => loadUserRatings();
+
+async function loadUserRatings() {
+    const container = document.getElementById('ratingsListContainer');
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const searchText = document.getElementById('rate_search_input').value.toLowerCase();
+    const roleFilter = document.getElementById('rate_filter_role').value;
+
+    try {
+        // Query the ratings where studentId matches current user
+        const q = query(collection(db, 'ratings'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        
+        let ratings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Apply Client-Side Filtering (as suggested in evaluation)
+        if (roleFilter) ratings = ratings.filter(r => r.role === roleFilter);
+        if (searchText) ratings = ratings.filter(r => r.personName.toLowerCase().includes(searchText));
+
+        if (ratings.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#999; margin-top:20px;">No ratings found.</div>`;
+            return;
+        }
+
+        container.innerHTML = ratings.map(r => {
+            const stars = "★".repeat(r.stars) + "☆".repeat(5 - r.stars);
+            return `
+                <div style="background:#f8faff; border:1px solid #e1e8f5; border-radius:12px; padding:12px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:5px;">
+                        <div>
+                            <span style="display:block; font-weight:700; color:var(--primary-blue); font-size:0.9rem;">${r.personName}</span>
+                            <small style="color:#888; text-transform:capitalize;">${r.role}</small>
+                        </div>
+                        <span style="color:#FF7A00; font-size:0.9rem;">${stars}</span>
+                    </div>
+                    <p style="color:#555; font-size:0.8rem; line-height:1.4; font-style:italic;">"${r.comment || 'No comment provided.'}"</p>
+                    <div style="text-align:right; margin-top:5px;">
+                        <small style="color:#bbb; font-size:0.7rem;">${new Date(r.createdAt).toLocaleDateString()}</small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = `<div style="text-align:center; color:red; padding:20px;">Error loading ratings.</div>`;
+    }
+}
+
