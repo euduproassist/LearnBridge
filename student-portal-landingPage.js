@@ -61,8 +61,16 @@ navItems.forEach(item => {
         const activeIcon = this.querySelector('img');
         if (activeIcon) activeIcon.src = activeIcon.src.replace('888888', '003057');
 
-        // 3. Trigger Modals based on text
-        if (tabText.includes('Support-tickets')) {
+        // 3. Trigger Modals based on text       
+        if (tabText.includes('Home')) {
+      // Close all modals
+      const modals = ['supportModal', 'ratingsModal', 'alertsModal', 'inboxModal', 'bookingsModal', 'profileModal'];
+      modals.forEach(id => document.getElementById(id).style.display = 'none');
+    
+    // Reset view to Grid
+    document.getElementById('tutorExplorerView').style.display = 'none';
+    document.querySelector('.grid-container').style.display = 'grid';
+       } else if (tabText.includes('Support-tickets')) {
             document.getElementById('supportModal').style.display = 'flex';
             loadTicketHistory();
         } else if (tabText.includes('Ratings')) {
