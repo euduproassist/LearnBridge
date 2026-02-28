@@ -348,7 +348,34 @@
     </div>
 </div>
 
+<div id="ratingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:500px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 85vh; display: flex; flex-direction: column;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="color:var(--primary-blue); font-size:1.4rem;">My Ratings & Feedback</h2>
+            <button id="closeRatingsBtn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#999;">&times;</button>
+        </div>
 
+        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+            <input id="rate_search_input" type="text" placeholder="Search by name..." style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
+            <select id="rate_filter_role" style="padding:8px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
+                <option value="">All</option>
+                <option value="tutor">Tutors</option>
+                <option value="counsellor">Staff</option>
+            </select>
+        </div>
+
+        <div id="ratingsListContainer" style="overflow-y:auto; flex:1; padding-right:5px;">
+            <div style="text-align:center; color:#999; padding:20px;">Loading your feedback...</div>
+        </div>
+
+        <div style="margin-top: 15px; text-align: right;">
+            <button id="refreshRatingsBtn" style="background:var(--primary-blue); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">Refresh List</button>
+        </div>
+    </div>
+</div>
+
+    
     <script type="module" src="student-portal-landingPage.js"></script>
 </body>
 </html>
