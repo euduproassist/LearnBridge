@@ -65,15 +65,19 @@ navItems.forEach(item => {
             loadTicketHistory();
         } else if (tabText.includes('Ratings')) {
             document.getElementById('ratingsModal').style.display = 'flex';
+            document.getElementById('ratings-badge').style.display = 'none';
             loadUserRatings();
         } else if (tabText.includes('Alerts')) {
             document.getElementById('alertsModal').style.display = 'flex';
+            document.getElementById('alerts-badge').style.display = 'none';
             renderNotifications();
         } else if (tabText.includes('Inbox')) {
             document.getElementById('inboxModal').style.display = 'flex';
+            document.getElementById('inbox-badge').style.display = 'none';
             openChatList();
         } else if (tabText.includes('My Bookings')) {
             document.getElementById('bookingsModal').style.display = 'flex';
+            document.getElementById('bookings-badge').style.display = 'none';
             switchBookingTab('upcoming'); // Initial load
         } else if (tabText.includes('Profile')) {
             document.getElementById('profileModal').style.display = 'flex';
