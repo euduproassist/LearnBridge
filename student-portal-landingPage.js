@@ -39,6 +39,32 @@ document.getElementById('findTutorBtn').addEventListener('click', () => {
     window.location.href = 'student-portal.html';
 });
 
+// Logic to switch the "Blue Cover" and Icon Colors
+const navItems = document.querySelectorAll('.nav-item');
+
+navItems.forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault(); 
+        
+        // 1. Reset all tabs: Remove blue line and turn icons grey
+        navItems.forEach(nav => {
+            nav.classList.remove('active');
+            const icon = nav.querySelector('img');
+            if (icon) {
+                // This swaps the blue hex code (003057) for the grey one (888888)
+                icon.src = icon.src.replace('003057', '888888');
+                icon.setAttribute('style', 'filter: none;');
+            }
+        });
+        
+        // 2. Activate clicked tab: Add blue line and turn icon blue
+        this.classList.add('active');
+        const activeIcon = this.querySelector('img');
+        if (activeIcon) {
+            activeIcon.src = activeIcon.src.replace('888888', '003057');
+        }
+    });
+});
 
 
 
