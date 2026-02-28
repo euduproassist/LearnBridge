@@ -143,5 +143,91 @@ async function loadTicketHistory() {
     }
 }
 
+// Open Profile Modal
+document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.textContent.includes('Profile')) {
+        item.addEventListener('click', () => {
+            document.getElementById('profileModal').style.display = 'flex';
+            loadProfileData();
+        });
+    }
+});
+
+// --- Profile Logic ---
+
+const avatars = [
+    "https://img.icons8.com/fluency/48/student-male.png",
+    "https://img.icons8.com/fluency/48/student-female.png",
+    "https://img.icons8.com/fluency/48/user-male-circle.png",
+    "https://img.icons8.com/fluency/48/university.png"
+];
+let selectedAvatarUrl = "";
+
+async function loadProfileData() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Build Avatar Picker
+    const picker = document.getElementById('avatarPicker');
+    picker.innerHTML = avatars.map(url => `
+        <img src="${url}" onclick="selectAvatar('${url}')" style="width:40px; cursor:pointer; border-radius:50%; padding:2px; border: 2px solid transparent;" class="avatar-option">
+    `).join('');
+
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+        const d = snap.data();
+        document.getElementById('prof_name').value = d.name || "";
+        document.getElementById('prof_year').value = d.year || "1";
+        document.getElementById('prof_dept').value = d.department || "";
+        document.getElementById('prof_course').value = d.course || "";
+        if (d.profilePic) {
+            document.getElementById('currentAvatar').src = d.profilePic;
+            selectedAvatarUrl = d.profilePic;
+        }
+    }
+}
+
+// Global helper for the avatar picker (since it's injected HTML)
+window.selectAvatar = (url) => {
+    selectedAvatarUrl = url;
+    document.getElementById('currentAvatar').src = url;
+};
+
+// Save Profile
+document.getElementById('saveProfileBtn').onclick = async () => {
+    const user = auth.currentUser;
+    const payload = {
+        name: document.getElementById('prof_name').value.trim(),
+        year: document.getElementById('prof_year').value,
+        department: document.getElementById('prof_dept').value.trim(),
+        course: document.getElementById('prof_course').value.trim(),
+        profilePic: selectedAvatarUrl
+    };
+
+    try {
+        await setDoc(doc(db, 'users', user.uid), payload, { merge: true });
+        alert("Profile Updated!");
+        location.reload(); // Refresh to update the "Hello" name on hub
+    } catch (e) { alert("Error updating profile"); }
+};
+
+// Reset Password
+document.getElementById('resetPassBtn').onclick = async () => {
+    if(confirm("Send password reset email?")) {
+        await sendPasswordResetEmail(auth, auth.currentUser.email);
+        alert("Email sent!");
+    }
+};
+
+// Logout
+document.getElementById('logoutBtn').onclick = async () => {
+    if(confirm("Are you sure you want to log out?")) {
+        await signOut(auth);
+    }
+};
+
+document.getElementById('closeProfileBtn').onclick = () => {
+    document.getElementById('profileModal').style.display = 'none';
+};
 
 
