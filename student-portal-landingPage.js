@@ -66,6 +66,82 @@ navItems.forEach(item => {
     });
 });
 
+// --- Support Ticket Logic ---
+
+// Open Modal when Support tab is clicked
+document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.textContent.includes('Support')) {
+        item.addEventListener('click', () => {
+            document.getElementById('supportModal').style.display = 'flex';
+            loadTicketHistory();
+        });
+    }
+});
+
+// Close Modal
+document.getElementById('closeSupportBtn').onclick = () => {
+    document.getElementById('supportModal').style.display = 'none';
+};
+
+// Send Ticket to Firebase
+document.getElementById('sendTicketBtn').onclick = async () => {
+    const title = document.getElementById('sup_title').value.trim();
+    const msg = document.getElementById('sup_message').value.trim();
+    const prio = document.getElementById('sup_priority').value;
+    const user = auth.currentUser;
+
+    if (!title || !msg) return alert("Please fill in all fields");
+
+    try {
+        await addDoc(collection(db, 'supportTickets'), {
+            studentId: user.uid,
+            title: title,
+            message: msg,
+            priority: prio,
+            status: 'open',
+            createdAt: new Date().toISOString()
+        });
+
+        alert("Ticket sent to Admin!");
+        document.getElementById('sup_title').value = '';
+        document.getElementById('sup_message').value = '';
+        loadTicketHistory();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to send ticket.");
+    }
+};
+
+// Load Ticket History (The "Suggested Add-on")
+async function loadTicketHistory() {
+    const historyDiv = document.getElementById('ticketHistory');
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            historyDiv.innerHTML = "No tickets yet.";
+            return;
+        }
+
+        historyDiv.innerHTML = snap.docs.map(doc => {
+            const t = doc.data();
+            const color = t.status === 'open' ? '#FF7A00' : '#28a745';
+            return `
+                <div style="border-left:3px solid ${color}; padding:5px 10px; margin-bottom:8px; background:#f9f9f9;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <b>${t.title}</b>
+                        <span style="color:${color}">${t.status}</span>
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (e) {
+        historyDiv.innerHTML = "Log in to see history.";
+    }
+}
 
 
 
