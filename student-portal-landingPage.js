@@ -66,6 +66,9 @@ navItems.forEach(item => {
         } else if (tabText.includes('Ratings')) {
             document.getElementById('ratingsModal').style.display = 'flex';
             loadUserRatings();
+        } else if (tabText.includes('Alerts')) {
+            document.getElementById('alertsModal').style.display = 'flex';
+            loadNotifications();
         } else if (tabText.includes('My Bookings')) {
             document.getElementById('bookingsModal').style.display = 'flex';
             switchBookingTab('upcoming'); // Initial load
@@ -417,4 +420,125 @@ window.cancelBooking = async (id) => {
         }
     }
 };
+
+// --- NOTIFICATIONS LOGIC ---
+let allNotifications = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
+// 1. Real-time Listener for the Badge & Data
+function startNotificationListener() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const q = query(collection(db, 'notifications'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
+    
+    onSnapshot(q, (snapshot) => {
+        allNotifications = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Update Badge Count
+        const unreadCount = allNotifications.filter(n => !n.read).length;
+        const badge = document.querySelector('.nav-badge');
+        if (badge) {
+            badge.textContent = unreadCount;
+            badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+        
+        // If modal is open, refresh the view
+        if (document.getElementById('alertsModal').style.display === 'flex') {
+            renderNotifications();
+        }
+    });
+}
+
+// Ensure listener starts when user logs in
+onAuthStateChanged(auth, (user) => {
+    if (user) startNotificationListener();
+});
+
+function renderNotifications() {
+    const container = document.getElementById('alertsListContainer');
+    const pageDisplay = document.getElementById('pageInfo');
+    
+    const totalPages = Math.ceil(allNotifications.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedItems = allNotifications.slice(start, end);
+
+    pageDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    if (allNotifications.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">No notifications yet.</div>`;
+        return;
+    }
+
+    container.innerHTML = paginatedItems.map(n => {
+        // Unread items get a light blue background, read items are white
+        const bgColor = n.read ? '#ffffff' : '#f0f7ff';
+        const borderStatus = n.read ? '1px solid #eee' : '2px solid #003057';
+
+        return `
+            <div onclick="markAsRead('${n.id}')" style="background:${bgColor}; border:${borderStatus}; border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer; position:relative; transition:0.2s;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <b style="font-size:0.9rem; color:#003057; display:block; margin-bottom:4px;">${n.title}</b>
+                    <button onclick="deleteNotification(event, '${n.id}')" style="background:none; border:none; color:#ccc; cursor:pointer;">&times;</button>
+                </div>
+                <p style="font-size:0.8rem; color:#333; margin-bottom:8px;">${n.message}</p>
+                <div style="text-align:right;">
+                    <small style="font-size:0.7rem; color:#888;">${new Date(n.timestamp).toLocaleString()}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Actions
+window.markAsRead = async (id) => {
+    await updateDoc(doc(db, 'notifications', id), { read: true });
+};
+
+window.deleteNotification = async (e, id) => {
+    e.stopPropagation(); // Prevents marking as read while deleting
+    if(confirm("Delete notification?")) {
+        await deleteDoc(doc(db, 'notifications', id));
+    }
+};
+
+document.getElementById('markAllReadBtn').onclick = async () => {
+    const batch = writeBatch(db);
+    allNotifications.forEach(n => {
+        if (!n.read) {
+            const ref = doc(db, 'notifications', n.id);
+            batch.update(ref, { read: true });
+        }
+    });
+    await batch.commit();
+};
+
+document.getElementById('deleteAllAlertsBtn').onclick = async () => {
+    if(confirm("Permanently delete all notifications?")) {
+        const batch = writeBatch(db);
+        allNotifications.forEach(n => {
+            const ref = doc(db, 'notifications', n.id);
+            batch.delete(ref);
+        });
+        await batch.commit();
+    }
+};
+
+// Pagination Logic
+document.getElementById('prevPageBtn').onclick = () => {
+    if (currentPage > 1) { currentPage--; renderNotifications(); }
+};
+document.getElementById('nextPageBtn').onclick = () => {
+    const totalPages = Math.ceil(allNotifications.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderNotifications(); }
+};
+
+document.getElementById('closeAlertsBtn').onclick = () => {
+    document.getElementById('alertsModal').style.display = 'none';
+};
+
 
