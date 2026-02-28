@@ -66,6 +66,9 @@ navItems.forEach(item => {
         } else if (tabText.includes('Ratings')) {
             document.getElementById('ratingsModal').style.display = 'flex';
             loadUserRatings();
+        } else if (tabText.includes('My Bookings')) {
+            document.getElementById('bookingsModal').style.display = 'flex';
+            switchBookingTab('upcoming'); // Initial load
         } else if (tabText.includes('Profile')) {
             document.getElementById('profileModal').style.display = 'flex';
             loadProfileData();
@@ -287,4 +290,131 @@ async function loadUserRatings() {
         container.innerHTML = `<div style="text-align:center; color:red; padding:20px;">Error loading ratings.</div>`;
     }
 }
+
+// --- MY BOOKINGS LOGIC (Upcoming & Pending) ---
+
+let activeBookingTab = 'upcoming';
+
+// Close Modal
+document.getElementById('closeBookingsBtn').onclick = () => {
+    document.getElementById('bookingsModal').style.display = 'none';
+};
+
+// Tab Click Handlers
+document.getElementById('tabUpcoming').onclick = () => switchBookingTab('upcoming');
+document.getElementById('tabPending').onclick = () => switchBookingTab('pending');
+
+function switchBookingTab(tab) {
+    activeBookingTab = tab;
+    const upBtn = document.getElementById('tabUpcoming');
+    const penBtn = document.getElementById('tabPending');
+
+    if (tab === 'upcoming') {
+        upBtn.style.background = '#003057'; upBtn.style.color = 'white';
+        penBtn.style.background = 'transparent'; penBtn.style.color = '#666';
+        loadUpcomingSessions();
+    } else {
+        penBtn.style.background = '#003057'; penBtn.style.color = 'white';
+        upBtn.style.background = 'transparent'; upBtn.style.color = '#666';
+        loadPendingRequests();
+    }
+}
+
+async function loadUpcomingSessions() {
+    const container = document.getElementById('bookingsListContainer');
+    const user = auth.currentUser;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Loading confirmed sessions...</div>`;
+
+    try {
+        // Query for APPROVED sessions only
+        const q = query(collection(db, 'sessions'), 
+            where('studentId', '==', user.uid), 
+            where('status', '==', 'approved'),
+            orderBy('datetime', 'asc'));
+        
+        const snap = await getDocs(q);
+        const now = new Date();
+
+        // Filter out past sessions locally if necessary
+        const sessions = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                                  .filter(s => new Date(s.datetime) >= now);
+
+        if (sessions.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#999; margin-top:30px;">No upcoming sessions found.</div>`;
+            return;
+        }
+
+        container.innerHTML = sessions.map(s => `
+            <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid #28a745; border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <b style="color:var(--primary-blue); display:block; font-size:1rem;">${s.personName}</b>
+                        <small style="color:#777; text-transform:uppercase; letter-spacing:0.5px;">${s.role}</small>
+                    </div>
+                    <span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:6px; font-size:0.7rem; font-weight:700;">CONFIRMED</span>
+                </div>
+                <div style="margin-top:10px; font-size:0.85rem; color:#444;">
+                    <div>📅 ${new Date(s.datetime).toLocaleDateString()} at ${new Date(s.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    <div style="margin-top:4px;">📍 Location: <b>${s.venue || s.mode || 'TBA'}</b></div>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:8px;">
+                    <button onclick="cancelBooking('${s.id}')" style="flex:1; background:#fff1f1; color:#d73a3a; border:1px solid #ffcdd2; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; font-weight:600;">Cancel</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = `<div style="color:red; text-align:center;">Error loading sessions.</div>`;
+    }
+}
+
+async function loadPendingRequests() {
+    const container = document.getElementById('bookingsListContainer');
+    const user = auth.currentUser;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Checking request status...</div>`;
+
+    try {
+        const q = query(collection(db, 'sessions'), 
+            where('studentId', '==', user.uid), 
+            where('status', '==', 'pending'),
+            orderBy('createdAt', 'desc'));
+        
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            container.innerHTML = `<div style="text-align:center; color:#999; margin-top:30px;">No pending requests.</div>`;
+            return;
+        }
+
+        container.innerHTML = snap.docs.map(doc => {
+            const s = doc.data();
+            const slots = s.preferredSlots || [];
+            return `
+                <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--accent-orange); border-radius:12px; padding:15px; margin-bottom:12px;">
+                    <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
+                    <p style="font-size:0.75rem; color:#888; margin-bottom:8px;">Waiting for tutor to pick a slot...</p>
+                    <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
+                        <span style="font-size:0.7rem; font-weight:700; color:#555; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
+                        ${slots.map(t => `<div style="font-size:0.75rem; color:#666;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
+                    </div>
+                    <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:#eee; border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:#555;">Withdraw Request</button>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        container.innerHTML = `<div style="color:red; text-align:center;">Error loading requests.</div>`;
+    }
+}
+
+window.cancelBooking = async (id) => {
+    if (confirm("Are you sure you want to cancel this booking/request?")) {
+        try {
+            // We use deleteDoc to keep the DB clean, or updateDoc status to 'cancelled'
+            await deleteDoc(doc(db, 'sessions', id));
+            switchBookingTab(activeBookingTab); // Refresh current view
+        } catch (e) {
+            alert("Action failed. Please try again.");
+        }
+    }
+};
 
