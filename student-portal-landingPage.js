@@ -69,6 +69,9 @@ navItems.forEach(item => {
         } else if (tabText.includes('Alerts')) {
             document.getElementById('alertsModal').style.display = 'flex';
             renderNotifications();
+        } else if (tabText.includes('Inbox')) {
+            document.getElementById('inboxModal').style.display = 'flex';
+            openChatList();
         } else if (tabText.includes('My Bookings')) {
             document.getElementById('bookingsModal').style.display = 'flex';
             switchBookingTab('upcoming'); // Initial load
@@ -540,5 +543,186 @@ document.getElementById('nextPageBtn').onclick = () => {
 document.getElementById('closeAlertsBtn').onclick = () => {
     document.getElementById('alertsModal').style.display = 'none';
 };
+
+// --- MESSENGER GLOBAL STATE ---
+let currentChatPartnerId = null;
+let chatCurrentPage = 1;
+const chatPageSize = 10;
+let lastDoc = null;
+let activeView = 'chats'; // 'chats' or 'users' or 'conversation'
+let unsubChat = null;
+
+// --- CORE FUNCTIONS ---
+
+const openChatList = async () => {
+    activeView = 'chats';
+    document.getElementById('chatBackBtn').style.display = 'none';
+    document.getElementById('inboxHeaderTitle').textContent = "Messages";
+    document.getElementById('chatInputArea').style.display = 'none';
+    document.getElementById('inboxTabs').style.display = 'flex';
+    renderChatList();
+};
+
+const renderChatList = async () => {
+    const user = auth.currentUser;
+    const container = document.getElementById('inboxScrollArea');
+    container.innerHTML = "Loading chats...";
+
+    // We query 'threads' where current user is a participant
+    const q = query(collection(db, 'threads'), 
+                    where('participants', 'array-contains', user.uid), 
+                    orderBy('lastTimestamp', 'desc'));
+    
+    onSnapshot(q, (snap) => {
+        if (activeView !== 'chats') return;
+        if (snap.empty) {
+            container.innerHTML = "No conversations yet. Go to 'Find People' to start one.";
+            return;
+        }
+
+        container.innerHTML = snap.docs.map(doc => {
+            const data = doc.data();
+            const partnerName = data.names[data.participants.find(p => p !== user.uid)];
+            const isUnread = data.unreadBy && data.unreadBy.includes(user.uid);
+            
+            return `
+                <div onclick="openConversation('${data.participants.find(p => p !== user.uid)}', '${partnerName}')" 
+                     style="display:flex; align-items:center; padding:12px; border-bottom:1px solid #f0f0f0; background:${isUnread ? '#eef6ff' : 'white'}; cursor:pointer;">
+                    <div style="width:45px; height:45px; border-radius:50%; background:#ddd; margin-right:12px; display:flex; align-items:center; justify-content:center; color:#003057; font-weight:bold;">
+                        ${partnerName[0]}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="font-size:0.9rem;">${partnerName}</b>
+                            <small style="color:#999;">${data.lastTimestamp ? new Date(data.lastTimestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</small>
+                        </div>
+                        <p style="font-size:0.8rem; color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:250px;">
+                            ${data.lastMessage || 'Sent a file/voice note'}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    });
+};
+
+// --- USER DIRECTORY ---
+document.getElementById('viewUsersTab').onclick = async () => {
+    activeView = 'users';
+    document.getElementById('viewUsersTab').style.borderBottom = "3px solid var(--primary-blue)";
+    document.getElementById('viewChatsTab').style.borderBottom = "none";
+    const container = document.getElementById('inboxScrollArea');
+    
+    const snap = await getDocs(query(collection(db, 'users'), orderBy('name'), limit(20)));
+    container.innerHTML = snap.docs.map(d => {
+        const u = d.data();
+        if (d.id === auth.currentUser.uid) return ''; // Don't show self
+        return `
+            <div onclick="openConversation('${d.id}', '${u.name}')" style="display:flex; align-items:center; padding:12px; border-bottom:1px solid #f0f0f0; cursor:pointer;">
+                <img src="${u.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:40px; height:40px; border-radius:50%; margin-right:12px;">
+                <div>
+                    <b style="font-size:0.9rem;">${u.name}</b>
+                    <small style="display:block; color:#888;">${u.course || 'Student'}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+// --- CONVERSATION VIEW ---
+window.openConversation = async (partnerId, partnerName) => {
+    activeView = 'conversation';
+    currentChatPartnerId = partnerId;
+    document.getElementById('chatBackBtn').style.display = 'block';
+    document.getElementById('inboxHeaderTitle').textContent = partnerName;
+    document.getElementById('chatInputArea').style.display = 'block';
+    document.getElementById('inboxTabs').style.display = 'none';
+    
+    const container = document.getElementById('inboxScrollArea');
+    container.innerHTML = "Opening chat...";
+
+    const threadId = [auth.currentUser.uid, partnerId].sort().join('_');
+    
+    // Listen for messages in this thread
+    const q = query(collection(db, 'threads', threadId, 'messages'), orderBy('timestamp', 'desc'), limit(chatPageSize));
+    
+    if(unsubChat) unsubChat();
+    unsubChat = onSnapshot(q, (snap) => {
+        const msgs = snap.docs.map(d => d.data()).reverse();
+        container.innerHTML = msgs.map(m => {
+            const isMe = m.senderId === auth.currentUser.uid;
+            return `
+                <div style="display:flex; justify-content:${isMe ? 'flex-end' : 'flex-start'}; margin-bottom:10px;">
+                    <div style="max-width:75%; padding:10px; border-radius:15px; background:${isMe ? 'var(--primary-blue)' : '#f0f0f0'}; color:${isMe ? 'white' : 'black'}; font-size:0.85rem;">
+                        ${m.text}
+                        <div style="font-size:0.6rem; text-align:right; margin-top:4px; opacity:0.7;">
+                            ${m.timestamp ? new Date(m.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+    });
+
+    // Mark as Read Logic
+    await updateDoc(doc(db, 'threads', threadId), {
+        unreadBy: [] // Simplified for this logic
+    });
+};
+
+// --- SEND LOGIC WITH QUOTA (10 per 24hrs per partner) ---
+document.getElementById('sendChatBtn').onclick = async () => {
+    const text = document.getElementById('chatMsgInput').value.trim();
+    if (!text) return;
+
+    const user = auth.currentUser;
+    const threadId = [user.uid, currentChatPartnerId].sort().join('_');
+    const today = new Date().toISOString().split('T')[0];
+    const quotaRef = doc(db, 'users', user.uid, 'quotas', `${today}_${currentChatPartnerId}`);
+
+    // 1. Check Quota
+    const quotaSnap = await getDoc(quotaRef);
+    let count = quotaSnap.exists() ? quotaSnap.data().count : 0;
+
+    if (count >= 10) {
+        document.getElementById('quotaWarning').style.display = 'block';
+        return;
+    }
+
+    // 2. Send Message
+    try {
+        const msgData = {
+            senderId: user.uid,
+            text: text,
+            timestamp: serverTimestamp()
+        };
+        
+        await addDoc(collection(db, 'threads', threadId, 'messages'), msgData);
+        
+        // 3. Update Thread Meta
+        await setDoc(doc(db, 'threads', threadId), {
+            lastMessage: text,
+            lastTimestamp: serverTimestamp(),
+            participants: [user.uid, currentChatPartnerId],
+            names: { [user.uid]: 'Me', [currentChatPartnerId]: document.getElementById('inboxHeaderTitle').textContent }
+        }, { merge: true });
+
+        // 4. Increment Quota
+        await setDoc(quotaRef, { count: count + 1 }, { merge: true });
+        
+        document.getElementById('chatMsgInput').value = '';
+    } catch (e) {
+        alert("Failed to send.");
+    }
+};
+
+// --- HELPERS ---
+document.getElementById('chatBackBtn').onclick = openChatList;
+document.getElementById('closeInboxBtn').onclick = () => {
+    if(unsubChat) unsubChat();
+    document.getElementById('inboxModal').style.display = 'none';
+};
+
 
 
