@@ -430,50 +430,7 @@
     </div>
 </div>
 
-    <div id="bookingActionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-        <h2 id="bookTargetName" style="color:var(--primary-blue); margin-bottom:15px; font-size:1.4rem;">Book Session</h2>
-        
-        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">What topic do you need help with?</label>
-        <input id="book_topic" type="text" placeholder="e.g. Calculus Integration" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
-        
-        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Preferred Dates/Times</label>
-        <div style="display:flex; gap:8px; margin-bottom:10px;">
-    <input type="datetime-local" id="slot_picker" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">
-    <button type="button" id="add_slot_btn" style="background:#003057; color:white; border:none; padding:0 15px; border-radius:10px; font-weight:bold;">Add</button>
-</div>
-<div id="queued_slots" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;"></div>
-
-        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Session Mode</label>
-        <select id="book_mode" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
-            <option value="Online">Online (MS Teams/Zoom)</option>
-            <option value="In-Person">In-Person (On Campus)</option>
-        </select>
-
-        <div style="display:flex; gap:10px;">
-            <button id="confirmBookingBtn" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Send Request</button>
-            <button onclick="document.getElementById('bookingActionModal').style.display='none'" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Cancel</button>
-        </div>
-    </div>
-</div>
-
-    <div id="tutorExplorerView" style="display:none; position:fixed; inset:0; background:#F2F5F8; z-index:9999; flex-direction:column; padding:20px;">
-    
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-top:20px;">
-        <button id="backToGridBtn" style="background:none; border:none; color:#003057; font-weight:bold; cursor:pointer; font-size:1.1rem;">← Back to Hub</button>
-        <h3 style="color:#003057;">Available Tutors</h3>
-        <div style="width:40px;"></div> </div>
-
-    <div style="display:flex; gap:10px; margin-bottom:15px;">
-        <input id="tutorSearch" type="text" placeholder="Search Module or Name..." style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;">
-        <select id="tutorFilter" style="padding:10px; border-radius:12px; border:1px solid #ddd;">
-            <option value="all">All</option>
-            <option value="Science">Science</option>
-            <option value="FEBE">Engineering</option>
-            <option value="CBE">Business</option>
-        </select>
-    </div>
-
+   
     <div id="tutorListContainer" style="flex:1; overflow-y:auto; padding-bottom:100px;">
         </div>
 
