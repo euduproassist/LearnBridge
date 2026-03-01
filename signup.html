@@ -61,15 +61,7 @@
       const q = query(collection(db, 'users'), where('email', '==', email));
       const querySnap = await getDocs(q);
 
-      if (!querySnap.empty) {
-        // FOUND THEM! They are a Lecturer/Tutor/Advisor you added manually
-        const existingData = querySnap.docs[0].data();
-        assignedRole = existingData.role;
-        assignedDept = existingData.department || '';
-        
-        // Optional: Delete the temporary manual doc so we can create a clean one with the UID
-        // Or just keep track of the role.
-      }
+
 
       // --- STEP 2: CREATE AUTH ACCOUNT ---
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
