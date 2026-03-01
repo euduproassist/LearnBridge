@@ -205,7 +205,64 @@
                 <span id="display-campus">(UJ Campus)</span>
             </div>
 
+    <div id="mainHubContent">
+    <div id="gridView" class="grid-container">
+        <div class="hub-card">
+            <img src="https://thumbs.dreamstime.com/b/black-white-presentation-whiteboard-icon-education-themed-vector-illustration-leaflet-web-site-application-decor-243129473.jpg" alt="lecturer">
+            <h3>Lecturer Consultations</h3>
+            <p>Automated Office Hour Bookings. Find your lecturer's slot.</p>
+            <button class="hub-btn" onclick="alert('Module coming soon!')">View schedules</button>
+        </div>
 
+        <div class="hub-card">
+            <img src="https://png.pngtree.com/png-clipart/20230817/original/pngtree-helping-with-homework-black-glyph-icon-activity-people-icon-vector-picture-image_10944873.png" alt="tutor">
+            <h3>Student Tutor Hub</h3>
+            <p>Peer-to-Peer Subject Help. Book a senior tutor.</p>
+            <button class="hub-btn" id="findTutorBtn">Find a Tutor</button>
+        </div>
+
+        <div class="hub-card">
+            <img src="https://img.freepik.com/premium-vector/advising-consideration-consulting-icon-editable-vector-logo_965649-13328.jpg" alt="advising">
+            <h3>Academic Advising</h3>
+            <p>Course & Credit Guidance. Check credits.</p>
+            <button class="hub-btn" onclick="alert('Advising coming soon!')">Talk to Advisor</button>
+        </div>
+
+        <div class="hub-card">
+            <img src="https://toppng.com/uploads/preview/managed-services-icon-services-icon-png-black-11562942557jxzb6gtezc.png" alt="campus">
+            <h3>Campus Services</h3>
+            <p>Digital Front Desk. NSFAS, Health, and SRC access.</p>
+            <button class="hub-btn" onclick="alert('Services coming soon!')">Access all Services</button>
+        </div>
+    </div>
+
+    <div id="tutorExplorerView" style="display:none; background:white; border-radius:25px; padding:20px; height: 65vh; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <button id="backToGridBtn" style="background:none; border:none; color:var(--primary-blue); font-weight:bold; cursor:pointer;">← Back</button>
+            <h3 style="color:var(--primary-blue);">Peer Tutors</h3>
+            <span></span>
+        </div>
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <input id="tutorSearch" type="text" placeholder="Search Module or Name..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd;">
+            <select id="tutorFilter" style="padding:10px; border-radius:10px; border:1px solid #ddd;">
+                <option value="all">All</option>
+                <option value="Science">Science</option>
+                <option value="FEBE">Engineering</option>
+                <option value="CBE">Business</option>
+            </select>
+        </div>
+
+        <div id="tutorListContainer" style="flex:1; overflow-y:auto; padding-bottom:20px;">
+            </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid #eee;">
+            <button id="prevTutorPage" style="background:#f0f0f0; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">Prev</button>
+            <span id="tutorPageInfo" style="font-size:0.8rem;">Page 1</span>
+            <button id="nextTutorPage" style="background:#f0f0f0; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">Next</button>
+        </div>
+    </div>
+</div>
         </main>
 
 <nav class="bottom-nav">
