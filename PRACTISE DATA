@@ -1,6 +1,5 @@
-student-portal-landingPage.js:37 Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')
-    at student-portal-landingPage.js:37:40
-(anonymous)	@	student-portal-landingPage.js:37
+tutor-portal-landingPage.js:542  Uncaught SyntaxError: Unexpected end of input (at tutor-portal-landingPage.js:542:1)
+
 
 
 rules_version = '2';
