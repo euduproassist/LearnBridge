@@ -48,16 +48,12 @@ navItems.forEach(item => {
         navItems.forEach(nav => {
             nav.classList.remove('active');
             const icon = nav.querySelector('img');
-            if (icon) icon.src = icon.src.replace('003057', '888888');
-            const icon = nav.querySelector('img');
 if (icon && icon.src) icon.src = icon.src.replace('003057', '888888');
 
         });
 
         // 2. UI Activate
         this.classList.add('active');
-        const activeIcon = this.querySelector('img');
-        if (activeIcon) activeIcon.src = activeIcon.src.replace('888888', '003057');
         const activeIcon = this.querySelector('img');
 if (activeIcon && activeIcon.src) activeIcon.src = activeIcon.src.replace('888888', '003057');
 
