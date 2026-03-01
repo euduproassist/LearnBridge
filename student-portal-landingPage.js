@@ -792,6 +792,75 @@ function renderTutorList() {
 document.getElementById('tutorSearch').oninput = renderTutorList;
 document.getElementById('tutorFilter').onchange = renderTutorList;
 
+// --- GLOBAL TEMPORARY STORAGE ---
+let activeTutorId = null;
+let activeTutorName = null;
+
+// --- REPLACED BOOKING LOGIC ---
+window.bookTutorPrompt = (tutorId, tutorName) => {
+    activeTutorId = tutorId;
+    activeTutorName = tutorName;
+    document.getElementById('bookTargetName').textContent = `Book ${tutorName}`;
+    document.getElementById('bookingActionModal').style.display = 'flex';
+};
+
+document.getElementById('confirmBookingBtn').onclick = async () => {
+    const topic = document.getElementById('book_topic').value.trim();
+    const slotsInput = document.getElementById('book_slots').value.trim();
+    const mode = document.getElementById('book_mode').value;
+
+    if (!topic || !slotsInput) return alert("Please fill in all fields.");
+
+    try {
+        await addDoc(collection(db, 'sessions'), {
+            studentId: auth.currentUser.uid,
+            tutorId: activeTutorId,
+            personName: activeTutorName,
+            role: 'tutor',
+            topic: topic,
+            preferredSlots: slotsInput.split(',').map(s => s.trim()),
+            mode: mode,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+        
+        alert("Request Sent Successfully!");
+        document.getElementById('bookingActionModal').style.display = 'none';
+        updateBadge('tabUpcoming');
+    } catch (e) {
+        alert("Booking failed.");
+    }
+};
+
+// --- REPLACED RATING LOGIC ---
+window.rateTutorPrompt = (tutorId, tutorName) => {
+    activeTutorId = tutorId;
+    activeTutorName = tutorName;
+    document.getElementById('rateTargetName').textContent = `Rate ${tutorName}`;
+    document.getElementById('ratingActionModal').style.display = 'flex';
+};
+
+document.getElementById('confirmRatingBtn').onclick = async () => {
+    const stars = document.getElementById('rate_stars').value;
+    const comment = document.getElementById('rate_comment').value.trim();
+
+    try {
+        await addDoc(collection(db, 'ratings'), {
+            studentId: auth.currentUser.uid,
+            tutorId: activeTutorId,
+            personName: activeTutorName,
+            role: 'tutor',
+            stars: parseInt(stars),
+            comment: comment,
+            createdAt: new Date().toISOString()
+        });
+        
+        alert("Feedback submitted!");
+        document.getElementById('ratingActionModal').style.display = 'none';
+    } catch (e) {
+        alert("Error saving rating");
+    }
+};
 
 
 // Helper for dynamic badge updates
