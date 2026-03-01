@@ -29,7 +29,7 @@
 <script type="module">
   import { auth, db } from './firebase-config.js';
   import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-  import { doc, setDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+  import { doc, setDoc, getDocs, collection, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
   const popup = (obj) => {
     const p = document.getElementById('popup');
