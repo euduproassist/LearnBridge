@@ -243,6 +243,23 @@
         </div>
     </div>
     </div>
+
+    <div id="pendingRequestsView" style="display:none; flex-direction:column; gap:15px; padding-bottom:100px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="color:var(--text-dark);">Pending Requests</h3>
+        <button id="closeRequestsView" style="background:none; border:1px solid var(--primary-blue); color:var(--primary-blue); padding:5px 15px; border-radius:8px; cursor:pointer; font-size:0.8rem;">Back to Grid</button>
+    </div>
+    
+    <div id="requestsList">
+        </div>
+
+    <div id="requestPagination" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; font-size:0.8rem; color:#666;">
+        <button id="prevReqPage" style="background:#eee; border:none; padding:8px 12px; border-radius:5px;">Previous</button>
+        <span id="reqPageInfo">Page 1 of 1</span>
+        <button id="nextReqPage" style="background:#eee; border:none; padding:8px 12px; border-radius:5px;">Next</button>
+    </div>
+</div>
+
         </main>
 
 <nav class="bottom-nav">
