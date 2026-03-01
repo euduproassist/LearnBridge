@@ -617,7 +617,6 @@ function renderTutorList() {
             <div style="display:flex; gap:5px; margin-top:10px;">
                 <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Book</button>
                 <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; border:1px solid var(--primary-blue); background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Chat</button>
-                <button onclick="rateTutorPrompt('${t.id}', '${t.name}')" style="flex:1; border:1px solid #ddd; background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Rate</button>
             </div>
         </div>
     `).join('');
