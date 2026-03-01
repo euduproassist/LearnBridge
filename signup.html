@@ -61,6 +61,15 @@
       const q = query(collection(db, 'users'), where('email', '==', email));
       const querySnap = await getDocs(q);
 
+     if (!querySnap.empty) {
+    const existingDoc = querySnap.docs[0];
+    const existingData = existingDoc.data();
+    assignedRole = existingData.role;
+    assignedDept = existingData.department || '';
+    
+    // 🔥 DELETE the manual placeholder so the new UID-based doc replaces it
+    await deleteDoc(existingDoc.ref);
+}
 
 
       // --- STEP 2: CREATE AUTH ACCOUNT ---
