@@ -13,6 +13,24 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/users/$(staffId)).data.role in ['tutor', 'lecturer', 'academic-advisor', 'campus-services'];
     }
 
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      // 1. ALLOW READ: If logged in OR if the Document ID is the email they are looking for
+      // Note: This assumes you used the Email as the Document ID in the console
+      allow get: if true; // Allows getting a specific doc by ID, but NOT listing all
+      allow list: if request.auth != null; // Only logged in users can "search" or "list"
+
+      // 2. CREATE: Allow signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // 3. UPDATE: Allow users to change info, but NOT their role
+      allow update: if request.auth != null && (
+          (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+          || isAdmin()
+      );
+      
+      allow delete: if isAdmin();
+    }
 
     
     /* ---------------- SESSIONS ---------------- */
