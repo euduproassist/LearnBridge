@@ -33,6 +33,17 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+// Toggle between Grid and Tutor Explorer
+document.getElementById('findTutorBtn').addEventListener('click', () => {
+    document.getElementById('gridView').style.display = 'none';
+    document.getElementById('tutorExplorerView').style.display = 'flex';
+    loadTutors(); // Trigger the loading logic
+});
+
+document.getElementById('backToGridBtn').addEventListener('click', () => {
+    document.getElementById('tutorExplorerView').style.display = 'none';
+    document.getElementById('gridView').style.display = 'grid';
+});
 
 
 // --- Integrated Navigation Logic ---
@@ -719,5 +730,129 @@ document.getElementById('closeInboxBtn').onclick = () => {
     if(unsubChat) unsubChat();
     document.getElementById('inboxModal').style.display = 'none';
 };
+
+// --- TUTOR EXPLORER LOGIC (IDENTICAL TO EVALUATED PORTAL) ---
+let allTutors = [];
+let tutorPage = 1;
+const tutorLimit = 5;
+
+async function loadTutors() {
+    const container = document.getElementById('tutorListContainer');
+    container.innerHTML = "Finding available tutors...";
+    
+    try {
+        // Fetching from 'users' collection where role is 'tutor'
+        const q = query(collection(db, 'users'), where('role', '==', 'tutor'));
+        const snap = await getDocs(q);
+        allTutors = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderTutorList();
+    } catch (e) {
+        container.innerHTML = "Error loading tutors.";
+    }
+}
+
+function renderTutorList() {
+    const container = document.getElementById('tutorListContainer');
+    const search = document.getElementById('tutorSearch').value.toLowerCase();
+    const filter = document.getElementById('tutorFilter').value;
+
+    let filtered = allTutors.filter(t => {
+        const matchesSearch = t.name.toLowerCase().includes(search) || (t.modules && t.modules.toLowerCase().includes(search));
+        const matchesFilter = filter === 'all' || t.department === filter;
+        return matchesSearch && matchesFilter;
+    });
+
+    const start = (tutorPage - 1) * tutorLimit;
+    const paginated = filtered.slice(start, start + tutorLimit);
+    
+    document.getElementById('tutorPageInfo').textContent = `Page ${tutorPage} of ${Math.ceil(filtered.length/tutorLimit) || 1}`;
+
+    container.innerHTML = paginated.map(t => `
+        <div style="border:1px solid #eee; border-radius:15px; padding:15px; margin-bottom:10px; background:#fff;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${t.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:50px; height:50px; border-radius:50%;">
+                <div style="flex:1;">
+                    <b style="color:var(--primary-blue);">${t.name}</b>
+                    <div style="font-size:0.75rem; color:#666;">${t.modules || 'General Support'}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Book</button>
+                <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; border:1px solid var(--primary-blue); background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Chat</button>
+                <button onclick="rateTutorPrompt('${t.id}', '${t.name}')" style="flex:1; border:1px solid #ddd; background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Rate</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Search Listeners
+document.getElementById('tutorSearch').oninput = renderTutorList;
+document.getElementById('tutorFilter').onchange = renderTutorList;
+
+// --- OLD LOGIC: BOOKING PROMPT ---
+window.bookTutorPrompt = async (tutorId, tutorName) => {
+    const topic = prompt(`What topic do you need help with for ${tutorName}?`);
+    if (!topic) return;
+
+    const slotsInput = prompt("Enter 2 preferred dates/times (comma separated):\ne.g. 2026-03-05 10:00, 2026-03-06 14:00");
+    if (!slotsInput) return;
+    const slots = slotsInput.split(',').map(s => s.trim());
+
+    const mode = confirm("Press OK for Online, CANCEL for In-Person") ? "Online" : "In-Person";
+
+    try {
+        await addDoc(collection(db, 'sessions'), {
+            studentId: auth.currentUser.uid,
+            tutorId: tutorId,
+            personName: tutorName,
+            role: 'tutor',
+            topic: topic,
+            preferredSlots: slots,
+            mode: mode,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        });
+        alert("Request Sent! Check 'My Bookings' for updates.");
+        updateBadge('tabUpcoming'); // Logic to highlight the badge
+    } catch (e) {
+        alert("Booking failed.");
+    }
+};
+
+// --- OLD LOGIC: RATING PROMPT ---
+window.rateTutorPrompt = async (tutorId, tutorName) => {
+    const stars = prompt("Rate 1 to 5 stars:");
+    if (!stars || stars < 1 || stars > 5) return alert("Invalid rating.");
+
+    const comment = prompt("Add a comment (Optional):");
+
+    try {
+        await addDoc(collection(db, 'ratings'), {
+            studentId: auth.currentUser.uid,
+            tutorId: tutorId,
+            personName: tutorName,
+            role: 'tutor',
+            stars: parseInt(stars),
+            comment: comment,
+            createdAt: new Date().toISOString()
+        });
+        alert("Thank you for your feedback!");
+    } catch (e) { alert("Error saving rating"); }
+};
+
+// Helper for dynamic badge updates
+function updateBadge(tabId) {
+    // This looks for the nav-badge in the HTML and increments it
+    const bookingNavItem = document.querySelectorAll('.nav-item')[1]; // My Bookings is index 1
+    let badge = bookingNavItem.querySelector('.nav-badge');
+    if(!badge) {
+        badge = document.createElement('span');
+        badge.className = 'nav-badge';
+        bookingNavItem.appendChild(badge);
+    }
+    badge.style.display = 'flex';
+    badge.textContent = (parseInt(badge.textContent) || 0) + 1;
+}
+
 
 
