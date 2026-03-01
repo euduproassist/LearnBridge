@@ -504,7 +504,12 @@
         <input id="book_topic" type="text" placeholder="e.g. Calculus Integration" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
         
         <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Preferred Dates/Times</label>
-        
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+    <input type="datetime-local" id="slot_picker" style="flex:1; padding:12px; border-radius:10px; border:1px solid #ddd;">
+    <button type="button" id="add_slot_btn" style="background:#003057; color:white; border:none; padding:0 15px; border-radius:10px; font-weight:bold;">Add</button>
+</div>
+<div id="queued_slots" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;"></div>
+
         <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Session Mode</label>
         <select id="book_mode" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
             <option value="Online">Online (MS Teams/Zoom)</option>
