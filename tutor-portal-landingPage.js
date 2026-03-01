@@ -25,6 +25,24 @@ onAuthStateChanged(auth, async (user) => {
                 }
             }
 
+        } catch (error) {
+            console.error("Error fetching user name:", error);
+        } // Closed the catch block properly
+
+        // Move the listener here (outside the catch)
+        const qBadge = query(collection(db, 'sessions'), where('tutorId', '==', uid), where('status', '==', 'pending'));
+        onSnapshot(qBadge, (snap) => {
+            const badge = document.getElementById('requestBadge');
+            if (snap && snap.size > 0) {
+                badge.textContent = snap.size;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }); 
+    } // End of "if (user)"
+}); // End of onAuthStateChanged
+
        
     } else {
         // Not logged in? Go back to login
