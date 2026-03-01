@@ -496,6 +496,53 @@
     </div>
 </div>
 
+    <div id="bookingActionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h2 id="bookTargetName" style="color:var(--primary-blue); margin-bottom:15px; font-size:1.4rem;">Book Session</h2>
+        
+        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">What topic do you need help with?</label>
+        <input id="book_topic" type="text" placeholder="e.g. Calculus Integration" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+        
+        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Preferred Dates/Times (Comma separated)</label>
+        <textarea id="book_slots" placeholder="2026-03-05 10:00, 2026-03-06 14:00" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px; font-family:inherit;"></textarea>
+
+        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Session Mode</label>
+        <select id="book_mode" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
+            <option value="Online">Online (MS Teams/Zoom)</option>
+            <option value="In-Person">In-Person (On Campus)</option>
+        </select>
+
+        <div style="display:flex; gap:10px;">
+            <button id="confirmBookingBtn" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Send Request</button>
+            <button onclick="document.getElementById('bookingActionModal').style.display='none'" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="ratingActionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <h2 id="rateTargetName" style="color:var(--primary-blue); margin-bottom:15px; font-size:1.4rem;">Rate Tutor</h2>
+        
+        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Rating (1-5 Stars)</label>
+        <select id="rate_stars" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
+            <option value="5">5 Stars - Excellent</option>
+            <option value="4">4 Stars - Very Good</option>
+            <option value="3">3 Stars - Good</option>
+            <option value="2">2 Stars - Fair</option>
+            <option value="1">1 Star - Poor</option>
+        </select>
+
+        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Your Feedback</label>
+        <textarea id="rate_comment" rows="3" placeholder="How was the session?" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px; font-family:inherit;"></textarea>
+
+        <div style="display:flex; gap:10px;">
+            <button id="confirmRatingBtn" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Submit Rating</button>
+            <button onclick="document.getElementById('ratingActionModal').style.display='none'" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Close</button>
+        </div>
+    </div>
+</div>
+
+
   
     <script type="module" src="student-portal-landingPage.js"></script>
 </body>
