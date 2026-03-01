@@ -792,56 +792,7 @@ function renderTutorList() {
 document.getElementById('tutorSearch').oninput = renderTutorList;
 document.getElementById('tutorFilter').onchange = renderTutorList;
 
-// --- OLD LOGIC: BOOKING PROMPT ---
-window.bookTutorPrompt = async (tutorId, tutorName) => {
-    const topic = prompt(`What topic do you need help with for ${tutorName}?`);
-    if (!topic) return;
 
-    const slotsInput = prompt("Enter 2 preferred dates/times (comma separated):\ne.g. 2026-03-05 10:00, 2026-03-06 14:00");
-    if (!slotsInput) return;
-    const slots = slotsInput.split(',').map(s => s.trim());
-
-    const mode = confirm("Press OK for Online, CANCEL for In-Person") ? "Online" : "In-Person";
-
-    try {
-        await addDoc(collection(db, 'sessions'), {
-            studentId: auth.currentUser.uid,
-            tutorId: tutorId,
-            personName: tutorName,
-            role: 'tutor',
-            topic: topic,
-            preferredSlots: slots,
-            mode: mode,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        });
-        alert("Request Sent! Check 'My Bookings' for updates.");
-        updateBadge('tabUpcoming'); // Logic to highlight the badge
-    } catch (e) {
-        alert("Booking failed.");
-    }
-};
-
-// --- OLD LOGIC: RATING PROMPT ---
-window.rateTutorPrompt = async (tutorId, tutorName) => {
-    const stars = prompt("Rate 1 to 5 stars:");
-    if (!stars || stars < 1 || stars > 5) return alert("Invalid rating.");
-
-    const comment = prompt("Add a comment (Optional):");
-
-    try {
-        await addDoc(collection(db, 'ratings'), {
-            studentId: auth.currentUser.uid,
-            tutorId: tutorId,
-            personName: tutorName,
-            role: 'tutor',
-            stars: parseInt(stars),
-            comment: comment,
-            createdAt: new Date().toISOString()
-        });
-        alert("Thank you for your feedback!");
-    } catch (e) { alert("Error saving rating"); }
-};
 
 // Helper for dynamic badge updates
 function updateBadge(tabId) {
