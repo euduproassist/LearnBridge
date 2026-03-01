@@ -26,22 +26,23 @@ onAuthStateChanged(auth, async (user) => {
             }
         } catch (error) {
             console.error("Error fetching user name:", error);
-        }
-    } else {
-        // Not logged in? Go back to login
-        window.location.href = 'index.html';
-    }
-});
 
-// Real-time listener for the badge count
-const qBadge = query(collection(db, 'sessions'), where('tutorId', '==', uid), where('status', '==', 'pending'));
-onSnapshot(qBadge, (snap) => {
-    const badge = document.getElementById('requestBadge');
-    if (snap.size > 0) {
+      // Real-time listener for the badge count
+        const qBadge = query(collection(db, 'sessions'), where('tutorId', '==', uid), where('status', '==', 'pending'));
+        onSnapshot(qBadge, (snap) => {
+        const badge = document.getElementById('requestBadge');
+        if (snap.size > 0) {
         badge.textContent = snap.size;
         badge.style.display = 'block';
     } else {
         badge.style.display = 'none';
+    }
+             }
+});
+       
+    } else {
+        // Not logged in? Go back to login
+        window.location.href = 'index.html';
     }
 });
 
