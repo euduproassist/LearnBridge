@@ -13,6 +13,29 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/users/$(staffId)).data.role in ['tutor', 'lecturer', 'academic-advisor', 'campus-services'];
     }
 
+    /* ---------------- USERS ---------------- */
+    match /users/{userId} {
+      // 1. ALLOW PUBLIC QUERY FOR SIGNUP (The Fix)
+      // This allows the signup page to check if an email is pre-registered
+      allow list: if true; 
+      
+      // 2. READ: Logged in users can see profiles
+      allow read: if request.auth != null; 
+      
+      // 3. CREATE: Allow new users to save their profile
+      allow create: if request.auth != null 
+                  && request.auth.uid == userId 
+                  && request.resource.data.role != 'admin';
+
+      // 4. UPDATE: Allow users to change info, but NOT their role
+      allow update: if request.auth != null && (
+          (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+          || isAdmin()
+      );
+      
+      // 5. DELETE: Only you (Admin)
+      allow delete: if isAdmin();
+    }
     
     /* ---------------- SESSIONS ---------------- */
     match /sessions/{sessionId} {
