@@ -530,6 +530,7 @@ document.getElementById('sendChatBtn').onclick = async () => {
 document.getElementById('chatBackBtn').onclick = openChatList;
 document.getElementById('closeInboxBtn').onclick = () => {
     if(unsubChat) unsubChat();
+    if(unsubChatList) unsubChatList();
     document.getElementById('inboxModal').style.display = 'none';
 };
 
