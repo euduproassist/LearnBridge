@@ -536,6 +536,7 @@ document.getElementById('closeInboxBtn').onclick = () => {
     if(unsubChatList) unsubChatList();
     document.getElementById('inboxModal').style.display = 'none';
 };
+});
 
 
 
