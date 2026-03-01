@@ -16,7 +16,7 @@ onAuthStateChanged(auth, async (user) => {
                 const userData = userSnap.data();
                 
                 // 1. DYNAMIC GREETING: Sets the name from signup
-                const firstName = userData.name ? userData.name.split(' ')[0] : 'Student';
+                const firstName = userData.name ? userData.name.split(' ')[0] : 'Tutor';
                 document.getElementById('display-name').textContent = `Hello, ${firstName}! `;
                 
                 // 2. DYNAMIC CAMPUS (Optional): Shows department or year if available
@@ -40,9 +40,8 @@ onAuthStateChanged(auth, async (user) => {
                 badge.style.display = 'none';
             }
         }); 
-    } // End of "if (user)"
-}); // End of onAuthStateChanged
-
+    } 
+}); 
        
     } else {
         // Not logged in? Go back to login
@@ -121,7 +120,7 @@ document.getElementById('sendTicketBtn').onclick = async () => {
 
     try {
         await addDoc(collection(db, 'supportTickets'), {
-            studentId: user.uid,
+            userId: user.uid,
             title: title,
             message: msg,
             priority: prio,
@@ -145,7 +144,7 @@ async function loadTicketHistory() {
     if (!user) return;
 
     try {
-        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'supportTickets'), where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
         const snap = await getDocs(q);
         
         if (snap.empty) {
