@@ -358,6 +358,7 @@ const chatPageSize = 10;
 let lastDoc = null;
 let activeView = 'chats'; // 'chats' or 'users' or 'conversation'
 let unsubChat = null;
+let unsubChatList = null;
 
 // --- CORE FUNCTIONS ---
 
@@ -380,7 +381,8 @@ const renderChatList = async () => {
                     where('participants', 'array-contains', user.uid), 
                     orderBy('lastTimestamp', 'desc'));
     
-    onSnapshot(q, (snap) => {
+    if (unsubChatList) unsubChatList();
+    unsubChatList = onSnapshot(q, (snap) => {
         if (activeView !== 'chats') return;
         if (snap.empty) {
             container.innerHTML = "No conversations yet. Go to 'Find People' to start one.";
