@@ -45,6 +45,19 @@ document.getElementById('backToGridBtn').addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'grid';
 });
 
+// Toggle View for Pending Requests
+document.getElementById('viewRequestsBtn').addEventListener('click', () => {
+    document.getElementById('gridView').style.display = 'none';
+    document.getElementById('pendingRequestsView').style.display = 'flex';
+    document.getElementById('requestBadge').style.display = 'none'; // Clear badge on click
+    loadIncomingRequests();
+});
+
+document.getElementById('closeRequestsView').addEventListener('click', () => {
+    document.getElementById('pendingRequestsView').style.display = 'none';
+    document.getElementById('gridView').style.display = 'grid';
+});
+
 
 // --- Integrated Navigation Logic ---
 const navItems = document.querySelectorAll('.nav-item');
@@ -885,6 +898,94 @@ document.getElementById('add_slot_btn').onclick = () => {
         p.value = '';
     }
 };
+
+let allPendingRequests = [];
+let reqCurrentPage = 1;
+const reqPageSize = 10;
+
+async function loadIncomingRequests() {
+    const user = auth.currentUser;
+    const container = document.getElementById('requestsList');
+    container.innerHTML = "Loading requests...";
+
+    try {
+        const q = query(
+            collection(db, 'sessions'), 
+            where('tutorId', '==', user.uid), 
+            where('status', '==', 'pending'),
+            orderBy('createdAt', 'desc')
+        );
+
+        const snap = await getDocs(q);
+        allPendingRequests = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderRequestsPage();
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = "Error loading requests. Check if you have sessions in Firestore.";
+    }
+}
+
+function renderRequestsPage() {
+    const container = document.getElementById('requestsList');
+    const totalPages = Math.ceil(allPendingRequests.length / reqPageSize) || 1;
+    
+    const start = (reqCurrentPage - 1) * reqPageSize;
+    const paginatedItems = allPendingRequests.slice(start, start + reqPageSize);
+
+    document.getElementById('reqPageInfo').textContent = `Page ${reqCurrentPage} of ${totalPages}`;
+
+    if (allPendingRequests.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color:#999;'>No pending requests.</p>";
+        return;
+    }
+
+    container.innerHTML = paginatedItems.map(req => `
+        <div style="background:white; border:1px solid #ddd; border-radius:12px; padding:15px; margin-bottom:10px; color:black;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <b style="font-size:1rem;">Topic: ${req.topic}</b>
+                <small style="color:#666;">${new Date(req.createdAt).toLocaleDateString()}</small>
+            </div>
+            <p style="font-size:0.85rem; margin-bottom:10px;">Student: <b>${req.studentName || 'Student'}</b> (${req.mode})</p>
+            
+            <label style="font-size:0.75rem; color:var(--primary-blue); font-weight:bold;">Select a Student-Proposed Slot:</label>
+            <select id="slotSelect_${req.id}" style="width:100%; padding:8px; margin-top:5px; border-radius:5px; border:1px solid #ccc;">
+                ${req.preferredSlots.map(slot => `<option value="${slot}">${new Date(slot).toLocaleString()}</option>`).join('')}
+            </select>
+
+            <input type="text" id="venue_${req.id}" placeholder="Enter Venue (e.g. Library Room 4 or Teams Link)" style="width:100%; padding:8px; margin-top:10px; border-radius:5px; border:1px solid #ccc;">
+
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="respondToRequest('${req.id}', 'approved')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">Accept</button>
+                <button onclick="respondToRequest('${req.id}', 'rejected')" style="flex:1; background:white; color:black; border:1px solid black; padding:10px; border-radius:8px; cursor:pointer;">Reject</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.respondToRequest = async (reqId, status) => {
+    const selectedSlot = document.getElementById(`slotSelect_${reqId}`).value;
+    const venue = document.getElementById(`venue_${reqId}`).value.trim();
+
+    if (status === 'approved' && !venue) {
+        return alert("Please provide a venue or link before accepting.");
+    }
+
+    try {
+        await updateDoc(doc(db, 'sessions', reqId), {
+            status: status,
+            datetime: selectedSlot,
+            venue: venue || 'Declined',
+            processedAt: serverTimestamp()
+        });
+
+        alert(`Request ${status}!`);
+        loadIncomingRequests(); // Refresh list
+    } catch (e) {
+        alert("Action failed.");
+    }
+};
+
+
 
 
 
