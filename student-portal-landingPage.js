@@ -33,11 +33,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Navigation Logic
-document.getElementById('findTutorBtn').addEventListener('click', () => {
-    // Redirects to the functional portal
-    window.location.href = 'student-portal.html';
-});
+
 
 // --- Integrated Navigation Logic ---
 const navItems = document.querySelectorAll('.nav-item');
