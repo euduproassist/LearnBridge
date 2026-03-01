@@ -33,6 +33,19 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+// Real-time listener for the badge count
+const qBadge = query(collection(db, 'sessions'), where('tutorId', '==', uid), where('status', '==', 'pending'));
+onSnapshot(qBadge, (snap) => {
+    const badge = document.getElementById('requestBadge');
+    if (snap.size > 0) {
+        badge.textContent = snap.size;
+        badge.style.display = 'block';
+    } else {
+        badge.style.display = 'none';
+    }
+});
+
+
 // Toggle between Grid and Tutor Explorer
 document.getElementById('findTutorBtn').addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'none';
