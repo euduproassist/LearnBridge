@@ -100,9 +100,9 @@ navItems.forEach(item => {
         if (tabText.includes('Support-tickets')) {
             document.getElementById('supportModal').style.display = 'flex';
             loadTicketHistory();
-        } else if (tabText.includes('Ratings')) {
-            document.getElementById('ratingsModal').style.display = 'flex';
-            loadUserRatings();
+        } else if (tabText.includes('Alerts')) {
+            document.getElementById('alertsModal').style.display = 'flex';
+            renderNotifications();
         } else if (tabText.includes('Inbox')) {
             document.getElementById('inboxModal').style.display = 'flex';
             openChatList();
