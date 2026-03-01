@@ -13,7 +13,92 @@
 <body class="login-page" style="background-image:url('assets/banners/uj-bg.jpg')">
   <div id="popup" class="popup"></div>
   <img src="assets/logos/main.png" class="top-left-logo" alt="UJ Logo">
-  
+  <div class="login-box">
+  <h2>Sign Up to LearnBridge 🎓</h2>
+
+  <input type="text" id="fullName" placeholder="Full Name"><br>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Password (8+ chars, number, symbol)"><br>
+
+  <button id="signupBtn">Sign Up</button>
+
+  <p>Already have an account? <a href="index.html">Login here</a></p>
+  <p class="footer">© 2025 EMERIS | LearnBridge</p>
+</div>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+  import { doc, setDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+  const popup = (obj) => {
+    const p = document.getElementById('popup');
+    p.textContent = obj.msg;
+    p.className = obj.success ? 'popup success' : 'popup';
+    p.style.display = 'block';
+    setTimeout(()=> p.style.display='none', 3500);
+  };
+
+  document.getElementById('signupBtn').addEventListener('click', async ()=>{
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!fullName || !email) return popup({ msg: 'Please fill in all fields' });
+
+    // Password Regex Check
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return popup({ msg: 'Password must be 8+ chars, include a number and a symbol' });
+    }
+
+    try {
+      // --- STEP 1: CHECK IF USER IS PRE-REGISTERED STAFF ---
+      let assignedRole = 'student'; 
+      let assignedDept = '';
+
+      // We look for a document in 'users' where the email matches
+      const q = query(collection(db, 'users'), where('email', '==', email));
+      const querySnap = await getDocs(q);
+
+      if (!querySnap.empty) {
+        // FOUND THEM! They are a Lecturer/Tutor/Advisor you added manually
+        const existingData = querySnap.docs[0].data();
+        assignedRole = existingData.role;
+        assignedDept = existingData.department || '';
+        
+        // Optional: Delete the temporary manual doc so we can create a clean one with the UID
+        // Or just keep track of the role.
+      }
+
+      // --- STEP 2: CREATE AUTH ACCOUNT ---
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      
+      // --- STEP 3: SAVE FINAL PROFILE ---
+      await setDoc(doc(db, 'users', uid), {
+        fullName, 
+        email, 
+        role: assignedRole, 
+        department: assignedDept,
+        createdAt: new Date().toISOString(), 
+        approved: assignedRole === 'student', // Staff remain unapproved until you check them
+        emailVerified: false
+      });
+      
+      await sendEmailVerification(userCred.user);
+      popup({ msg: 'Account created! Verify your email to continue.', success: true });
+      
+      setTimeout(()=> window.location.href = 'index.html', 2500);
+
+    } catch (err) {
+      console.error(err);
+      let msg = err.code === 'auth/email-already-in-use' ? 'Email already registered.' : err.message;
+      popup({ msg: msg });
+    }
+  });
+</script>
+
 </body>
 </html>
 
