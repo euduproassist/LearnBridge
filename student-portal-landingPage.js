@@ -806,7 +806,7 @@ window.bookTutorPrompt = (tutorId, tutorName) => {
 
 document.getElementById('confirmBookingBtn').onclick = async () => {
     const topic = document.getElementById('book_topic').value.trim();
-    const slotsInput = document.getElementById('book_slots').value.trim();
+    const slotsInput = document.getElementById('book_slots').value;
     const mode = document.getElementById('book_mode').value;
 
     if (!topic || !slotsInput) return alert("Please fill in all fields.");
@@ -818,7 +818,7 @@ document.getElementById('confirmBookingBtn').onclick = async () => {
             personName: activeTutorName,
             role: 'tutor',
             topic: topic,
-            preferredSlots: slotsInput.split(',').map(s => s.trim()),
+            preferredSlots: [slotsInput],
             mode: mode,
             status: 'pending',
             createdAt: new Date().toISOString()
