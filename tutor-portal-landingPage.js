@@ -47,18 +47,6 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 
-// Toggle between Grid and Tutor Explorer
-document.getElementById('findTutorBtn').addEventListener('click', () => {
-    document.getElementById('gridView').style.display = 'none';
-    document.getElementById('tutorExplorerView').style.display = 'flex';
-    loadTutors(); // Trigger the loading logic
-});
-
-document.getElementById('backToGridBtn').addEventListener('click', () => {
-    document.getElementById('tutorExplorerView').style.display = 'none';
-    document.getElementById('gridView').style.display = 'grid';
-});
-
 // Toggle View for Pending Requests
 document.getElementById('viewRequestsBtn').addEventListener('click', () => {
     document.getElementById('gridView').style.display = 'none';
@@ -567,102 +555,6 @@ document.getElementById('chatBackBtn').onclick = openChatList;
 document.getElementById('closeInboxBtn').onclick = () => {
     if(unsubChat) unsubChat();
     document.getElementById('inboxModal').style.display = 'none';
-};
-
-// --- TUTOR EXPLORER LOGIC (IDENTICAL TO EVALUATED PORTAL) ---
-let allTutors = [];
-let tutorPage = 1;
-const tutorLimit = 5;
-
-async function loadTutors() {
-    const container = document.getElementById('tutorListContainer');
-    container.innerHTML = "Finding available tutors...";
-    
-    try {
-        // Fetching from 'users' collection where role is 'tutor'
-        const q = query(collection(db, 'users'), where('role', '==', 'tutor'));
-        const snap = await getDocs(q);
-        allTutors = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderTutorList();
-    } catch (e) {
-        container.innerHTML = "Error loading tutors.";
-    }
-}
-
-function renderTutorList() {
-    const container = document.getElementById('tutorListContainer');
-    const search = document.getElementById('tutorSearch').value.toLowerCase();
-    const filter = document.getElementById('tutorFilter').value;
-
-    let filtered = allTutors.filter(t => {
-        const matchesSearch = t.name.toLowerCase().includes(search) || (t.modules && t.modules.toLowerCase().includes(search));
-        const matchesFilter = filter === 'all' || t.department === filter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const start = (tutorPage - 1) * tutorLimit;
-    const paginated = filtered.slice(start, start + tutorLimit);
-    
-    document.getElementById('tutorPageInfo').textContent = `Page ${tutorPage} of ${Math.ceil(filtered.length/tutorLimit) || 1}`;
-
-    container.innerHTML = paginated.map(t => `
-        <div style="border:1px solid #eee; border-radius:15px; padding:15px; margin-bottom:10px; background:#fff;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${t.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:50px; height:50px; border-radius:50%;">
-                <div style="flex:1;">
-                    <b style="color:var(--primary-blue);">${t.name}</b>
-                    <div style="font-size:0.75rem; color:#666;">${t.modules || 'General Support'}</div>
-                </div>
-            </div>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Book</button>
-                <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; border:1px solid var(--primary-blue); background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Chat</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Search Listeners
-document.getElementById('tutorSearch').oninput = renderTutorList;
-document.getElementById('tutorFilter').onchange = renderTutorList;
-
-// --- GLOBAL TEMPORARY STORAGE ---
-let activeTutorId = null;
-let activeTutorName = null;
-
-// --- REPLACED BOOKING LOGIC ---
-window.bookTutorPrompt = (tutorId, tutorName) => {
-    activeTutorId = tutorId;
-    activeTutorName = tutorName;
-    document.getElementById('bookTargetName').textContent = `Book ${tutorName}`;
-    document.getElementById('bookingActionModal').style.display = 'flex';
-};
-
-document.getElementById('confirmBookingBtn').onclick = async () => {
-    const topic = document.getElementById('book_topic').value.trim();
-    const mode = document.getElementById('book_mode').value;
-
-    if (!topic || !slotsInput) return alert("Please fill in all fields.");
-
-    try {
-        await addDoc(collection(db, 'sessions'), {
-            studentId: auth.currentUser.uid,
-            tutorId: activeTutorId,
-            personName: activeTutorName,
-            role: 'tutor',
-            topic: topic,
-            preferredSlots: [slotsInput],
-            mode: mode,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        });
-        
-        alert("Request Sent Successfully!");
-        document.getElementById('bookingActionModal').style.display = 'none';
-        updateBadge('tabUpcoming');
-    } catch (e) {
-        alert("Booking failed.");
-    }
 };
 
 
