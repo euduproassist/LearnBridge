@@ -67,6 +67,9 @@ navItems.forEach(item => {
         if (activeIcon) activeIcon.src = activeIcon.src.replace('888888', '003057');
 
         // 3. Trigger Modals based on text
+        const badge = this.querySelector('.nav-badge');
+        if (badge) badge.style.display = 'none'; // Clear notification when clicked
+
         if (tabText.includes('Support-tickets')) {
             document.getElementById('supportModal').style.display = 'flex';
             loadTicketHistory();
