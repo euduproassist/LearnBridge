@@ -1,3 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnBridge — Tutor Hub</title>
+    <link rel="icon" type="image/png" href="assets/logos/uj.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uj-blue: #003057;
+            --uj-orange: #E87722;
+            --bg-light: #F2F5F8;
+            --text-main: #333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 80px; }
+
+        /* Header */
+        header {
+            background-color: var(--uj-blue);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Profile Section */
+        .profile-summary {
+            background: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .profile-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .greeting h2 { font-size: 1.1rem; color: var(--uj-blue); }
+        .greeting p { font-size: 0.85rem; color: #666; }
+
+        /* Hub Grid */
+        .hub-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hub-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .hub-card:active { transform: scale(0.95); }
+        .hub-card img { width: 50px; height: 50px; margin-bottom: 12px; }
+        .hub-card h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--uj-blue); }
+        .hub-card p { font-size: 0.75rem; color: #777; line-height: 1.3; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #ddd;
+            z-index: 100;
+        }
+        .nav-item { text-align: center; font-size: 0.7rem; color: #888; text-decoration: none; flex: 1; }
+        .nav-item.active { color: var(--uj-blue); font-weight: bold; }
+        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* Hidden Sections */
+        .modal-view {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-light);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .back-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+
+        /* Simple Data Table Styling (Per your instructions) */
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        th { background: #f8f8f8; font-weight: 600; color: var(--uj-blue); }
+
+    </style>
+</head>
+<body>
+
+    <header>LearnBridge Campus Hub</header>
+
+    <div class="profile-summary">
+        <img src="assets/logos/uj.png" id="tutorImg" class="profile-img">
+        <div class="greeting">
+            <h2 id="tutorName">Hello, Sarah!</h2>
+            <p id="tutorSub">Computer Science Tutor • <span style="color:green">Active</span></p>
+        </div>
+    </div>
+
+    <div class="hub-container">
+        <div class="hub-card" onclick="openModal('requestsModal')">
+            <img src="https://img.icons8.com/ios-filled/100/003057/appointment-reminders.png">
+            <h3>Request Metrics</h3>
+            <p>Track pending, accepted, and declined requests.</p>
+        </div>
+
+        <div class="hub-card" onclick="openModal('velocityModal')">
+            <img src="https://img.icons8.com/ios-filled/100/003057/speed.png">
+            <h3>Teaching Velocity</h3>
+            <p>Total tutoring hours and lesson frequency.</p>
+        </div>
+
+        <div class="hub-card" onclick="openModal('ratingsModal')">
+            <img src="https://img.icons8.com/ios-filled/100/003057/star.png">
+            <h3>Anonymous Ratings</h3>
+            <p>View student feedback and module quality scores.</p>
+        </div>
+
+        <div class="hub-card" onclick="openModal('historyModal')">
+            <img src="https://img.icons8.com/ios-filled/100/003057/document.png">
+            <h3>Service History</h3>
+            <p>Auditable ledger of verified hours & transcript.</p>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal-view">
+        <div class="modal-header">
+            <button class="back-btn" onclick="closeModal('historyModal')">←</button>
+            <h2>Service History</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Module</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>28 Feb 2026</td>
+                    <td>MAT1A01</td>
+                    <td>1.0 hr</td>
+                    <td>Verified ✓</td>
+                </tr>
+                <tr>
+                    <td>26 Feb 2026</td>
+                    <td>CSC01A1</td>
+                    <td>1.5 hrs</td>
+                    <td>Verified ✓</td>
+                </tr>
+            </tbody>
+        </table>
+        <button style="margin-top:20px; padding:15px; background:var(--uj-blue); color:white; border:none; border-radius:8px;">Download Official Transcript (PDF)</button>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active"><span class="nav-icon">📅</span>Availability</a>
+        <a href="#" class="nav-item"><span class="nav-icon">🕒</span>My Bookings</a>
+        <a href="#" class="nav-item"><span class="nav-icon">💬</span>Inbox</a>
+        <a href="#" class="nav-item"><span class="nav-icon">👤</span>Profile</a>
+    </nav>
+
+    <script type="module" src="tutor-portal-landingPage.js"></script>
+</body>
+</html>
 
 
 
