@@ -877,5 +877,14 @@ function updateBadge(tabId) {
     badge.textContent = (parseInt(badge.textContent) || 0) + 1;
 }
 
+let selectedSlots = [];
+document.getElementById('add_slot_btn').onclick = () => {
+    const p = document.getElementById('slot_picker');
+    if (p.value) { 
+        selectedSlots.push(p.value); 
+        document.getElementById('queued_slots').innerHTML += `<span style="background:#eee; padding:5px; border-radius:5px; font-size:0.7rem;">${p.value}</span> `;
+        p.value = '';
+    }
+};
 
 
