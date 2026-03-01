@@ -280,11 +280,6 @@
     </a>
 
         <a href="#" class="nav-item">
-        <img src="https://img.icons8.com/material-outlined/24/888888/star--v1.png" class="nav-icon-img">
-        Ratings
-        </a>
-
-        <a href="#" class="nav-item">
         <img src="https://img.icons8.com/material-outlined/24/888888/external-link.png" class="nav-icon-img">
         Support-tickets
         </a>
@@ -363,33 +358,6 @@
                 <button id="closeProfileBtn" style="flex: 1; background:#eee; color:#333; border:none; padding:10px; border-radius:10px; cursor:pointer;">Close</button>
                 <button id="logoutBtn" style="flex: 1; background:#003057; color:white; border:none; padding:10px; border-radius:10px; cursor:pointer; font-weight: 600;">Log Out</button>
             </div>
-        </div>
-    </div>
-</div>
-
-<div id="ratingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:white; width:100%; max-width:500px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 85vh; display: flex; flex-direction: column;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="color:var(--primary-blue); font-size:1.4rem;">My Ratings & Feedback</h2>
-            <button id="closeRatingsBtn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#999;">&times;</button>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-            <input id="rate_search_input" type="text" placeholder="Search by name..." style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
-            <select id="rate_filter_role" style="padding:8px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
-                <option value="">All</option>
-                <option value="tutor">Tutors</option>
-                <option value="counsellor">Staff</option>
-            </select>
-        </div>
-
-        <div id="ratingsListContainer" style="overflow-y:auto; flex:1; padding-right:5px;">
-            <div style="text-align:center; color:#999; padding:20px;">Loading your feedback...</div>
-        </div>
-
-        <div style="margin-top: 15px; text-align: right;">
-            <button id="refreshRatingsBtn" style="background:var(--primary-blue); color:white; border:none; padding:10px 20px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.85rem;">Refresh List</button>
         </div>
     </div>
 </div>
@@ -485,29 +453,6 @@
         <div style="display:flex; gap:10px;">
             <button id="confirmBookingBtn" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Send Request</button>
             <button onclick="document.getElementById('bookingActionModal').style.display='none'" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Cancel</button>
-        </div>
-    </div>
-</div>
-
-<div id="ratingActionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:4000; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:white; width:100%; max-width:400px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-        <h2 id="rateTargetName" style="color:var(--primary-blue); margin-bottom:15px; font-size:1.4rem;">Rate Tutor</h2>
-        
-        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Rating (1-5 Stars)</label>
-        <select id="rate_stars" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px;">
-            <option value="5">5 Stars - Excellent</option>
-            <option value="4">4 Stars - Very Good</option>
-            <option value="3">3 Stars - Good</option>
-            <option value="2">2 Stars - Fair</option>
-            <option value="1">1 Star - Poor</option>
-        </select>
-
-        <label style="color:#666; font-size:0.8rem; display:block; margin-bottom:5px;">Your Feedback</label>
-        <textarea id="rate_comment" rows="3" placeholder="How was the session?" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px; font-family:inherit;"></textarea>
-
-        <div style="display:flex; gap:10px;">
-            <button id="confirmRatingBtn" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Submit Rating</button>
-            <button onclick="document.getElementById('ratingActionModal').style.display='none'" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">Close</button>
         </div>
     </div>
 </div>
