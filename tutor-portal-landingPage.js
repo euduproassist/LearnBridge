@@ -24,21 +24,7 @@ onAuthStateChanged(auth, async (user) => {
                     document.getElementById('display-campus').textContent = `(${userData.department})`;
                 }
             }
-        } catch (error) {
-            console.error("Error fetching user name:", error);
 
-      // Real-time listener for the badge count
-        const qBadge = query(collection(db, 'sessions'), where('tutorId', '==', uid), where('status', '==', 'pending'));
-        onSnapshot(qBadge, (snap) => {
-        const badge = document.getElementById('requestBadge');
-        if (snap.size > 0) {
-        badge.textContent = snap.size;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
-    }
-             }
-});
        
     } else {
         // Not logged in? Go back to login
