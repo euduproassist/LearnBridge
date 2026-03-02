@@ -644,22 +644,6 @@ document.getElementById('triggerEditBtn').onclick = () => {
     document.getElementById('presenceModal').style.display = 'flex';
     loadPresenceData();
 };
-document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
-document.getElementById('sum_LogoutBtn').onclick = () => document.getElementById('logoutBtn').click();
-document.getElementById('sum_ResetBtn').onclick = () => document.getElementById('resetPassBtn').click();
-
-
-
-
-
-
-
-// Connect the buttons in the summary view
-document.getElementById('triggerEditBtn').onclick = () => {
-    document.getElementById('profileModal').style.display = 'none';
-    document.getElementById('presenceModal').style.display = 'flex';
-    loadPresenceData();
-};
 
 document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
 
