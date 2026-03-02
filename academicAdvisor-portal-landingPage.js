@@ -16,7 +16,7 @@ onAuthStateChanged(auth, async (user) => {
                 const userData = userSnap.data();
                 
                 // 1. DYNAMIC GREETING: Sets the name from signup
-                const firstName = userData.name ? userData.name.split(' ')[0] : 'Tutor';
+                const firstName = userData.name ? userData.name.split(' ')[0] : 'Advisor';
                 document.getElementById('display-name').textContent = `Hello, ${firstName}! `;
                 
                 // 2. DYNAMIC CAMPUS (Optional): Shows department or year if available
@@ -418,7 +418,7 @@ const renderChatList = async () => {
     });
 };
 
-// --- USER DIRECTORY (TUTOR PORTAL - HARDCODED ROLES) ---
+// --- USER DIRECTORY (ADVISOR PORTAL - HARDCODED ROLES) ---
 document.getElementById('viewUsersTab').onclick = async () => {
     activeView = 'users';
     document.getElementById('viewUsersTab').style.borderBottom = "3px solid var(--primary-blue)";
