@@ -840,8 +840,11 @@ function renderTutorList() {
             
             <div style="margin-top:12px; padding:10px; background:#f9f9f9; border-radius:8px; border: 1px solid #f0f0f0;">
                 <span style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; display:block; margin-bottom:4px;">Current Availability:</span>
-                <div style="font-size:0.8rem; color:#333; font-weight:500;">
-                
+                <div style="font-size:0.8rem; color:#333; font-weight:500;">                
+    ${Array.isArray(t.availability) && t.availability.length > 0 
+        ? t.availability.map(slot => `${slot.day}: ${slot.start}-${slot.end}`).join('<br>') 
+        : (typeof t.availability === 'string' ? t.availability : 'Consultation by appointment only')
+    }
                 </div>
             </div>
 
