@@ -894,8 +894,11 @@ document.getElementById('confirmBookingBtn').onclick = async () => {
     }
 
     try {
+        const studentSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        const studentName = studentSnap.exists() ? studentSnap.data().name : "Student";
         await addDoc(collection(db, 'sessions'), {
             studentId: auth.currentUser.uid,
+            studentName: studentName,
             tutorId: activeTutorId,
             personName: activeTutorName,
             role: 'tutor',
