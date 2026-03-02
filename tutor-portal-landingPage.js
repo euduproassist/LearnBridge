@@ -652,6 +652,15 @@ async function loadProfileSummary() {
         document.getElementById('sum_Avatar').src = d.profilePic || avatars[0];
         document.getElementById('sum_Name').textContent = d.name || "No Name Set";
         document.getElementById('sum_Details').textContent = `${d.modules || 'No Modules'} | ${d.department || 'No Dept'}`;
+     const availabilityData = d.availability || [];
+document.getElementById('sum_Days').innerHTML = availabilityData.length > 0 
+    ? availabilityData.map(s => `
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:4px 0;">
+            <span style="color:#333;">${s.day}</span>
+            <span style="font-weight:700; color:#003057;">${s.start} - ${s.end}</span>
+        </div>
+      `).join('')
+    : '<span style="color:red;">No hours set</span>';
 
     }
 }
