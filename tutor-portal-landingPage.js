@@ -11,7 +11,8 @@ const avatars = [
 ];
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
+let selectedDays = []; // We will now store objects here: {day: "Monday", start: "08:00", end: "10:00"}
+const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 let currentPreAvatar = "";
 
 
