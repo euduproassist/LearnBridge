@@ -824,6 +824,33 @@ function renderTutorList() {
     document.getElementById('tutorPageInfo').textContent = `Page ${tutorPage} of ${Math.ceil(filtered.length/tutorLimit) || 1}`;
 
     container.innerHTML = paginated.map(t => `
+            <div style="border:1px solid #eee; border-radius:15px; padding:15px; margin-bottom:10px; background:#fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${t.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:50px; height:50px; border-radius:50%; border: 1px solid #eee;">
+                <div style="flex:1;">
+                    <b style="color:var(--primary-blue); font-size:1rem;">${t.name}</b>
+                    <div style="font-size:0.75rem; color:var(--primary-blue); font-weight:600; margin-top:2px;">
+                        ${t.department || 'General Department'}
+                    </div>
+                    <div style="font-size:0.7rem; color:#666; margin-top:2px;">
+                        Focus: ${t.modules || 'General Support'}
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top:12px; padding:10px; background:#f9f9f9; border-radius:8px; border: 1px solid #f0f0f0;">
+                <span style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; display:block; margin-bottom:4px;">Current Availability:</span>
+                <div style="font-size:0.8rem; color:#333; font-weight:500;">
+                    ${t.availability || 'Consultation by appointment only'}
+                </div>
+            </div>
+
+            <div style="display:flex; gap:5px; margin-top:12px;">
+                <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:10px; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer;">Book</button>
+                <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; border:1px solid var(--primary-blue); background:white; color:var(--primary-blue); padding:10px; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer;">Chat</button>
+                <button onclick="rateTutorPrompt('${t.id}', '${t.name}')" style="flex:1; border:1px solid #ddd; background:white; color:#666; padding:10px; border-radius:8px; font-size:0.75rem; cursor:pointer;">Rate</button>
+            </div>
+        </div>
 
     `).join('');
 }
