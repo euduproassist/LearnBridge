@@ -50,6 +50,10 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Error fetching user name:", error);
         } // Closed the catch block properly
 
+        // ADD THESE TWO LINES HERE:
+        startNotificationListener(); 
+        fetchRequests(); // This ensures the tutor's data is ready before fetching
+
     } else {
         // Not logged in? Go back to login
         window.location.href = 'index.html';
