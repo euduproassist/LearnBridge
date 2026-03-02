@@ -872,7 +872,7 @@ window.approveSpecificSlot = async (requestId, chosenSlot) => {
 
         await updateDoc(reqRef, { 
             status: 'approved',
-            datetime: chosenSlot, // This saves the ONE specific time picked
+            datetime: new Date(chosenSlot).toISOString(), 
             processedAt: new Date().toISOString()
         });
 
