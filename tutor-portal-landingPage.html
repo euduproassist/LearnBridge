@@ -301,6 +301,39 @@
     </div>
 </div>
 
+        <div id="presenceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2500; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:450px; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+        <div style="display:flex; background:#f4f4f4; border-bottom:1px solid #ddd;">
+            <button id="tabSetupProfile" style="flex:1; padding:15px; border:none; background:white; font-weight:600; cursor:pointer; border-bottom:3px solid #003057;">1. Edit Profile</button>
+            <button id="tabSetupWork" style="flex:1; padding:15px; border:none; background:#f4f4f4; color:#666; cursor:pointer;">2. Availability</button>
+        </div>
+
+        <div id="presenceContent" style="padding:20px; max-height:70vh; overflow-y:auto;">
+            <div id="paneProfile">
+                <div style="text-align:center; margin-bottom:15px;">
+                    <img id="presenceAvatar" src="https://img.icons8.com/fluency/48/student-male.png" style="width:70px; border:2px solid #003057; border-radius:50%;">
+                    <div id="presenceAvatarPicker" style="display:flex; justify-content:center; gap:10px; margin-top:10px;"></div>
+                </div>
+                <input id="pre_name" type="text" placeholder="Full Name" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+                <input id="pre_dept" type="text" placeholder="Department" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+                <input id="pre_course" type="text" placeholder="Course" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px;">
+            </div>
+
+            <div id="paneAvailability" style="display:none;">
+                <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Select your working days:</p>
+                <div id="daysContainer">
+                    </div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px; padding:20px; border-top:1px solid #eee;">
+            <button id="savePresenceBtn" style="flex:1; background:#003057; color:white; padding:12px; border:none; border-radius:5px; font-weight:600; cursor:pointer;">Save & Link</button>
+            <button id="closePresenceBtn" style="flex:1; background:#eee; color:#333; padding:12px; border:none; border-radius:5px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
     <div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
     <div style="background:white; width:100%; max-width:450px; border-radius:20px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
         <h2 style="color:var(--primary-blue); margin-bottom:15px; font-size:1.4rem; border-bottom: 2px solid var(--primary-blue); padding-bottom: 5px;">Tutor Profile</h2>
