@@ -776,21 +776,7 @@ function renderRequests() {
         return;
     }
 
-    if (currentReqTab === 'pending') {
-        container.innerHTML = paginated.map(r => `
-            <div style="border:1px solid #eee; padding:15px; border-radius:10px; margin-bottom:10px; background:#fff;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <b style="color:#003057;">${r.studentName || 'Unknown Student'}</b>
-                    <small style="color:#888;">Sent: ${new Date(r.timestamp).toLocaleDateString()}</small>
-                </div>
-                <p style="font-size:0.85rem; margin-bottom:10px;">Requested for: <b>${r.date} at ${r.time}</b></p>
-                <div style="display:flex; gap:5px;">
-                    <button onclick="handleRequestAction('${r.id}', 'approved')" style="flex:1; background:#003057; color:white; border:none; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Approve</button>
-                    <button onclick="openRejectModal('${r.id}')" style="flex:1; background:#f4f4f4; color:#333; border:1px solid #ddd; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reject</button>
-                    <button onclick="alert('Reschedule logic: Navigate to Agenda or simple date update')" style="background:#eee; border:none; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reschedule</button>
-                </div>
-            </div>
-        `).join('');
+
     } else {
         // Rejected Tab - Simple Table Style
         container.innerHTML = `
