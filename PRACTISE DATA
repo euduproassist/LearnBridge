@@ -1,5 +1,6 @@
-tutor-portal-landingPage.js:542  Uncaught SyntaxError: Unexpected end of input (at tutor-portal-landingPage.js:542:1)
-
+tutor-portal-landingPage.js:171 Uncaught (in promise) TypeError: Cannot read properties of null (reading 'value')
+    at document.getElementById.onclick (tutor-portal-landingPage.js:171:56)
+document.getElementById.onclick	@	tutor-portal-landingPage.js:171
 
 
 rules_version = '2';
