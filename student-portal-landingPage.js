@@ -839,7 +839,7 @@ function renderTutorList() {
             </div>
     
     <div style="margin-top:10px; border-top:1px solid #f5f5f5; padding-top:10px;">
-    <div onclick="toggleAvailability(this)" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    
         <span style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase;">Weekly Availability</span>
         <span class="toggle-icon" style="font-size:0.8rem; color:#888; transition: transform 0.3s; display:inline-block;">▼</span>
     </div>
