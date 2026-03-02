@@ -652,9 +652,7 @@ async function loadProfileSummary() {
         document.getElementById('sum_Avatar').src = d.profilePic || avatars[0];
         document.getElementById('sum_Name').textContent = d.name || "No Name Set";
         document.getElementById('sum_Details').textContent = `${d.modules || 'No Modules'} | ${d.department || 'No Dept'}`;
-        document.getElementById('sum_Days').innerHTML = d.availability && d.availability.length > 0 
-            ? d.availability.join(', ') 
-            : '<span style="color:red;">No days set</span>';
+
     }
 }
 
