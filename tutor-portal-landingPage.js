@@ -15,6 +15,13 @@ let selectedDays = []; // We will now store objects here: {day: "Monday", start:
 const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 let currentPreAvatar = "";
 
+let currentReqTab = 'pending';
+let reqCurrentPage = 1;
+const reqPageSize = 10;
+let allRequests = [];
+let targetRequestId = null; 
+
+
 
 // Check if user is logged in
 onAuthStateChanged(auth, async (user) => {
@@ -156,6 +163,47 @@ async function loadTicketHistory() {
         historyDiv.innerHTML = "Error loading history.";
     }
 }
+
+    // Open Requests Modal
+document.getElementById('openRequestsBtn').onclick = () => {
+    document.getElementById('requestsModal').style.display = 'flex';
+    fetchRequests();
+};
+
+document.getElementById('closeRequestsBtn').onclick = () => {
+    document.getElementById('requestsModal').style.display = 'none';
+};
+
+// Tab Switching
+document.getElementById('tabPending').onclick = function() {
+    currentReqTab = 'pending';
+    this.style.background = 'white'; this.style.borderBottom = '3px solid #003057';
+    document.getElementById('tabRejected').style.background = '#f4f4f4'; document.getElementById('tabRejected').style.borderBottom = 'none';
+    reqCurrentPage = 1;
+    renderRequests();
+};
+
+document.getElementById('tabRejected').onclick = function() {
+    currentReqTab = 'rejected';
+    this.style.background = 'white'; this.style.borderBottom = '3px solid #003057';
+    document.getElementById('tabPending').style.background = '#f4f4f4'; document.getElementById('tabPending').style.borderBottom = 'none';
+    reqCurrentPage = 1;
+    renderRequests();
+};
+
+// Pagination
+document.getElementById('prevReqPage').onclick = () => { if(reqCurrentPage > 1) { reqCurrentPage--; renderRequests(); } };
+document.getElementById('nextReqPage').onclick = () => {
+    const totalPages = Math.ceil(allRequests.filter(r => r.status === currentReqTab).length / reqPageSize);
+    if(reqCurrentPage < totalPages) { reqCurrentPage++; renderRequests(); }
+};
+
+// Action Modal Cancel
+document.getElementById('cancelActionBtn').onclick = () => {
+    document.getElementById('actionModal').style.display = 'none';
+    document.getElementById('actionInput').value = '';
+};
+
 
 
     // Open Presence Modal from Grid Card
@@ -694,6 +742,112 @@ document.getElementById('sum_ResetBtn').onclick = async () => {
         }
     }
 };
+
+async function fetchRequests() {
+    const user = auth.currentUser;
+    const container = document.getElementById('requestsListArea');
+    container.innerHTML = "Loading requests...";
+
+    // Querying the 'sessions' collection where THIS tutor is the tutorId
+    const q = query(collection(db, 'sessions'), where('tutorId', '==', user.uid), orderBy('timestamp', 'desc'));
+    
+    onSnapshot(q, (snapshot) => {
+        allRequests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderRequests();
+    });
+}
+
+function renderRequests() {
+    const container = document.getElementById('requestsListArea');
+    const filtered = allRequests.filter(r => r.status === currentReqTab);
+    
+    const totalPages = Math.ceil(filtered.length / reqPageSize) || 1;
+    const start = (reqCurrentPage - 1) * reqPageSize;
+    const paginated = filtered.slice(start, start + reqPageSize);
+
+    document.getElementById('reqPageInfo').textContent = `Page ${reqCurrentPage} of ${totalPages}`;
+
+    if (paginated.length === 0) {
+        container.innerHTML = `<p style="text-align:center; margin-top:50px; color:#999;">No ${currentReqTab} requests found.</p>`;
+        return;
+    }
+
+    if (currentReqTab === 'pending') {
+        container.innerHTML = paginated.map(r => `
+            <div style="border:1px solid #eee; padding:15px; border-radius:10px; margin-bottom:10px; background:#fff;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <b style="color:#003057;">${r.studentName || 'Unknown Student'}</b>
+                    <small style="color:#888;">Sent: ${new Date(r.timestamp).toLocaleDateString()}</small>
+                </div>
+                <p style="font-size:0.85rem; margin-bottom:10px;">Requested for: <b>${r.date} at ${r.time}</b></p>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="handleRequestAction('${r.id}', 'approved')" style="flex:1; background:#003057; color:white; border:none; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Approve</button>
+                    <button onclick="openRejectModal('${r.id}')" style="flex:1; background:#f4f4f4; color:#333; border:1px solid #ddd; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reject</button>
+                    <button onclick="alert('Reschedule logic: Navigate to Agenda or simple date update')" style="background:#eee; border:none; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reschedule</button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        // Rejected Tab - Simple Table Style
+        container.innerHTML = `
+            <table style="width:100%; font-size:0.75rem; border-collapse:collapse;">
+                <tr style="background:#003057; color:white;">
+                    <th style="padding:8px; text-align:left;">Student</th>
+                    <th style="padding:8px; text-align:left;">Date Sent</th>
+                    <th style="padding:8px; text-align:left;">Reason</th>
+                </tr>
+                ${paginated.map(r => `
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:8px;">${r.studentName}</td>
+                        <td style="padding:8px;">${new Date(r.timestamp).toLocaleDateString()}</td>
+                        <td style="padding:8px; color:red;">${r.rejectionReason || 'No reason'}</td>
+                    </tr>
+                `).join('')}
+            </table>
+        `;
+    }
+}
+
+// Action Handlers
+window.handleRequestAction = async (id, newStatus, reason = "") => {
+    try {
+        const reqRef = doc(db, 'sessions', id);
+        const requestData = allRequests.find(r => r.id === id);
+
+        await updateDoc(reqRef, { 
+            status: newStatus,
+            rejectionReason: reason,
+            processedAt: new Date().toISOString()
+        });
+
+        // 1. Send Notification to Student
+        await addDoc(collection(db, 'notifications'), {
+            userId: requestData.studentId,
+            title: `Session ${newStatus.toUpperCase()}`,
+            message: `Your request for ${requestData.date} has been ${newStatus}. ${reason ? 'Reason: ' + reason : ''}`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+
+        alert(`Request ${newStatus}!`);
+        document.getElementById('actionModal').style.display = 'none';
+    } catch (e) {
+        console.error(e);
+        alert("Error updating request.");
+    }
+};
+
+window.openRejectModal = (id) => {
+    targetRequestId = id;
+    document.getElementById('actionModalTitle').textContent = "Reason for Rejection";
+    document.getElementById('actionModal').style.display = 'flex';
+    document.getElementById('confirmActionBtn').onclick = () => {
+        const reason = document.getElementById('actionInput').value.trim();
+        if(!reason) return alert("Please provide a reason.");
+        handleRequestAction(targetRequestId, 'rejected', reason);
+    };
+};
+
 
 
 
