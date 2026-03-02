@@ -163,6 +163,35 @@ document.getElementById('openPresenceBtn').onclick = () => {
     loadPresenceData();
 };
 
+    document.getElementById('savePresenceBtn').onclick = async () => {
+    const user = auth.currentUser;
+    const data = {
+        name: document.getElementById('pre_name').value.trim(),
+        department: document.getElementById('pre_dept').value.trim(),
+        course: document.getElementById('pre_course').value.trim(),
+        profilePic: currentPreAvatar,
+        availability: selectedDays
+    };
+
+    try {
+        await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+        // Close this modal
+        document.getElementById('presenceModal').style.display = 'none';
+        // Open Profile Summary Modal (Linking)
+        document.getElementById('profileModal').style.display = 'flex';
+        loadProfileSummary(); 
+    } catch (e) { alert("Error saving data"); }
+};
+
+// Connect the buttons in the summary view
+document.getElementById('triggerEditBtn').onclick = () => {
+    document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('presenceModal').style.display = 'flex';
+    loadPresenceData();
+};
+
+document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
+
 // Tab Switching Logic
 document.getElementById('tabSetupProfile').onclick = function() {
     this.style.background = 'white'; this.style.borderBottom = '3px solid #003057';
@@ -583,25 +612,6 @@ window.toggleDay = (day) => {
     }
 };
 
-document.getElementById('savePresenceBtn').onclick = async () => {
-    const user = auth.currentUser;
-    const data = {
-        name: document.getElementById('pre_name').value.trim(),
-        department: document.getElementById('pre_dept').value.trim(),
-        course: document.getElementById('pre_course').value.trim(),
-        profilePic: currentPreAvatar,
-        availability: selectedDays
-    };
-
-    try {
-        await setDoc(doc(db, 'users', user.uid), data, { merge: true });
-        // Close this modal
-        document.getElementById('presenceModal').style.display = 'none';
-        // Open Profile Summary Modal (Linking)
-        document.getElementById('profileModal').style.display = 'flex';
-        loadProfileSummary(); 
-    } catch (e) { alert("Error saving data"); }
-};
 
 async function loadProfileSummary() {
     const user = auth.currentUser;
@@ -617,14 +627,6 @@ async function loadProfileSummary() {
     }
 }
 
-// Connect the buttons in the summary view
-document.getElementById('triggerEditBtn').onclick = () => {
-    document.getElementById('profileModal').style.display = 'none';
-    document.getElementById('presenceModal').style.display = 'flex';
-    loadPresenceData();
-};
-
-document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
 
 document.getElementById('sum_LogoutBtn').onclick = async () => {
     if(confirm("Are you sure you want to log out?")) {
