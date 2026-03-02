@@ -78,7 +78,7 @@
       
       // --- STEP 3: SAVE FINAL PROFILE ---
       await setDoc(doc(db, 'users', uid), {
-        fullName, 
+        name: fullName, 
         email, 
         role: assignedRole, 
         department: assignedDept,
