@@ -594,6 +594,53 @@ window.selectPreAvatar = (url) => {
     document.getElementById('presenceAvatar').src = url;
 };
 
+function renderDays() {
+    const container = document.getElementById('daysContainer');
+    container.innerHTML = daysOfWeek.map(day => {
+        // Check if this day is already in our selected list
+        const existingRecord = selectedDays.find(d => d.day === day);
+        const isChecked = !!existingRecord;
+
+        return `
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: ${isChecked ? '10px' : '0'};">
+                <span style="color:black; font-weight:600;">${day}</span>
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleDayRow('${day}')" style="width:22px; height:22px;">
+            </div>
+            
+            ${isChecked ? `
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select onchange="updateTime('${day}', 'start', this.value)" style="flex:1; padding:8px; border-radius:8px; border:1px solid #ccc; font-size:0.8rem;">
+                    <option value="">Start</option>
+                    ${timeSlots.map(t => `<option value="${t}" ${existingRecord.start === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+                <span style="color:#666; font-size:0.7rem;">to</span>
+                <select onchange="updateTime('${day}', 'end', this.value)" style="flex:1; padding:8px; border-radius:8px; border:1px solid #ccc; font-size:0.8rem;">
+                    <option value="">End</option>
+                    ${timeSlots.map(t => `<option value="${t}" ${existingRecord.end === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+            </div>
+            ` : ''}
+        </div>`;
+    }).join('');
+}
+
+window.toggleDayRow = (day) => {
+    const index = selectedDays.findIndex(d => d.day === day);
+    if (index > -1) {
+        selectedDays.splice(index, 1); // Remove if unchecked
+    } else {
+        selectedDays.push({ day: day, start: "08:00", end: "09:00" }); // Default values when checked
+    }
+    renderDays(); // Refresh UI to show/hide selectors
+};
+
+window.updateTime = (day, field, value) => {
+    const record = selectedDays.find(d => d.day === day);
+    if (record) {
+        record[field] = value;
+    }
+};
 
 
 
