@@ -635,9 +635,22 @@ window.toggleDayRow = (day) => {
     renderDays(); // Refresh UI to show/hide selectors
 };
 
-
-
-
+window.updateTime = (day, field, value) => {
+    const record = selectedDays.find(d => d.day === day);
+    if (record) {
+        if (field === 'start' && value >= record.end) {
+            alert("Start time must be before end time!");
+            renderDays(); // Reset the UI
+            return;
+        }
+        if (field === 'end' && value <= record.start) {
+            alert("End time must be after start time!");
+            renderDays(); // Reset the UI
+            return;
+        }
+        record[field] = value;
+    }
+};
 
 async function loadProfileSummary() {
     const user = auth.currentUser;
