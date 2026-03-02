@@ -819,33 +819,7 @@ function renderRequests() {
 }
 
 // Action Handlers
-window.handleRequestAction = async (id, newStatus, reason = "") => {
-    try {
-        const reqRef = doc(db, 'sessions', id);
-        const requestData = allRequests.find(r => r.id === id);
 
-        await updateDoc(reqRef, { 
-            status: newStatus,
-            rejectionReason: reason,
-            processedAt: new Date().toISOString()
-        });
-
-        // 1. Send Notification to Student
-        await addDoc(collection(db, 'notifications'), {
-            userId: requestData.studentId,
-            title: `Session ${newStatus.toUpperCase()}`,
-            message: `Your request for ${requestData.date} has been ${newStatus}. ${reason ? 'Reason: ' + reason : ''}`,
-            timestamp: new Date().toISOString(),
-            read: false
-        });
-
-        alert(`Request ${newStatus}!`);
-        document.getElementById('actionModal').style.display = 'none';
-    } catch (e) {
-        console.error(e);
-        alert("Error updating request.");
-    }
-};
 
 window.openRejectModal = (id) => {
     targetRequestId = id;
