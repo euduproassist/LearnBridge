@@ -151,11 +151,11 @@ const avatars = [
     "https://img.icons8.com/fluency/48/user-male-circle.png",
     "https://img.icons8.com/fluency/48/university.png"
 ];
-let selectedAvatarUrl = "";
 
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+ const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 let selectedDays = [];
 let currentPreAvatar = "";
+let selectedAvatarUrl = "";
 
 
 async function loadProfileData() {
