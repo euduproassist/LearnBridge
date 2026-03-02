@@ -610,6 +610,7 @@ window.toggleDay = (day) => {
     } else {
         selectedDays.push(day);
     }
+    console.log(selectedDays);
 };
 
 
