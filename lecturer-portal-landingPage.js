@@ -16,7 +16,7 @@ onAuthStateChanged(auth, async (user) => {
                 const userData = userSnap.data();
                 
                 // 1. DYNAMIC GREETING: Sets the name from signup
-                const firstName = userData.name ? userData.name.split(' ')[0] : 'Tutor';
+                const firstName = userData.name ? userData.name.split(' ')[0] : 'Lecturer';
                 document.getElementById('display-name').textContent = `Hello, ${firstName}! `;
                 
                 // 2. DYNAMIC CAMPUS (Optional): Shows department or year if available
