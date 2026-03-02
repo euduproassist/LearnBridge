@@ -168,7 +168,7 @@ document.getElementById('openPresenceBtn').onclick = () => {
     const data = {
         name: document.getElementById('pre_name').value.trim(),
         department: document.getElementById('pre_dept').value.trim(),
-        course: document.getElementById('pre_course').value.trim(),
+        modules: document.getElementById('pre_modules').value.trim(),
         profilePic: currentPreAvatar,
         availability: selectedDays
     };
@@ -581,7 +581,7 @@ async function loadPresenceData() {
         const d = snap.data();
         document.getElementById('pre_name').value = d.name || "";
         document.getElementById('pre_dept').value = d.department || "";
-        document.getElementById('pre_course').value = d.course || "";
+        document.getElementById('pre_modules').value = d.modules || "";
         currentPreAvatar = d.profilePic || avatars[0];
         document.getElementById('presenceAvatar').src = currentPreAvatar;
         selectedDays = d.availability || [];
@@ -620,7 +620,7 @@ async function loadProfileSummary() {
         const d = snap.data();
         document.getElementById('sum_Avatar').src = d.profilePic || avatars[0];
         document.getElementById('sum_Name').textContent = d.name || "No Name Set";
-        document.getElementById('sum_Details').textContent = `${d.course} | ${d.department}`;
+        document.getElementById('sum_Details').textContent = `${d.modules} | ${d.department}`;
         document.getElementById('sum_Days').innerHTML = d.availability && d.availability.length > 0 
             ? d.availability.join(', ') 
             : '<span style="color:red;">No days set</span>';
