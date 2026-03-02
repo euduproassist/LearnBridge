@@ -819,6 +819,37 @@ function renderRequests() {
 }
 
 // Action Handlers
+window.handleRequestAction = async (id, newStatus, reason = "") => {
+    try {
+        const reqRef = doc(db, 'sessions', id);
+        const requestData = allRequests.find(r => r.id === id);
+
+        if (!requestData) return; // Safety check
+
+        await updateDoc(reqRef, { 
+            status: newStatus,
+            rejectionReason: reason,
+            processedAt: new Date().toISOString()
+        });
+
+        // 1. Send Notification to Student
+        // FIX: Changed requestData.date to requestData.topic for clarity
+        await addDoc(collection(db, 'notifications'), {
+            userId: requestData.studentId,
+            title: `Session ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+            message: `Your request regarding "${requestData.topic}" has been ${newStatus}. ${reason ? 'Reason: ' + reason : ''}`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+
+        alert(`Request ${newStatus}!`);
+        document.getElementById('actionModal').style.display = 'none';
+        document.getElementById('actionInput').value = ''; // Clear input
+    } catch (e) {
+        console.error("Error updating request:", e);
+        alert("Error updating request.");
+    }
+};
 
 
 window.openRejectModal = (id) => {
