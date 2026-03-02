@@ -153,6 +153,11 @@ const avatars = [
 ];
 let selectedAvatarUrl = "";
 
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+let selectedDays = [];
+let currentPreAvatar = "";
+
+
 async function loadProfileData() {
     const user = auth.currentUser;
     if (!user) return;
@@ -211,6 +216,33 @@ document.getElementById('resetPassBtn').onclick = async () => {
         alert("Email sent!");
     }
 };
+
+    // Open Presence Modal from Grid Card
+document.getElementById('openPresenceBtn').onclick = () => {
+    document.getElementById('presenceModal').style.display = 'flex';
+    loadPresenceData();
+};
+
+// Tab Switching Logic
+document.getElementById('tabSetupProfile').onclick = function() {
+    this.style.background = 'white'; this.style.borderBottom = '3px solid #003057';
+    document.getElementById('tabSetupWork').style.background = '#f4f4f4'; document.getElementById('tabSetupWork').style.borderBottom = 'none';
+    document.getElementById('paneProfile').style.display = 'block';
+    document.getElementById('paneAvailability').style.display = 'none';
+};
+
+document.getElementById('tabSetupWork').onclick = function() {
+    this.style.background = 'white'; this.style.borderBottom = '3px solid #003057';
+    document.getElementById('tabSetupProfile').style.background = '#f4f4f4'; document.getElementById('tabSetupProfile').style.borderBottom = 'none';
+    document.getElementById('paneProfile').style.display = 'none';
+    document.getElementById('paneAvailability').style.display = 'block';
+    renderDays();
+};
+
+document.getElementById('closePresenceBtn').onclick = () => {
+    document.getElementById('presenceModal').style.display = 'none';
+};
+
 
 // Logout
 document.getElementById('logoutBtn').onclick = async () => {
@@ -576,6 +608,98 @@ document.getElementById('closeInboxBtn').onclick = () => {
     document.getElementById('inboxModal').style.display = 'none';
 };
 });
+
+async function loadPresenceData() {
+    const user = auth.currentUser;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+
+    // Setup Avatar Picker
+    const picker = document.getElementById('presenceAvatarPicker');
+    picker.innerHTML = avatars.map(url => `
+        <img src="${url}" onclick="selectPreAvatar('${url}')" style="width:35px; cursor:pointer; border-radius:50%; border:2px solid transparent;" class="pre-avatar-opt">
+    `).join('');
+
+    if (snap.exists()) {
+        const d = snap.data();
+        document.getElementById('pre_name').value = d.name || "";
+        document.getElementById('pre_dept').value = d.department || "";
+        document.getElementById('pre_course').value = d.course || "";
+        currentPreAvatar = d.profilePic || avatars[0];
+        document.getElementById('presenceAvatar').src = currentPreAvatar;
+        selectedDays = d.availability || [];
+    }
+}
+
+window.selectPreAvatar = (url) => {
+    currentPreAvatar = url;
+    document.getElementById('presenceAvatar').src = url;
+};
+
+function renderDays() {
+    const container = document.getElementById('daysContainer');
+    container.innerHTML = daysOfWeek.map(day => `
+        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+            <span style="color:black; font-size:0.9rem;">${day}</span>
+            <input type="checkbox" value="${day}" ${selectedDays.includes(day) ? 'checked' : ''} 
+                onchange="toggleDay('${day}')" style="width:20px; height:20px;">
+        </div>
+    `).join('');
+}
+
+window.toggleDay = (day) => {
+    if (selectedDays.includes(day)) {
+        selectedDays = selectedDays.filter(d => d !== day);
+    } else {
+        selectedDays.push(day);
+    }
+};
+
+document.getElementById('savePresenceBtn').onclick = async () => {
+    const user = auth.currentUser;
+    const data = {
+        name: document.getElementById('pre_name').value.trim(),
+        department: document.getElementById('pre_dept').value.trim(),
+        course: document.getElementById('pre_course').value.trim(),
+        profilePic: currentPreAvatar,
+        availability: selectedDays
+    };
+
+    try {
+        await setDoc(doc(db, 'users', user.uid), data, { merge: true });
+        // Close this modal
+        document.getElementById('presenceModal').style.display = 'none';
+        // Open Profile Summary Modal (Linking)
+        document.getElementById('profileModal').style.display = 'flex';
+        loadProfileSummary(); 
+    } catch (e) { alert("Error saving data"); }
+};
+
+async function loadProfileSummary() {
+    const user = auth.currentUser;
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+        const d = snap.data();
+        document.getElementById('sum_Avatar').src = d.profilePic || avatars[0];
+        document.getElementById('sum_Name').textContent = d.name || "No Name Set";
+        document.getElementById('sum_Details').textContent = `${d.course} | ${d.department}`;
+        document.getElementById('sum_Days').innerHTML = d.availability && d.availability.length > 0 
+            ? d.availability.join(', ') 
+            : '<span style="color:red;">No days set</span>';
+    }
+}
+
+// Connect the buttons in the summary view
+document.getElementById('triggerEditBtn').onclick = () => {
+    document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('presenceModal').style.display = 'flex';
+    loadPresenceData();
+};
+document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
+document.getElementById('sum_LogoutBtn').onclick = () => document.getElementById('logoutBtn').click();
+document.getElementById('sum_ResetBtn').onclick = () => document.getElementById('resetPassBtn').click();
+
+
+
 
 
 
