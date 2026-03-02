@@ -884,46 +884,7 @@ window.bookTutorPrompt = (tutorId, tutorName) => {
 };
 
 // --- FIXED BOOKING SUBMISSION ---
-document.getElementById('confirmBookingBtn').onclick = async () => {
-    const topic = document.getElementById('book_topic').value.trim();
-    const mode = document.getElementById('book_mode').value;
 
-    // Check if they actually added slots to the 'selectedSlots' array
-    if (!topic || selectedSlots.length === 0) {
-        return alert("Please enter a topic and add at least one time slot.");
-    }
-
-    try {
-        const studentSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        const studentName = studentSnap.exists() ? studentSnap.data().name : "Student";
-        await addDoc(collection(db, 'sessions'), {
-            studentId: auth.currentUser.uid,
-            studentName: studentName,
-            tutorId: activeTutorId,
-            personName: activeTutorName,
-            role: 'tutor',
-            topic: topic,
-            // Use the array we've been pushing to!
-            preferredSlots: selectedSlots, 
-            mode: mode,
-            status: 'pending',
-            timestamp: new Date().toISOString()
-        });
-        
-        alert("Request Sent Successfully!");
-        
-        // Reset for next time
-        selectedSlots = []; 
-        document.getElementById('queued_slots').innerHTML = '';
-        document.getElementById('book_topic').value = '';
-        
-        document.getElementById('bookingActionModal').style.display = 'none';
-        updateBadge('tabUpcoming');
-    } catch (e) {
-        console.error(e);
-        alert("Booking failed.");
-    }
-};
 
 
 // --- REPLACED RATING LOGIC ---
