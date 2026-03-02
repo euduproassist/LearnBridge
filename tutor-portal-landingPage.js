@@ -852,6 +852,35 @@ window.openRejectModal = (id) => {
     };
 };
 
+window.approveSpecificSlot = async (requestId, chosenSlot) => {
+    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
+
+    try {
+        const reqRef = doc(db, 'sessions', requestId);
+        const requestData = allRequests.find(r => r.id === requestId);
+
+        await updateDoc(reqRef, { 
+            status: 'approved',
+            datetime: chosenSlot, // This saves the ONE specific time picked
+            processedAt: new Date().toISOString()
+        });
+
+        // Notify Student
+        await addDoc(collection(db, 'notifications'), {
+            userId: requestData.studentId,
+            title: `Session Confirmed!`,
+            message: `${auth.currentUser.displayName || 'The tutor'} accepted your request for ${new Date(chosenSlot).toLocaleString()}.`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+
+        alert("Session Booked!");
+    } catch (e) {
+        console.error(e);
+        alert("Error approving slot.");
+    }
+};
+
 
 
 
