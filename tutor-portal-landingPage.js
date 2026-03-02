@@ -880,7 +880,7 @@ window.approveSpecificSlot = async (requestId, chosenSlot) => {
         await addDoc(collection(db, 'notifications'), {
             userId: requestData.studentId,
             title: `Session Confirmed!`,
-            
+            message: `${requestData.personName} accepted your request for ${new Date(chosenSlot).toLocaleString()}.`,
             timestamp: new Date().toISOString(),
             read: false
         });
