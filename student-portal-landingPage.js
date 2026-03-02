@@ -616,6 +616,80 @@ const renderChatList = async () => {
     });
 };
 
+// --- USER DIRECTORY (STRICTLY HARDCODED ROLES) ---
+document.getElementById('viewUsersTab').onclick = async () => {
+    activeView = 'users';
+    document.getElementById('viewUsersTab').style.borderBottom = "3px solid var(--primary-blue)";
+    document.getElementById('viewChatsTab').style.borderBottom = "none";
+    const container = document.getElementById('inboxScrollArea');
+    
+    container.innerHTML = "<p style='text-align:center; padding:20px;'>Loading Directory...</p>";
+
+    try {
+        // Fetch users ordered by name
+        const q = query(collection(db, 'users'), orderBy('name'), limit(40));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            container.innerHTML = "<p style='padding:20px;'>No campus members found.</p>";
+            return;
+        }
+
+        container.innerHTML = snap.docs.map(d => {
+            const u = d.data();
+            if (d.id === auth.currentUser.uid) return ''; // Hide self
+
+            // HARDCODING EVERY ROLE BASED ON YOUR LOGIN LOGIC
+            let roleLabel = "";
+            let roleColor = "#888"; // Default color
+
+            switch(u.role) {
+                case 'admin':
+                    roleLabel = "System Admin";
+                    roleColor = "#d32f2f"; // Red
+                    break;
+                case 'tutor':
+                    roleLabel = "Senior Tutor";
+                    roleColor = "#003057"; // UJ Blue
+                    break;
+                case 'lecturer':
+                    roleLabel = "Lecturer / Professor";
+                    roleColor = "#003057"; // UJ Blue
+                    break;
+                case 'academic-advisor':
+                    roleLabel = "Academic Advisor";
+                    roleColor = "#2e7d32"; // Green
+                    break;
+                case 'campus-services':
+                    roleLabel = "Campus Services";
+                    roleColor = "#ef6c00"; // Orange
+                    break;
+                case 'student':
+                    roleLabel = "Student";
+                    roleColor = "#666"; // Grey
+                    break;
+                default:
+                    roleLabel = "Campus Member";
+                    roleColor = "#888";
+            }
+
+            return `
+                <div onclick="openConversation('${d.id}', '${u.name}')" style="display:flex; align-items:center; padding:12px; border-bottom:1px solid #f0f0f0; cursor:pointer;">
+                    <img src="${u.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:40px; height:40px; border-radius:50%; margin-right:12px; object-fit:cover;">
+                    <div>
+                        <b style="font-size:0.9rem;">${u.name}</b>
+                        <small style="display:block; color:${roleColor}; font-weight:bold; text-transform:uppercase; font-size:0.7rem; margin-top:2px;">
+                            ${roleLabel}
+                        </small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error("Directory Error:", error);
+        container.innerHTML = "<p style='padding:20px; color:red;'>Error loading directory. Check connection.</p>";
+    }
+};
 
 
 // --- CONVERSATION VIEW ---
