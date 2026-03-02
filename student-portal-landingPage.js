@@ -884,6 +884,56 @@ window.bookTutorPrompt = (tutorId, tutorName) => {
 };
 
 // --- FIXED BOOKING SUBMISSION ---
+document.getElementById('confirmBookingBtn').onclick = async () => {
+    const topic = document.getElementById('book_topic').value.trim();
+    const mode = document.getElementById('book_mode').value;
+
+    if (!topic || selectedSlots.length === 0) {
+        return alert("Please enter a topic and add at least one time slot.");
+    }
+
+    try {
+        const studentSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        const studentData = studentSnap.data();
+        const studentName = studentSnap.exists() ? studentData.name : "A Student";
+
+        // 1. CREATE THE ACTUAL SESSION RECORD
+        await addDoc(collection(db, 'sessions'), {
+            studentId: auth.currentUser.uid,
+            studentName: studentName,
+            tutorId: activeTutorId,
+            personName: activeTutorName,
+            role: 'tutor',
+            topic: topic,
+            preferredSlots: selectedSlots, 
+            mode: mode,
+            status: 'pending',
+            timestamp: new Date().toISOString()
+        });
+
+        // 2. TRIGGER THE NOTIFICATION (The "Ping")
+        // This is what makes the Tutor see a "1" on their Alerts tab
+        await addDoc(collection(db, 'notifications'), {
+            userId: activeTutorId, // This must match the Tutor's UID
+            title: "New Booking Request",
+            message: `${studentName} requested a session for "${topic}"`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+        
+        alert("Request Sent! The tutor has been notified.");
+        
+        // Reset UI
+        selectedSlots = []; 
+        document.getElementById('queued_slots').innerHTML = '';
+        document.getElementById('book_topic').value = '';
+        document.getElementById('bookingActionModal').style.display = 'none';
+
+    } catch (e) {
+        console.error(e);
+        alert("Booking failed.");
+    }
+};
 
 
 
