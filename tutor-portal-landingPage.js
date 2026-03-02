@@ -73,7 +73,7 @@ if (activeIcon && activeIcon.src) activeIcon.src = activeIcon.src.replace('88888
             openChatList();
         } else if (tabText.includes('Profile')) {
             document.getElementById('profileModal').style.display = 'flex';
-            loadProfileData();
+            loadProfileSummary();
         }
     });
 });
@@ -155,59 +155,9 @@ const avatars = [
  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 let selectedDays = [];
 let currentPreAvatar = "";
-let selectedAvatarUrl = "";
 
 
-async function loadProfileData() {
-    const user = auth.currentUser;
-    if (!user) return;
 
-   // Reset fields to show fresh data is coming
-    document.getElementById('prof_name').placeholder = "Loading...";
-
-    // Build Avatar Picker
-    const picker = document.getElementById('avatarPicker');
-    picker.innerHTML = avatars.map(url => `
-        <img src="${url}" onclick="selectAvatar('${url}')" style="width:40px; cursor:pointer; border-radius:50%; padding:2px; border: 2px solid transparent;" class="avatar-option">
-    `).join('');
-
-    const snap = await getDoc(doc(db, 'users', user.uid));
-    if (snap.exists()) {
-        const d = snap.data();
-        document.getElementById('prof_name').value = d.name || "";
-        document.getElementById('prof_year').value = d.year || "1";
-        document.getElementById('prof_dept').value = d.department || "";
-        document.getElementById('prof_course').value = d.course || "";
-        if (d.profilePic) {
-            document.getElementById('currentAvatar').src = d.profilePic;
-            selectedAvatarUrl = d.profilePic;
-        }
-    }
-}
-
-// Global helper for the avatar picker (since it's injected HTML)
-window.selectAvatar = (url) => {
-    selectedAvatarUrl = url;
-    document.getElementById('currentAvatar').src = url;
-};
-
-// Save Profile
-document.getElementById('saveProfileBtn').onclick = async () => {
-    const user = auth.currentUser;
-    const payload = {
-        name: document.getElementById('prof_name').value.trim(),
-        year: document.getElementById('prof_year').value,
-        department: document.getElementById('prof_dept').value.trim(),
-        course: document.getElementById('prof_course').value.trim(),
-        profilePic: selectedAvatarUrl
-    };
-
-    try {
-        await setDoc(doc(db, 'users', user.uid), payload, { merge: true });
-        alert("Profile Updated!");
-        location.reload(); // Refresh to update the "Hello" name on hub
-    } catch (e) { alert("Error updating profile"); }
-};
 
 // Reset Password
 document.getElementById('resetPassBtn').onclick = async () => {
