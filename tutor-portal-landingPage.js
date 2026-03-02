@@ -418,28 +418,7 @@ const renderChatList = async () => {
     });
 };
 
-// --- USER DIRECTORY ---
-document.getElementById('viewUsersTab').onclick = async () => {
-    activeView = 'users';
-    document.getElementById('viewUsersTab').style.borderBottom = "3px solid var(--primary-blue)";
-    document.getElementById('viewChatsTab').style.borderBottom = "none";
-    const container = document.getElementById('inboxScrollArea');
-    
-    const snap = await getDocs(query(collection(db, 'users'), orderBy('name'), limit(20)));
-    container.innerHTML = snap.docs.map(d => {
-        const u = d.data();
-        if (d.id === auth.currentUser.uid) return ''; // Don't show self
-        return `
-            <div onclick="openConversation('${d.id}', '${u.name}')" style="display:flex; align-items:center; padding:12px; border-bottom:1px solid #f0f0f0; cursor:pointer;">
-                <img src="${u.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:40px; height:40px; border-radius:50%; margin-right:12px;">
-                <div>
-                    <b style="font-size:0.9rem;">${u.name}</b>
-                    <small style="display:block; color:#888;">${u.course || 'Student'}</small>
-                </div>
-            </div>
-        `;
-    }).join('');
-};
+
 
 // --- CONVERSATION VIEW ---
 window.openConversation = async (partnerId, partnerName) => {
