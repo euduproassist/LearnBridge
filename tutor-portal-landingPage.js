@@ -11,7 +11,7 @@ const avatars = [
 ];
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-let selectedDays = [];
+
 let currentPreAvatar = "";
 
 
