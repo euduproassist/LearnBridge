@@ -27,6 +27,10 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) {
             console.error("Error fetching user name:", error);
         }
+
+        startNotificationListener(); 
+        loadUserRatings(); 
+        
     } else {
         // Not logged in? Go back to login
         window.location.href = 'index.html';
