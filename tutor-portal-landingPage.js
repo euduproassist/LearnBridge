@@ -653,3 +653,34 @@ document.getElementById('sum_ResetBtn').onclick = () => document.getElementById(
 
 
 
+
+// Connect the buttons in the summary view
+document.getElementById('triggerEditBtn').onclick = () => {
+    document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('presenceModal').style.display = 'flex';
+    loadPresenceData();
+};
+
+document.getElementById('sum_CloseBtn').onclick = () => document.getElementById('profileModal').style.display = 'none';
+
+document.getElementById('sum_LogoutBtn').onclick = async () => {
+    if(confirm("Are you sure you want to log out?")) {
+        await signOut(auth);
+    }
+};
+
+document.getElementById('sum_ResetBtn').onclick = async () => {
+    const user = auth.currentUser;
+    if(user && confirm("Send password reset email to " + user.email + "?")) {
+        try {
+            await sendPasswordResetEmail(auth, user.email);
+            alert("Email sent!");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    }
+};
+
+
+
+
