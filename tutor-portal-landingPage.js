@@ -594,25 +594,7 @@ window.selectPreAvatar = (url) => {
     document.getElementById('presenceAvatar').src = url;
 };
 
-function renderDays() {
-    const container = document.getElementById('daysContainer');
-    container.innerHTML = daysOfWeek.map(day => `
-        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
-            <span style="color:black; font-size:0.9rem;">${day}</span>
-            <input type="checkbox" value="${day}" ${selectedDays.includes(day) ? 'checked' : ''} 
-                onchange="toggleDay('${day}')" style="width:20px; height:20px;">
-        </div>
-    `).join('');
-}
 
-window.toggleDay = (day) => {
-    if (selectedDays.includes(day)) {
-        selectedDays = selectedDays.filter(d => d !== day);
-    } else {
-        selectedDays.push(day);
-    }
-    console.log(selectedDays);
-};
 
 
 async function loadProfileSummary() {
