@@ -949,7 +949,37 @@ window.rateTutorPrompt = (tutorId, tutorName) => {
     document.getElementById('ratingActionModal').style.display = 'flex';
 };
 
+document.getElementById('confirmRatingBtn').onclick = async () => {
+    const stars = document.getElementById('rate_stars').value;
+    const comment = document.getElementById('rate_comment').value.trim();
 
+    try {
+        // 1. Save the Rating
+        await addDoc(collection(db, 'ratings'), {
+            studentId: auth.currentUser.uid,
+            tutorId: activeTutorId,
+            personName: activeTutorName,
+            role: 'tutor',
+            stars: parseInt(stars),
+            comment: comment,
+            createdAt: new Date().toISOString()
+        });
+
+        // 2. Notify the Tutor (The missing sync link)
+        await addDoc(collection(db, 'notifications'), {
+            userId: activeTutorId,
+            title: "New Rating Received!",
+            message: `A student gave you ${stars} stars: "${comment.substring(0, 20)}..."`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+        
+        alert("Feedback submitted!");
+        document.getElementById('ratingActionModal').style.display = 'none';
+    } catch (e) {
+        alert("Error saving rating");
+    }
+};
 
 
 // Helper for dynamic badge updates
