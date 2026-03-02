@@ -635,12 +635,7 @@ window.toggleDayRow = (day) => {
     renderDays(); // Refresh UI to show/hide selectors
 };
 
-window.updateTime = (day, field, value) => {
-    const record = selectedDays.find(d => d.day === day);
-    if (record) {
-        record[field] = value;
-    }
-};
+
 
 
 
