@@ -837,8 +837,25 @@ function renderTutorList() {
                     </div>
                 </div>
             </div>
-            
-            
+    
+    <div style="margin-top:10px; border-top:1px solid #f5f5f5; padding-top:10px;">
+    <div onclick="toggleAvailability(this)" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+        <span style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase;">Weekly Availability</span>
+        <span class="toggle-icon" style="font-size:0.8rem; color:#888; transition: transform 0.3s; display:inline-block;">▼</span>
+    </div>
+    <div class="availability-content" style="display:none; margin-top:8px;">
+        ${Array.isArray(t.availability) && t.availability.length > 0 
+            ? t.availability.map(slot => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f9fbff; border:1px solid #edf2f7; padding:6px 12px; border-radius:8px; margin-bottom:4px;">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--primary-blue);">${slot.day}</span>
+                    <span style="font-size:0.75rem; color:#333;">${slot.start} - ${slot.end}</span>
+                </div>
+            `).join('') 
+            : `<div style="font-size:0.75rem; color:#999; text-align:center;">By appointment only</div>`
+        }
+    </div>
+</div>
+
 
             <div style="display:flex; gap:5px; margin-top:12px;">
                 <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:10px; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer;">Book</button>
@@ -959,6 +976,15 @@ document.getElementById('add_slot_btn').onclick = () => {
         document.getElementById('queued_slots').innerHTML += `<span style="background:#eee; padding:5px; border-radius:5px; font-size:0.7rem;">${p.value}</span> `;
         p.value = '';
     }
+};
+
+window.toggleAvailability = (header) => {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    const isHidden = content.style.display === "none";
+    
+    content.style.display = isHidden ? "block" : "none";
+    icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
 };
 
 
