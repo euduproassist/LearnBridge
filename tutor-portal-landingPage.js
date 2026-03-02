@@ -418,8 +418,67 @@ const renderChatList = async () => {
     });
 };
 
+// --- USER DIRECTORY (TUTOR PORTAL - HARDCODED ROLES) ---
+document.getElementById('viewUsersTab').onclick = async () => {
+    activeView = 'users';
+    document.getElementById('viewUsersTab').style.borderBottom = "3px solid var(--primary-blue)";
+    document.getElementById('viewChatsTab').style.borderBottom = "none";
+    const container = document.getElementById('inboxScrollArea');
+    
+    container.innerHTML = "<p style='text-align:center; padding:20px;'>Loading authorized contacts...</p>";
 
+    try {
+        // Query only for the roles a tutor is allowed to talk to
+        const q = query(
+            collection(db, 'users'), 
+            where('role', 'in', ['student', 'admin']), 
+            orderBy('name'), 
+            limit(30)
+        );
+        
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            container.innerHTML = "<p style='padding:20px;'>No students or admins found.</p>";
+            return;
+        }
 
+        container.innerHTML = snap.docs.map(d => {
+            const u = d.data();
+            if (d.id === auth.currentUser.uid) return ''; // Hide self
+
+            // HARDCODED ROLE LOGIC
+            let roleTitle = "";
+            let roleColor = "";
+
+            if (u.role === 'admin') {
+                roleTitle = "SYSTEM ADMIN";
+                roleColor = "#d32f2f"; // Red for Admin
+            } else if (u.role === 'student') {
+                roleTitle = "STUDENT";
+                roleColor = "#666"; // Grey for Student
+            } else {
+                // This acts as a safety, though the query above should prevent other roles
+                return ''; 
+            }
+
+            return `
+                <div onclick="openConversation('${d.id}', '${u.name}')" style="display:flex; align-items:center; padding:12px; border-bottom:1px solid #f0f0f0; cursor:pointer;">
+                    <img src="${u.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:40px; height:40px; border-radius:50%; margin-right:12px;">
+                    <div>
+                        <b style="font-size:0.9rem;">${u.name}</b>
+                        <small style="display:block; color:${roleColor}; font-weight:bold; font-size:0.7rem;">
+                            ${roleTitle}
+                        </small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error("Filter Error:", error);
+        container.innerHTML = "<p style='padding:20px; color:red;'>Check console for index link.</p>";
+    }
+};
 
 // --- CONVERSATION VIEW ---
 window.openConversation = async (partnerId, partnerName) => {
