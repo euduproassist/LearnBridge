@@ -949,27 +949,7 @@ window.rateTutorPrompt = (tutorId, tutorName) => {
     document.getElementById('ratingActionModal').style.display = 'flex';
 };
 
-document.getElementById('confirmRatingBtn').onclick = async () => {
-    const stars = document.getElementById('rate_stars').value;
-    const comment = document.getElementById('rate_comment').value.trim();
 
-    try {
-        await addDoc(collection(db, 'ratings'), {
-            studentId: auth.currentUser.uid,
-            tutorId: activeTutorId,
-            personName: activeTutorName,
-            role: 'tutor',
-            stars: parseInt(stars),
-            comment: comment,
-            createdAt: new Date().toISOString()
-        });
-        
-        alert("Feedback submitted!");
-        document.getElementById('ratingActionModal').style.display = 'none';
-    } catch (e) {
-        alert("Error saving rating");
-    }
-};
 
 
 // Helper for dynamic badge updates
