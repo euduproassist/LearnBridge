@@ -2,6 +2,19 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, orderBy, deleteDoc, onSnapshot, updateDoc, writeBatch, limit, startAfter, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
+// --- Profile Logic ---
+const avatars = [
+    "https://img.icons8.com/fluency/48/student-male.png",
+    "https://img.icons8.com/fluency/48/student-female.png",
+    "https://img.icons8.com/fluency/48/user-male-circle.png",
+    "https://img.icons8.com/fluency/48/university.png"
+];
+
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+let selectedDays = [];
+let currentPreAvatar = "";
+
+
 // Check if user is logged in
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -143,29 +156,6 @@ async function loadTicketHistory() {
     }
 }
 
-// --- Profile Logic ---
-
-const avatars = [
-    "https://img.icons8.com/fluency/48/student-male.png",
-    "https://img.icons8.com/fluency/48/student-female.png",
-    "https://img.icons8.com/fluency/48/user-male-circle.png",
-    "https://img.icons8.com/fluency/48/university.png"
-];
-
- const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-let selectedDays = [];
-let currentPreAvatar = "";
-
-
-
-
-// Reset Password
-document.getElementById('resetPassBtn').onclick = async () => {
-    if(confirm("Send password reset email?")) {
-        await sendPasswordResetEmail(auth, auth.currentUser.email);
-        alert("Email sent!");
-    }
-};
 
     // Open Presence Modal from Grid Card
 document.getElementById('openPresenceBtn').onclick = () => {
@@ -193,17 +183,6 @@ document.getElementById('closePresenceBtn').onclick = () => {
     document.getElementById('presenceModal').style.display = 'none';
 };
 
-
-// Logout
-document.getElementById('logoutBtn').onclick = async () => {
-    if(confirm("Are you sure you want to log out?")) {
-        await signOut(auth);
-    }
-};
-
-document.getElementById('closeProfileBtn').onclick = () => {
-    document.getElementById('profileModal').style.display = 'none';
-};
 
 window.deleteTicket = async (ticketId) => {
     if (confirm("Delete this ticket record?")) {
