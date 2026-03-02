@@ -838,7 +838,19 @@ function renderTutorList() {
                 </div>
             </div>
             
-
+            
+<div style="margin-top:12px;">
+    <span style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; display:block; margin-bottom:8px;">Weekly Availability</span>
+    ${Array.isArray(t.availability) && t.availability.length > 0 
+        ? t.availability.map(slot => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #eee; padding:8px 12px; border-radius:10px; margin-bottom:6px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                <span style="font-size:0.8rem; font-weight:700; color:var(--primary-blue);">${slot.day}</span>
+                <span style="font-size:0.8rem; color:#333; background:#f0f4f8; padding:2px 8px; border-radius:6px; font-family:monospace;">${slot.start} - ${slot.end}</span>
+            </div>
+        `).join('') 
+        : `<div style="font-size:0.8rem; color:#999; text-align:center;">Consultation by appointment only</div>`
+    }
+</div>
             </div>
 
             <div style="display:flex; gap:5px; margin-top:12px;">
