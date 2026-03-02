@@ -661,6 +661,16 @@ async function loadProfileSummary() {
         document.getElementById('sum_Name').textContent = d.name || "No Name Set";
         document.getElementById('sum_Details').textContent = `${d.modules || 'No Modules'} | ${d.department || 'No Dept'}`;
      const availabilityData = d.availability || [];
+        document.getElementById('sum_Days').innerHTML = availabilityData.length > 0 
+    ? availabilityData.map(s => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+            <span style="font-weight:600; color:#333; font-size:0.85rem;">${s.day}</span>
+            <span style="background:#eef6ff; color:#003057; padding:2px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">
+                ${s.start} — ${s.end}
+            </span>
+        </div>
+      `).join('')
+    : '<span style="color:#d32f2f; font-weight:bold;">No hours set</span>';
 
 
     }
