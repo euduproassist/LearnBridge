@@ -824,20 +824,7 @@ function renderTutorList() {
     document.getElementById('tutorPageInfo').textContent = `Page ${tutorPage} of ${Math.ceil(filtered.length/tutorLimit) || 1}`;
 
     container.innerHTML = paginated.map(t => `
-        <div style="border:1px solid #eee; border-radius:15px; padding:15px; margin-bottom:10px; background:#fff;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <img src="${t.profilePic || 'https://img.icons8.com/fluency/48/user-male-circle.png'}" style="width:50px; height:50px; border-radius:50%;">
-                <div style="flex:1;">
-                    <b style="color:var(--primary-blue);">${t.name}</b>
-                    <div style="font-size:0.75rem; color:#666;">${t.modules || 'General Support'}</div>
-                </div>
-            </div>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <button onclick="bookTutorPrompt('${t.id}', '${t.name}')" style="flex:1; background:var(--primary-blue); color:white; border:none; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Book</button>
-                <button onclick="openConversation('${t.id}', '${t.name}')" style="flex:1; border:1px solid var(--primary-blue); background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Chat</button>
-                <button onclick="rateTutorPrompt('${t.id}', '${t.name}')" style="flex:1; border:1px solid #ddd; background:white; padding:8px; border-radius:8px; font-size:0.7rem; cursor:pointer;">Rate</button>
-            </div>
-        </div>
+
     `).join('');
 }
 
