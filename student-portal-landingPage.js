@@ -879,32 +879,7 @@ window.bookTutorPrompt = (tutorId, tutorName) => {
     document.getElementById('bookingActionModal').style.display = 'flex';
 };
 
-document.getElementById('confirmBookingBtn').onclick = async () => {
-    const topic = document.getElementById('book_topic').value.trim();
-    const mode = document.getElementById('book_mode').value;
 
-    if (!topic || !slotsInput) return alert("Please fill in all fields.");
-
-    try {
-        await addDoc(collection(db, 'sessions'), {
-            studentId: auth.currentUser.uid,
-            tutorId: activeTutorId,
-            personName: activeTutorName,
-            role: 'tutor',
-            topic: topic,
-            preferredSlots: [slotsInput],
-            mode: mode,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        });
-        
-        alert("Request Sent Successfully!");
-        document.getElementById('bookingActionModal').style.display = 'none';
-        updateBadge('tabUpcoming');
-    } catch (e) {
-        alert("Booking failed.");
-    }
-};
 
 // --- REPLACED RATING LOGIC ---
 window.rateTutorPrompt = (tutorId, tutorName) => {
