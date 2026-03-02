@@ -907,7 +907,7 @@ document.getElementById('confirmBookingBtn').onclick = async () => {
             preferredSlots: selectedSlots, 
             mode: mode,
             status: 'pending',
-            createdAt: new Date().toISOString()
+            timestamp: new Date().toISOString()
         });
         
         alert("Request Sent Successfully!");
