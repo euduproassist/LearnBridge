@@ -301,6 +301,42 @@
     </div>
 </div>
 
+        <div id="requestsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:600px; border-radius:15px; display:flex; flex-direction:column; max-height:90vh; overflow:hidden; border: 1px solid #003057;">
+        
+        <div style="background:#003057; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="font-size:1.2rem;">Session Requests</h2>
+            <button id="closeRequestsBtn" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="display:flex; border-bottom:1px solid #ddd; background:#f9f9f9;">
+            <button id="tabPending" style="flex:1; padding:12px; border:none; background:white; border-bottom:3px solid #003057; font-weight:bold; cursor:pointer;">Pending</button>
+            <button id="tabRejected" style="flex:1; padding:12px; border:none; background:#f4f4f4; color:#666; cursor:pointer;">Rejected</button>
+        </div>
+
+        <div id="requestsListArea" style="flex:1; overflow-y:auto; padding:15px; min-height:300px;">
+            </div>
+
+        <div style="padding:15px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; background:#f9f9f9;">
+            <button id="prevReqPage" style="background:#003057; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Prev</button>
+            <span id="reqPageInfo">Page 1 of 1</span>
+            <button id="nextReqPage" style="background:#003057; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">Next</button>
+        </div>
+    </div>
+</div>
+
+<div id="actionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center;">
+    <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:350px;">
+        <h3 id="actionModalTitle" style="color:#003057; margin-bottom:10px;">Reason for Rejection</h3>
+        <textarea id="actionInput" rows="4" style="width:100%; border:1px solid #ccc; padding:10px; border-radius:5px; margin-bottom:10px;"></textarea>
+        <div style="display:flex; gap:10px;">
+            <button id="confirmActionBtn" style="flex:1; background:#003057; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Submit</button>
+            <button id="cancelActionBtn" style="flex:1; background:#eee; border:none; padding:10px; border-radius:5px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
         <div id="presenceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2500; align-items:center; justify-content:center; padding:20px;">
     <div style="background:white; width:100%; max-width:450px; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
         <div style="display:flex; background:#f4f4f4; border-bottom:1px solid #ddd;">
