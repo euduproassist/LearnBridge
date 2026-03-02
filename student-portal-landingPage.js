@@ -973,7 +973,7 @@ document.getElementById('add_slot_btn').onclick = () => {
     const p = document.getElementById('slot_picker');
     if (p.value) { 
         selectedSlots.push(p.value); 
-        
+document.getElementById('queued_slots').innerHTML += `<span style="background:#003057; color:white; padding:4px 8px; border-radius:12px; font-size:0.7rem; margin:2px; display:inline-block;">${new Date(p.value).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}</span> `;    
         p.value = '';
     }
 };
