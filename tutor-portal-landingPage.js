@@ -902,18 +902,7 @@ window.openRejectModal = (id) => {
     };
 };
 
-window.approveSpecificSlot = async (requestId, chosenSlot) => {
-    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
 
-    try {
-        const reqRef = doc(db, 'sessions', requestId);
-        const requestData = allRequests.find(r => r.id === requestId);
-
-        await updateDoc(reqRef, { 
-            status: 'approved',
-            datetime: new Date(chosenSlot).toISOString(), 
-            processedAt: new Date().toISOString()
-        });
 
         // Notify Student
         await addDoc(collection(db, 'notifications'), {
