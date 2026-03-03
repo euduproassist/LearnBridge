@@ -974,7 +974,7 @@ document.getElementById('confirmRatingBtn').onclick = async () => {
             role: 'tutor',
             stars: parseInt(stars),
             comment: comment,
-            createdAt: new Date().toISOString()
+            timestamp: new Date().toISOString()
         });
 
         // 2. Notify the Tutor (The missing sync link)
