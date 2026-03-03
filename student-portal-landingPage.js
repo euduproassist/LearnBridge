@@ -905,7 +905,7 @@ document.getElementById('confirmBookingBtn').onclick = async () => {
         await addDoc(collection(db, 'sessions'), {
             studentId: auth.currentUser.uid,
             studentName: studentName,
-            tutorId: activeTutorId,
+            personId: activeTutorId,
             personName: activeTutorName,
             role: 'tutor',
             topic: topic,
