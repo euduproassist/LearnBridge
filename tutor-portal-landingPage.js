@@ -900,11 +900,7 @@ window.openRejectModal = (id) => {
     };
 };
 
-window.approveSpecificSlot = async (requestId, chosenSlot) => {
-    const venueInput = document.getElementById(`venue_${requestId}`);
-    const venue = venueInput ? venueInput.value.trim() : "Online/TBA";
 
-    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
 
     try {
         const reqRef = doc(db, 'sessions', requestId);
