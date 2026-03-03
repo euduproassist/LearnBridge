@@ -892,67 +892,7 @@ window.openRejectModal = (id) => {
     };
 };
 
-window.approveSpecificSlot = (requestId, chosenSlot) => {
-    const requestData = allRequests.find(r => r.id === requestId);
-    if (!requestData) return;
 
-    const modal = document.getElementById('approvalConfirmModal');
-    const timeText = document.getElementById('approvalTimeText');
-    const locArea = document.getElementById('locationInputArea');
-    const venueInput = document.getElementById('approvalVenueInput');
-    
-    // Set UI details
-    timeText.textContent = "Slot: " + new Date(chosenSlot).toLocaleString();
-    venueInput.value = ""; // Clear previous
-    
-    // Show location input ONLY if it's an in-person session
-    locArea.style.display = (requestData.mode === 'in-person') ? 'block' : 'none';
-    modal.style.display = 'flex';
-
-    // Handle Cancel
-    document.getElementById('cancelApprovalBtn').onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    // Handle Final Approval
-    document.getElementById('finalApproveBtn').onclick = async () => {
-        let venue = "Online/Zoom";
-        
-        if (requestData.mode === 'in-person') {
-            venue = venueInput.value.trim();
-            if (!venue) {
-                alert("Please enter a location/venue.");
-                venueInput.focus();
-                return;
-            }
-        }
-
-        try {
-            const reqRef = doc(db, 'sessions', requestId);
-            await updateDoc(reqRef, { 
-                status: 'approved',
-                datetime: new Date(chosenSlot).toISOString(), 
-                venue: venue,
-                processedAt: new Date().toISOString()
-            });
-            
-            // Notify Student
-            await addDoc(collection(db, 'notifications'), {
-                userId: requestData.studentId,
-                title: `Session Confirmed!`,
-                message: `${requestData.personName || "A tutor"} accepted your request for ${new Date(chosenSlot).toLocaleString()} at ${venue}.`,
-                timestamp: new Date().toISOString(),
-                read: false
-            });
-
-            alert("Session Booked Successfully!");
-            modal.style.display = 'none';
-        } catch (e) {
-            console.error(e);
-            alert("Error approving slot.");
-        }
-    };
-};
 
 // Helper to add more date inputs in the modal
 window.addNewReslot = () => {
