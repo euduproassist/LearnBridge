@@ -50,16 +50,6 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Error fetching user name:", error);
         } // Closed the catch block properly
 
-        // WRAP THESE IN A TIMEOUT OR MOVE TO BOTTOM
-        // This ensures the functions are defined before they are called
-        setTimeout(() => {
-            if (typeof startNotificationListener === "function") {
-                startNotificationListener(); 
-                fetchRequests();
-            }
-        }, 500); // 500ms is enough for the script to finish parsing
-
-
     } else {
         // Not logged in? Go back to login
         window.location.href = 'index.html';
