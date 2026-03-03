@@ -433,6 +433,10 @@ async function loadPendingRequests() {
                 </div>
             `;
         }).join('');
+        } catch (err) {
+    console.error(err); // <--- Add this line!
+    container.innerHTML = `<div style="color:red; text-align:center;">Error loading. Check Console.</div>`;
+}
 
 }
 
