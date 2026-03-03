@@ -928,33 +928,7 @@ window.approveSpecificSlot = async (requestId, chosenSlot) => {
     }
 };
 
-window.tutorReschedule = async (sessionId) => {
-    const newDateTime = prompt("Enter your preferred Date & Time (YYYY-MM-DD HH:MM):", "2026-03-10 14:00");
-    if (!newDateTime) return;
 
-    try {
-        const dateIso = new Date(newDateTime).toISOString();
-        const docRef = doc(db, 'sessions', sessionId);
-        const requestData = allRequests.find(r => r.id === sessionId);
-
-        await updateDoc(docRef, {
-            preferredSlots: [dateIso], // Overwrites student slots
-            rescheduledBy: 'tutor',     // Locks further rescheduling
-            status: 'pending'          // Stays pending until student clicks
-        });
-
-        // Notify Student
-        await addDoc(collection(db, 'notifications'), {
-            userId: requestData.studentId,
-            title: "Tutor Rescheduled Session",
-            message: `${requestData.personName} suggested a new time for "${requestData.topic}". Please check My Bookings.`,
-            timestamp: new Date().toISOString(),
-            read: false
-        });
-
-        alert("Reschedule request sent to student!");
-    } catch (e) { alert("Invalid date format or error occurred."); }
-};
 
 
 
