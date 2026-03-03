@@ -752,7 +752,7 @@ async function fetchRequests() {
     container.innerHTML = "Loading requests...";
 
     // Querying the 'sessions' collection where THIS tutor is the tutorId
-    const q = query(collection(db, 'sessions'), where('tutorId', '==', user.uid), orderBy('timestamp', 'desc'));
+    const q = query(collection(db, 'sessions'), where('personId', '==', user.uid), orderBy('timestamp', 'desc'));
     
     onSnapshot(q, (snapshot) => {
         allRequests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
