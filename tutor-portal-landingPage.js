@@ -796,25 +796,7 @@ function renderRequests() {
                 </div>
             </div>
         `).join('');
-    } else {
-        // Rejected Tab - Simple Table Style
-        container.innerHTML = `
-            <table style="width:100%; font-size:0.75rem; border-collapse:collapse;">
-                <tr style="background:#003057; color:white;">
-                    <th style="padding:8px; text-align:left;">Student</th>
-                    <th style="padding:8px; text-align:left;">Date Sent</th>
-                    <th style="padding:8px; text-align:left;">Reason</th>
-                </tr>
-                ${paginated.map(r => `
-                    <tr style="border-bottom:1px solid #eee;">
-                        <td style="padding:8px;">${r.studentName}</td>
-                        <td style="padding:8px;">${new Date(r.timestamp).toLocaleDateString()}</td>
-                        <td style="padding:8px; color:red;">${r.rejectionReason || 'No reason'}</td>
-                    </tr>
-                `).join('')}
-            </table>
-        `;
-    }
+
 }
 
 // Action Handlers
