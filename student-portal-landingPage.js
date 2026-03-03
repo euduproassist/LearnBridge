@@ -117,7 +117,7 @@ document.getElementById('sendTicketBtn').onclick = async () => {
             message: msg,
             priority: prio,
             status: 'open',
-            createdAt: new Date().toISOString()
+            timestamp: new Date().toISOString()
         });
 
         alert("Ticket sent to Admin!");
@@ -136,7 +136,7 @@ async function loadTicketHistory() {
     if (!user) return;
 
     try {
-        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'supportTickets'), where('studentId', '==', user.uid), orderBy('timestamp', 'desc'));
         const snap = await getDocs(q);
         
         if (snap.empty) {
