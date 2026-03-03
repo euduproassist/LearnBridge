@@ -433,9 +433,7 @@ async function loadPendingRequests() {
                 </div>
             `;
         }).join('');
-    } catch (err) {
-        container.innerHTML = `<div style="color:red; text-align:center;">Error loading requests.</div>`;
-    }
+
 }
 
 window.cancelBooking = async (id) => {
