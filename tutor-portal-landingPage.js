@@ -900,8 +900,23 @@ window.openRejectModal = (id) => {
     };
 };
 
+window.approveSpecificSlot = async (requestId, chosenSlot) => {
+    // 1. Grab the specific input for THIS request
+    const venueInput = document.getElementById(`venue_${requestId}`);
+    
+    // 2. If it's an in-person session, check if they typed something
+    let venue = "Online/Zoom"; // Default
+    if (venueInput) {
+        venue = venueInput.value.trim();
+        if (!venue) {
+            alert("Please enter a Meeting Venue/Room before approving.");
+            venueInput.focus();
+            return;
+        }
+    }
 
-
+    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
+    
     try {
         const reqRef = doc(db, 'sessions', requestId);
         const requestData = allRequests.find(r => r.id === requestId);
