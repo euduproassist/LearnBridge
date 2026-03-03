@@ -907,7 +907,7 @@ window.approveSpecificSlot = (requestId, chosenSlot) => {
     venueInput.style.border = "1px solid #ccc"; // Reset any error styling
     
     // 2. Show/Hide location based on mode
-    if (requestData.mode === 'in-person') {
+    if (requestData.mode === 'In-Person') {
         locArea.style.display = 'block';
         // Small delay to ensure the modal is visible before focusing
         setTimeout(() => venueInput.focus(), 150);
