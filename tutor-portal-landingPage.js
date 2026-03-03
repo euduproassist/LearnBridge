@@ -928,6 +928,71 @@ window.approveSpecificSlot = async (requestId, chosenSlot) => {
     }
 };
 
+// Helper to add more date inputs in the modal
+window.addNewReslot = () => {
+    const container = document.getElementById('res_slots_container');
+    const input = document.createElement('input');
+    input.type = 'datetime-local';
+    input.className = 'res-slot-input';
+    input.style = "width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;";
+    container.appendChild(input);
+};
+
+window.tutorReschedule = (sessionId) => {
+    // 1. Show the Modal
+    const modal = document.getElementById('rescheduleModal');
+    modal.style.display = 'flex';
+    
+    // 2. Reset Fields
+    document.getElementById('res_venue').value = "";
+    document.getElementById('res_slots_container').innerHTML = `
+        <input type="datetime-local" class="res-slot-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+    `;
+
+    // 3. Handle Cancel
+    document.getElementById('cancelResBtn').onclick = () => modal.style.display = 'none';
+
+    // 4. Handle Confirm
+    document.getElementById('confirmResBtn').onclick = async () => {
+        const venue = document.getElementById('res_venue').value.trim();
+        const slotInputs = document.querySelectorAll('.res-slot-input');
+        const newSlots = Array.from(slotInputs).map(i => i.value).filter(v => v !== "");
+
+        if (newSlots.length === 0) return alert("Please pick at least one date.");
+        if (!venue) return alert("Please specify a venue.");
+
+        try {
+            // Convert local times to ISO for Firestore
+            const isoSlots = newSlots.map(s => new Date(s).toISOString());
+            const docRef = doc(db, 'sessions', sessionId);
+            const requestData = allRequests.find(r => r.id === sessionId);
+
+            await updateDoc(docRef, {
+                preferredSlots: isoSlots, 
+                venue: venue,
+                rescheduledBy: 'tutor',
+                status: 'pending'
+            });
+
+            // Notify Student
+            await addDoc(collection(db, 'notifications'), {
+                userId: requestData.studentId,
+                title: "Tutor Proposed New Times",
+                message: `${requestData.personName} suggested ${newSlots.length} new options for "${requestData.topic}" at ${venue}.`,
+                timestamp: new Date().toISOString(),
+                read: false
+            });
+
+            alert("Proposal sent!");
+            modal.style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            alert("Error sending reschedule proposal.");
+        }
+    };
+};
+
+
 
 
 
