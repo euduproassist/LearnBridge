@@ -892,6 +892,75 @@ window.openRejectModal = (id) => {
     };
 };
 
+window.approveSpecificSlot = (requestId, chosenSlot) => {
+    const requestData = allRequests.find(r => r.id === requestId);
+    if (!requestData) return;
+
+    const modal = document.getElementById('approvalConfirmModal');
+    const timeText = document.getElementById('approvalTimeText');
+    const locArea = document.getElementById('locationInputArea');
+    const venueInput = document.getElementById('approvalVenueInput');
+    
+    // 1. Set the slot info and clear old text
+    timeText.innerHTML = `Confirming Slot:<br><b>${new Date(chosenSlot).toLocaleString()}</b>`;
+    venueInput.value = ""; 
+    venueInput.style.border = "1px solid #ccc"; // Reset any error styling
+    
+    // 2. Show/Hide location based on mode
+    if (requestData.mode === 'in-person') {
+        locArea.style.display = 'block';
+        // Small delay to ensure the modal is visible before focusing
+        setTimeout(() => venueInput.focus(), 150);
+    } else {
+        locArea.style.display = 'none';
+        venueInput.value = "Online / Virtual Meeting";
+    }
+    
+    modal.style.display = 'flex';
+
+    // 3. The Approval Logic
+    document.getElementById('finalApproveBtn').onclick = async () => {
+        const finalVenue = venueInput.value.trim();
+
+        // Check if user ignored the location for in-person
+        if (requestData.mode === 'in-person' && !finalVenue) {
+            alert("LOCATION REQUIRED: Please enter a room or building name.");
+            venueInput.style.border = "2px solid red";
+            venueInput.focus();
+            return; 
+        }
+
+        try {
+            const reqRef = doc(db, 'sessions', requestId);
+            await updateDoc(reqRef, { 
+                status: 'approved',
+                datetime: new Date(chosenSlot).toISOString(), 
+                venue: finalVenue,
+                processedAt: new Date().toISOString()
+            });
+            
+            // Notify the student
+            await addDoc(collection(db, 'notifications'), {
+                userId: requestData.studentId,
+                title: `Session Confirmed!`,
+                message: `Confirmed for ${new Date(chosenSlot).toLocaleString()} at ${finalVenue}.`,
+                timestamp: new Date().toISOString(),
+                read: false
+            });
+
+            alert("Session Approved!");
+            modal.style.display = 'none';
+            // Optional: refresh local data or UI here if needed
+        } catch (e) {
+            console.error("Approval Error:", e);
+            alert("Connection error. Could not save approval.");
+        }
+    };
+
+    document.getElementById('cancelApprovalBtn').onclick = () => {
+        modal.style.display = 'none';
+    };
+};
 
 
 // Helper to add more date inputs in the modal
