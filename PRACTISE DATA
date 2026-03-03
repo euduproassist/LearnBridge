@@ -1,12 +1,4 @@
-student-portal-landingPage.js:386  TypeError: Cannot read properties of null (reading 'uid')
-    at loadUpcomingSessions (student-portal-landingPage.js:351:43)
-    at switchBookingTab (student-portal-landingPage.js:335:9)
-    at HTMLAnchorElement.<anonymous> (student-portal-landingPage.js:91:13)
-loadUpcomingSessions @ student-portal-landingPage.js:386
-switchBookingTab @ student-portal-landingPage.js:335
-(anonymous) @ student-portal-landingPage.js:91
-
-
+tutor-portal-landingPage.js:809 Uncaught SyntaxError: Unexpected token '<' (at tutor-portal-landingPage.js:809:17)
 
 
 rules_version = '2';
