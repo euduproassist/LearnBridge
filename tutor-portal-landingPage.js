@@ -803,9 +803,10 @@ function renderRequests() {
             <table style="width:100%; font-size:0.75rem; border-collapse:collapse; background: white; table-layout: fixed;">
                 <thead>
                     <tr style="background:#003057; color:white;">
-                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 30%;">Student Name</th>
-                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 35%;">Request Date</th>
-                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 35%;">Reason</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 20%;">Student Name</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 25%;">Request Date</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 25%;">Topic</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 30%;">Reason</th>
                     </tr>
                 </thead>
                 <tbody>
