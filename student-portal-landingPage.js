@@ -1047,4 +1047,38 @@ window.toggleAvailability = (header) => {
     icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
 };
 
+window.studentFinalizeSession = async (sessionId, status) => {
+    let reason = "";
+    if (status === 'rejected') {
+        reason = prompt("Enter reason for declining this time:");
+        if (!reason) return;
+    }
+
+    try {
+        const docRef = doc(db, 'sessions', sessionId);
+        const snap = await getDoc(docRef);
+        const data = snap.data();
+
+        await updateDoc(docRef, {
+            status: status,
+            datetime: data.preferredSlots[0], // Use the single slot the tutor suggested
+            rejectionReason: reason || "",
+            rejectedBy: status === 'rejected' ? 'student' : ''
+        });
+
+        // Notify Tutor
+        await addDoc(collection(db, 'notifications'), {
+            userId: data.personId,
+            title: status === 'approved' ? "Session Confirmed!" : "Session Declined",
+            message: `Student ${status} your rescheduled time for "${data.topic}"`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+
+        alert("Update successful!");
+        switchBookingTab('pending');
+    } catch (e) { alert("Error updating session."); }
+};
+
+
 
