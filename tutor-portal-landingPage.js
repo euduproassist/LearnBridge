@@ -797,6 +797,43 @@ function renderRequests() {
             </div>
         `).join('');
 
+                } else {
+        // Rejected Tab - Forced Data View (Using timestamp only)
+        container.innerHTML = `
+            <table style="width:100%; font-size:0.75rem; border-collapse:collapse; background: white; table-layout: fixed;">
+                <thead>
+                    <tr style="background:#003057; color:white;">
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 30%;">Student Name</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 35%;">Request Date</th>
+                        <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 35%;">Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${paginated.map(r => {
+                        // Forcefully format the original timestamp
+                        const dateObj = r.timestamp ? new Date(r.timestamp) : new Date();
+                        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                        const dateStr = dateObj.toLocaleDateString();
+                        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        return `
+                        <tr style="border-bottom:1px solid #eee;">
+                            <td style="padding:10px; border:1px solid #ddd; font-weight:bold; color:#003057; word-wrap: break-word;">
+                                ${r.studentName || "MISSING NAME"}
+                            </td>
+                            <td style="padding:10px; border:1px solid #ddd; color:#333;">
+                                <div style="font-weight:600;">${dayName}</div>
+                                <div>${dateStr} @ ${timeStr}</div>
+                            </td>
+                            <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic; vertical-align: top;">
+                                ${r.rejectionReason || 'No reason provided'}
+                            </td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+    }
 }
 
 // Action Handlers
