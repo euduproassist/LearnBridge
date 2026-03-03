@@ -343,6 +343,12 @@ function switchBookingTab(tab) {
 async function loadUpcomingSessions() {
     const container = document.getElementById('bookingsListContainer');
     const user = auth.currentUser;
+    
+        if (!user) {
+        container.innerHTML = "Authenticating...";
+        return; 
+    }
+
     container.innerHTML = `<div style="text-align:center; padding:20px; color:#000;">Loading confirmed sessions...</div>`;
 
     try {
@@ -391,6 +397,12 @@ async function loadUpcomingSessions() {
 async function loadPendingRequests() {
     const container = document.getElementById('bookingsListContainer');
     const user = auth.currentUser;
+
+    if (!user) {
+        container.innerHTML = "Authenticating...";
+        return; 
+            }
+    
     container.innerHTML = `<div style="text-align:center; padding:20px; color:#000;">Checking request status...</div>`;
 
     try {
