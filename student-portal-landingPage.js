@@ -409,7 +409,7 @@ async function loadPendingRequests() {
         const q = query(collection(db, 'sessions'), 
             where('studentId', '==', user.uid), 
             where('status', '==', 'pending'),
-            orderBy('createdAt', 'desc'));
+            orderBy('timestamp', 'desc'));
         
         const snap = await getDocs(q);
 
