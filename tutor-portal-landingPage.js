@@ -780,16 +780,6 @@ function renderRequests() {
                 <b style="color:#003057; display:block;">${r.studentName}</b>
                 <p style="font-size:0.8rem; color:black; margin:5px 0;">Topic: ${r.topic} | <b>Mode: ${r.mode}</b></p>
 
-                ${r.mode === 'in-person' ? `
-    <div style="margin-bottom: 12px;">
-        <b style="display:block; font-size:0.7rem; color:#003057; text-transform:uppercase; margin-bottom:2px;">📍 Meeting Venue / Room</b>
-        <input type="text" id="venue_${r.id}" placeholder="e.g. Building 10, Lab 3" 
-               style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
-    </div>
-` : ''}
-
-<b style="display:block; font-size:0.7rem; color:#003057; text-transform:uppercase; margin-bottom:4px;">⏰ Choose a slot to approve:</b>
-
                 <div style="margin:10px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
                     <small style="font-weight:bold; display:block; margin-bottom:5px; color: black;">
                         ${r.rescheduledBy === 'tutor' ? 'WAITING FOR STUDENT TO ACCEPT:' : 'CHOOSE A SLOT TO APPROVE:'}
