@@ -780,10 +780,6 @@ function renderRequests() {
                 <b style="color:#003057; display:block;">${r.studentName}</b>
                 <p style="font-size:0.8rem; color:black; margin:5px 0;">Topic: ${r.topic} | <b>Mode: ${r.mode}</b></p>
                 
-                ${r.mode === 'in-person' ? `
-                    <input type="text" id="venue_${r.id}" placeholder="Enter Meeting Venue" 
-                           style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; font-size:0.75rem;">
-                ` : ''}
 
                 <div style="margin:10px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
                     <small style="font-weight:bold; display:block; margin-bottom:5px; color: black;">
