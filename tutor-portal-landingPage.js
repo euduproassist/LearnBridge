@@ -845,9 +845,7 @@ function renderRequests() {
                             </td>
                             <td style="padding:10px; border:1px solid #ddd; color: black; font-weight: 500; word-wrap: break-word;">${r.topic || "No Topic"}
                             </td>
-                            <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic; vertical-align: top;">
-                                ${r.rejectionReason || 'No reason provided'}
-                            </td>
+
                         </tr>`;
                     }).join('')}
                 </tbody>
