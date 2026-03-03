@@ -490,6 +490,24 @@
     </div>
 </div>
 
+    <div id="approvalConfirmModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:4000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; width:100%; max-width:350px; border-radius:15px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.3); text-align:center;">
+        <h3 style="color:#003057; margin-bottom:10px;">Confirm Approval</h3>
+        <p id="approvalTimeText" style="font-size:0.9rem; color:#555; margin-bottom:15px; font-weight:600;"></p>
+        
+        <div id="locationInputArea" style="display:none; text-align:left; margin-bottom:15px;">
+            <label style="font-size:0.75rem; font-weight:700; color:#003057; text-transform:uppercase;">Meeting Venue/Room:</label>
+            <input type="text" id="approvalVenueInput" placeholder="e.g. APK Library Room 3" style="width:100%; padding:12px; border:1px solid #ccc; border-radius:8px; margin-top:5px; font-size:0.9rem;">
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button id="finalApproveBtn" style="flex:1; background:#003057; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Approve</button>
+            <button id="cancelApprovalBtn" style="flex:1; background:#eee; color:#333; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
 
   
     <script type="module" src="tutor-portal-landingPage.js"></script>
