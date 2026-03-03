@@ -822,6 +822,8 @@ function renderRequests() {
                             <td style="padding:10px; border:1px solid #ddd; font-weight:bold; color:#003057; word-wrap: break-word;">
                                 ${r.studentName || "MISSING NAME"}
                             </td>
+                            <td style="padding:10px; border:1px solid #ddd; color: black; font-weight: 500; word-wrap: break-word;">${r.topic || "No Topic"}
+                            </td>
                             <td style="padding:10px; border:1px solid #ddd; color:#333;">
                                 <div style="font-weight:600;">${dayName}</div>
                                 <div>${dateStr} @ ${timeStr}</div>
