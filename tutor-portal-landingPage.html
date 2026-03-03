@@ -325,6 +325,28 @@
     </div>
 </div>
 
+        <div id="rescheduleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:15px; width:90%; max-width:400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#003057;">Suggest New Slots</h3>
+        
+        <label style="font-size:0.8rem; font-weight:bold;">Meeting Venue:</label>
+        <input type="text" id="res_venue" placeholder="e.g. Library Room 4 or Zoom" style="width:100%; padding:10px; margin:8px 0 15px 0; border:1px solid #ccc; border-radius:8px;">
+
+        <label style="font-size:0.8rem; font-weight:bold;">Suggested Dates/Times:</label>
+        <div id="res_slots_container">
+            <input type="datetime-local" class="res-slot-input" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:8px;">
+        </div>
+        
+        <button onclick="addNewReslot()" style="background:none; border:1px dashed #003057; color:#003057; width:100%; padding:8px; border-radius:8px; cursor:pointer; font-size:0.75rem; margin-bottom:15px;">+ Add Another Option</button>
+
+        <div style="display:flex; gap:10px;">
+            <button id="cancelResBtn" style="flex:1; background:#f4f4f4; border:none; padding:12px; border-radius:10px; cursor:pointer;">Cancel</button>
+            <button id="confirmResBtn" style="flex:1; background:#003057; color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:bold;">Send Proposal</button>
+        </div>
+    </div>
+</div>
+
+
 <div id="actionModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center;">
     <div style="background:white; padding:20px; border-radius:10px; width:90%; max-width:350px;">
         <h3 id="actionModalTitle" style="color:#003057; margin-bottom:10px;">Reason for Rejection</h3>
