@@ -779,10 +779,10 @@ function renderRequests() {
         container.innerHTML = paginated.map(r => `
             <div style="border:1px solid #eee; padding:15px; border-radius:10px; margin-bottom:10px; background:#fff;">
                 <b style="color:#003057; display:block;">${r.studentName}</b>
-                <p style="font-size:0.8rem; color:#666;">Topic: ${r.topic}</p>
+                <p style="font-size:0.8rem; color:black;">Topic: ${r.topic}</p>
                 
                 <div style="margin:10px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
-                    <small style="font-weight:bold; display:block; margin-bottom:5px;">PICK A TIME TO APPROVE:</small>
+                    <small style="font-weight:bold; display:block; margin-bottom:5px; color: black;">PICK A TIME TO APPROVE:</small>
                     ${r.preferredSlots.map(slot => `
                         <button onclick="approveSpecificSlot('${r.id}', '${slot}')" 
                                 style="width:100%; text-align:left; background:white; border:1px solid #003057; padding:6px; margin-bottom:4px; border-radius:4px; cursor:pointer; font-size:0.75rem;">
