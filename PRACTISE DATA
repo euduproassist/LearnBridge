@@ -1,4 +1,17 @@
 
+tutor-portal-landingPage.js:54 Uncaught (in promise) ReferenceError: startNotificationListener is not defined
+    at tutor-portal-landingPage.js:54:9
+(anonymous)	@	tutor-portal-landingPage.js:54
+await in (anonymous)		
+(anonymous)	@	auth_impl.ts:744
+Promise.then		
+registerStateListener	@	auth_impl.ts:744
+onAuthStateChanged	@	auth_impl.ts:545
+onAuthStateChanged	@	index.ts:211
+(anonymous)	@	tutor-portal-landingPage.js:27
+
+
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
