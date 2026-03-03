@@ -424,7 +424,7 @@ async function loadPendingRequests() {
             return `
                 <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
                     <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
-                    <p style="font-size:0.75rem; color:#000; margin-bottom:8px;">Waiting for tutor to pick a slot...</p>
+                    
                     <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
                         <span style="font-size:0.7rem; font-weight:700; color:#000; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
                         ${slots.map(t => `<div style="font-size:0.75rem; color:#000;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
