@@ -774,7 +774,43 @@ function renderRequests() {
         container.innerHTML = `<p style="text-align:center; margin-top:50px; color:#999;">No ${currentReqTab} requests found.</p>`;
         return;
     }
+    if (currentReqTab === 'pending') {
+        container.innerHTML = paginated.map(r => `
+            <div style="border:1px solid #eee; padding:15px; border-radius:10px; margin-bottom:10px; background:#fff;">
+                <b style="color:#003057; display:block;">${r.studentName}</b>
+                <p style="font-size:0.8rem; color:black; margin:5px 0;">Topic: ${r.topic} | <b>Mode: ${r.mode}</b></p>
+                
+                ${r.mode === 'in-person' ? `
+                    <input type="text" id="venue_${r.id}" placeholder="Enter Meeting Venue" 
+                           style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; font-size:0.75rem;">
+                ` : ''}
 
+                <div style="margin:10px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
+                    <small style="font-weight:bold; display:block; margin-bottom:5px; color: black;">
+                        ${r.rescheduledBy === 'tutor' ? 'WAITING FOR STUDENT TO ACCEPT:' : 'CHOOSE A SLOT TO APPROVE:'}
+                    </small>
+                    ${r.preferredSlots.map(slot => `
+                        <button onclick="approveSpecificSlot('${r.id}', '${slot}')" 
+                                ${r.rescheduledBy === 'tutor' ? 'disabled' : ''}
+                                style="width:100%; text-align:left; background:white; border:1px solid #003057; padding:6px; margin-bottom:4px; border-radius:4px; cursor:pointer; font-size:0.75rem;">
+                            📅 ${new Date(slot).toLocaleString()}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <div style="display:flex; gap:5px;">
+                    ${!r.rescheduledBy ? `
+                        <button onclick="tutorReschedule('${r.id}')" style="flex:1; background:#003057; color:white; border:none; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reschedule</button>
+                    ` : ''}
+                    <button onclick="openRejectModal('${r.id}')" style="flex:1; background:#f4f4f4; border:1px solid #ddd; padding:8px; border-radius:5px; font-size:0.75rem; cursor:pointer;">Reject</button>
+                </div>
+            </div>
+        `).join(''); // Correctly ends the mapping here
+
+    } else {
+        // Rejected Tab - Simple data table with no decorations as requested
+        container.innerHTML = `
+            <table style="width:100%; font-size:0.75rem; border-collapse:collapse; background: white; table-layout: fixed;">
                 <thead>
                     <tr style="background:#003057; color:white;">
                         <th style="padding:10px; text-align:left; border:1px solid #ddd; width: 20%;">Student Name</th>
