@@ -418,23 +418,7 @@ async function loadPendingRequests() {
             return;
         }
 
-        container.innerHTML = snap.docs.map(doc => {
-            const s = doc.data();
-            const slots = s.preferredSlots || [];
-            return `
-                <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
-                    <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
-                    <p style="font-size:0.75rem; color:${s.status === 'rejected' ? 'red' : '#000'}; margin-bottom:8px;">
-    ${s.status === 'rejected' ? '❌ This request was declined.' : '⏳ Waiting for tutor to pick a slot...'}
-</p>
-                    <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
-                        <span style="font-size:0.7rem; font-weight:700; color:#000; display:block; margin-bottom:5px;">YOUR PROPOSED TIMES:</span>
-                        ${slots.map(t => `<div style="font-size:0.75rem; color:#000;">• ${new Date(t).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}</div>`).join('')}
-                    </div>
-                    <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:var(--primary-blue); border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:white;">Withdraw Request</button>
-                </div>
-            `;
-        }).join('');
+       
         } catch (err) {
     console.error(err); // <--- Add this line!
     container.innerHTML = `<div style="color:red; text-align:center;">Error loading. Check Console.</div>`;
