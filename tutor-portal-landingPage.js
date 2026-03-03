@@ -305,7 +305,10 @@ function startNotificationListener() {
 
 // Ensure listener starts when user logs in
 onAuthStateChanged(auth, (user) => {
-    if (user) startNotificationListener();
+    if (user) {
+        startNotificationListener();
+        fetchRequests();
+    }
 });
 
 function renderNotifications() {
