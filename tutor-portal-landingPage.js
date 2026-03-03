@@ -892,6 +892,79 @@ window.openRejectModal = (id) => {
     };
 };
 
+window.approveSpecificSlot = (requestId, chosenSlot) => {
+    const requestData = allRequests.find(r => r.id === requestId);
+    if (!requestData) return;
+
+    const modal = document.getElementById('approvalConfirmModal');
+    const timeText = document.getElementById('approvalTimeText');
+    const locArea = document.getElementById('locationInputArea');
+    const venueInput = document.getElementById('approvalVenueInput');
+    
+    // 1. Setup UI details
+    timeText.innerHTML = `Slot: <b>${new Date(chosenSlot).toLocaleString()}</b>`;
+    venueInput.value = ""; // Clear previous input
+    
+    // 2. Force the location input to show ONLY if the request mode is in-person
+    if (requestData.mode === 'in-person') {
+        locArea.style.display = 'block';
+    } else {
+        locArea.style.display = 'none';
+    }
+    
+    modal.style.display = 'flex';
+
+    // 3. Handle the Approval Click
+    document.getElementById('finalApproveBtn').onclick = async () => {
+        let finalVenue = "";
+
+        // VALIDATION LOGIC:
+        if (requestData.mode === 'in-person') {
+            finalVenue = venueInput.value.trim();
+            // STOP if empty
+            if (!finalVenue) {
+                alert("STRICT REQUIREMENT: You must enter a Room Number or Building for in-person sessions!");
+                venueInput.style.border = "2px solid red";
+                venueInput.focus();
+                return; // This prevents the code below from running
+            }
+        } else {
+            // If it's online, we can set a default label here
+            finalVenue = "Online / Virtual Meeting";
+        }
+
+        // 4. If validation passed, proceed to Firebase
+        try {
+            const reqRef = doc(db, 'sessions', requestId);
+            await updateDoc(reqRef, { 
+                status: 'approved',
+                datetime: new Date(chosenSlot).toISOString(), 
+                venue: finalVenue,
+                processedAt: new Date().toISOString()
+            });
+            
+            // 5. Notify the student with the location
+            await addDoc(collection(db, 'notifications'), {
+                userId: requestData.studentId,
+                title: `Session Confirmed!`,
+                message: `Your session on ${new Date(chosenSlot).toLocaleString()} is confirmed at: ${finalVenue}.`,
+                timestamp: new Date().toISOString(),
+                read: false
+            });
+
+            alert("Session Booked Successfully!");
+            modal.style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            alert("Error saving approval: " + e.message);
+        }
+    };
+
+    // Handle Cancel button
+    document.getElementById('cancelApprovalBtn').onclick = () => {
+        modal.style.display = 'none';
+    };
+};
 
 
 // Helper to add more date inputs in the modal
