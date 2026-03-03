@@ -892,49 +892,6 @@ window.openRejectModal = (id) => {
     };
 };
 
-window.approveSpecificSlot = async (requestId, chosenSlot) => {
-    // 1. Grab the specific input for THIS request
-    const venueInput = document.getElementById(`venue_${requestId}`);
-    
-    // 2. If it's an in-person session, check if they typed something
-    let venue = "Online/Zoom"; // Default
-    if (venueInput) {
-        venue = venueInput.value.trim();
-        if (!venue) {
-            alert("Please enter a Meeting Venue/Room before approving.");
-            venueInput.focus();
-            return;
-        }
-    }
-
-    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
-    
-    try {
-        const reqRef = doc(db, 'sessions', requestId);
-        const requestData = allRequests.find(r => r.id === requestId);
-
-        await updateDoc(reqRef, { 
-            status: 'approved',
-            datetime: new Date(chosenSlot).toISOString(), 
-            venue: venue, // SAVES THE VENUE
-            processedAt: new Date().toISOString()
-        });
-        
-        // Notify Student
-        await addDoc(collection(db, 'notifications'), {
-            userId: requestData.studentId,
-            title: `Session Confirmed!`,
-            message: `${requestData.personName || "A tutor"} accepted your request for ${new Date(chosenSlot).toLocaleString()}.`,
-            timestamp: new Date().toISOString(),
-            read: false
-        });
-
-        alert("Session Booked!");
-    } catch (e) {
-        console.error(e);
-        alert("Error approving slot.");
-    }
-};
 
 // Helper to add more date inputs in the modal
 window.addNewReslot = () => {
