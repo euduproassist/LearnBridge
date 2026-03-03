@@ -902,8 +902,23 @@ window.openRejectModal = (id) => {
     };
 };
 
+window.approveSpecificSlot = async (requestId, chosenSlot) => {
+    const venueInput = document.getElementById(`venue_${requestId}`);
+    const venue = venueInput ? venueInput.value.trim() : "Online/TBA";
 
+    if(!confirm("Confirm session for: " + new Date(chosenSlot).toLocaleString() + "?")) return;
 
+    try {
+        const reqRef = doc(db, 'sessions', requestId);
+        const requestData = allRequests.find(r => r.id === requestId);
+
+        await updateDoc(reqRef, { 
+            status: 'approved',
+            datetime: new Date(chosenSlot).toISOString(), 
+            venue: venue, // SAVES THE VENUE
+            processedAt: new Date().toISOString()
+        });
+        
         // Notify Student
         await addDoc(collection(db, 'notifications'), {
             userId: requestData.studentId,
