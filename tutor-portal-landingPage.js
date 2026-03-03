@@ -780,14 +780,6 @@ function renderRequests() {
                 <b style="color:#003057; display:block;">${r.studentName}</b>
                 <p style="font-size:0.8rem; color:black; margin:5px 0;">Topic: ${r.topic} | <b>Mode: ${r.mode}</b></p>
 
-                ${r.mode === 'in-person' ? `
-    <div style="margin-bottom: 12px;">
-        <b style="display:block; font-size:0.75rem; color:#003057; text-transform:uppercase; margin-bottom:4px;">📍 Meeting Venue / Room</b>
-        <input type="text" id="venue_${r.id}" placeholder="e.g. Building 10, Lab 3" 
-               style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:0.85rem; box-sizing:border-box; color:black;">
-    </div>
-` : ''}
-
 <b style="display:block; font-size:0.75rem; color:#003057; text-transform:uppercase; margin-bottom:6px;">⏰ Choose a slot to approve:</b>
 
                 <div style="margin:10px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
