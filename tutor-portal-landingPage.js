@@ -1144,29 +1144,7 @@ function renderAgenda() {
 }
 
 // Logic for Start/Finish
-window.startSession = async (id) => {
-    const startTime = new Date().toLocaleTimeString();
-    if(confirm("Start lesson now? Duration will begin tracking.")){
-        const btn = event.target;
-        btn.textContent = "Finish";
-        btn.style.background = "#003057";
-        btn.onclick = () => finishSession(id, startTime);
-    }
-};
 
-async function finishSession(id, startTime) {
-    const endTime = new Date().toLocaleTimeString();
-    const duration = "Calculated at end"; // Logic for duration can be added here
-    try {
-        await updateDoc(doc(db, 'sessions', id), {
-            status: 'completed',
-            actualStart: startTime,
-            actualEnd: endTime,
-            duration: duration
-        });
-        alert("Session moved to History/Completed.");
-    } catch (e) { alert("Error saving session"); }
-}
 
 window.withdrawSession = async (id) => {
     const reason = prompt("Enter reason for withdrawing this session:");
