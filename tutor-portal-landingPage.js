@@ -1110,7 +1110,24 @@ function renderAgenda() {
             <td style="padding:10px; border:1px solid #ddd;">${s.topic}</td>
             <td style="padding:10px; border:1px solid #ddd;">${typeDisplay}</td>`;
 
-
+                if (currentAgendaTab === 'upcoming') {
+            // Check if session is already running (has an actualStart but no actualEnd)
+            const isRunning = s.actualStart && !s.actualEnd;
+            
+            html += `<td style="padding:10px; border:1px solid #ddd;">${dateStr}</td>
+                <td style="padding:10px; border:1px solid #ddd;">
+                    <button id="btn-${s.id}" onclick="${isRunning ? `finishSession('${s.id}', '${s.actualStart}')` : `startSession('${s.id}')`}" 
+                        style="background:${isRunning ? '#003057' : 'black'}; color:white; padding:5px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">
+                        ${isRunning ? 'Finish (00:00:00)' : 'Start'}
+                    </button>
+                    ${s.mode === 'Online' ? `<button onclick="openLinkModal('${s.id}', '${s.studentId}')" style="background:white; border:1px solid black; padding:5px; border-radius:4px; width:100%; margin-bottom:5px;">Upload Link</button>` : ''}
+                    <button onclick="withdrawSession('${s.id}')" style="background:#d32f2f; color:white; border:none; padding:5px; border-radius:4px; width: 100%; cursor:pointer;">Withdraw</button>
+                </td>`;
+            
+            // If it's running, start a local timer display
+            if(isRunning) {
+                startLiveTimer(s.id, s.actualStart);
+            }
         } else if (currentAgendaTab === 'withdrawn') {
             html += `<td style="padding:10px; border:1px solid #ddd;">Was: ${dateStr}</td>
                 <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic;">Reason: ${s.withdrawReason || 'N/A'}</td>`;
