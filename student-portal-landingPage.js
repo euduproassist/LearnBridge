@@ -429,8 +429,7 @@ async function loadPendingRequests() {
             <p style="font-size:0.75rem; color:#444; margin-bottom:4px;"><b>Mode:</b> ${s.mode.toUpperCase()}</p>
             
             <p style="font-size:0.75rem; color:${s.status === 'rejected' ? 'red' : '#003057'}; margin-bottom:8px; font-weight:bold;">
-                ${s.status === 'rejected' ? '❌ Declined: ' + (s.rejectionReason || '') : 
-                  isRescheduledByTutor ? '⚠️ TUTOR PROPOSED A NEW TIME' : '⏳ Waiting for tutor...'}
+ 
             </p>
 
             <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
