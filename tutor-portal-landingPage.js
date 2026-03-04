@@ -1098,7 +1098,7 @@ function renderAgenda() {
                 <th style="padding:10px; border:1px solid #ddd;">Topic</th>
                 <th style="padding:10px; border:1px solid #ddd;">Type/Location</th>
                 <th style="padding:10px; border:1px solid #ddd;">Time Info</th>
-                <th style="padding:10px; border:1px solid #ddd;">Actions</th>
+                <th style="padding:10px; border:1px solid #ddd;">Duration</th>
                 </tr></thead><tbody>`;
 
     paginated.forEach(s => {
