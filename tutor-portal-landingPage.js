@@ -1158,14 +1158,6 @@ async function finishSession(id, startTime) {
     } catch (e) { alert("Error saving session"); }
 }
 
-window.withdrawSession = async (id) => {
-    const reason = prompt("Enter reason for withdrawing this session:");
-    if (!reason) return;
-    try {
-        await updateDoc(doc(db, 'sessions', id), { status: 'withdrawn', withdrawReason: reason });
-        alert("Session Withdrawn.");
-    } catch (e) { alert("Error."); }
-};
 
 window.openLinkModal = (id, studentId) => {
     document.getElementById('linkModal').style.display = 'flex';
