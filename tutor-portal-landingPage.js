@@ -1158,6 +1158,36 @@ async function finishSession(id, startTime) {
     } catch (e) { alert("Error saving session"); }
 }
 
+window.withdrawSession = async (id) => {
+    const reason = prompt("Enter reason for withdrawing this session:");
+    if (!reason) return;
+
+    try {
+        // 1. Find the session data to get the studentId and topic
+        const sessionData = allAgendaSessions.find(s => s.id === id);
+        if (!sessionData) return;
+
+        // 2. Update the session status
+        await updateDoc(doc(db, 'sessions', id), { 
+            status: 'withdrawn', 
+            withdrawReason: reason 
+        });
+
+        // 3. Send Notification to Student
+        await addDoc(collection(db, 'notifications'), {
+            userId: sessionData.studentId,
+            title: "Session Withdrawn by Tutor",
+            message: `Your session regarding "${sessionData.topic}" was withdrawn. Reason: ${reason}`,
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+
+        alert("Session Withdrawn and Student Notified.");
+    } catch (e) { 
+        console.error("Withdrawal Error:", e);
+        alert("Error withdrawing session."); 
+    }
+};
 
 window.openLinkModal = (id, studentId) => {
     document.getElementById('linkModal').style.display = 'flex';
