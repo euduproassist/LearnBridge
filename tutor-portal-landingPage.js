@@ -1144,6 +1144,45 @@ function renderAgenda() {
 }
 
 // Logic for Start/Finish
+window.startSession = async (id) => {
+    if(confirm("Start lesson now? The timer will begin.")){
+        const now = new Date().toISOString();
+        try {
+            await updateDoc(doc(db, 'sessions', id), {
+                actualStart: now
+            });
+            // The onSnapshot listener will automatically re-render the UI
+        } catch (e) {
+            alert("Error starting session.");
+        }
+    }
+};
+
+window.finishSession = async (id, startTimeISO) => {
+    if(confirm("Are you sure you want to finish this lesson?")){
+        const endTimeISO = new Date().toISOString();
+        const start = new Date(startTimeISO);
+        const end = new Date(endTimeISO);
+        
+        // Calculate Duration
+        const diff = Math.abs(end - start);
+        const hrs = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        const finalDuration = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        try {
+            await updateDoc(doc(db, 'sessions', id), {
+                status: 'completed',
+                actualEnd: endTimeISO,
+                duration: finalDuration
+            });
+            alert("Lesson completed and logged.");
+        } catch (e) {
+            alert("Error finishing session.");
+        }
+    }
+};
 
 
 window.withdrawSession = async (id) => {
@@ -1197,6 +1236,28 @@ window.openLinkModal = (id, studentId) => {
         document.getElementById('linkModal').style.display = 'none';
     };
 };
+
+function startLiveTimer(sessionId, startTimeISO) {
+    const startTime = new Date(startTimeISO).getTime();
+    
+    const timerInterval = setInterval(() => {
+        const btn = document.getElementById(`btn-${sessionId}`);
+        if (!btn) {
+            clearInterval(timerInterval);
+            return;
+        }
+
+        const now = new Date().getTime();
+        const diff = now - startTime;
+
+        const hrs = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+
+        const display = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        btn.textContent = `Finish (${display})`;
+    }, 1000);
+}
 
 
 
