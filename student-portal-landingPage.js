@@ -422,6 +422,8 @@ async function loadPendingRequests() {
     const s = doc.data();
     const slots = s.preferredSlots || [];
     const isRescheduledByTutor = s.rescheduledBy === 'tutor';
+    const statusColor = '#003057';
+    const statusText = isRescheduledByTutor ? '⚠️ TUTOR PROPOSED A NEW TIME' : '⏳ Waiting for tutor...';
 
     return `
         <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
