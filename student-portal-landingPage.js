@@ -418,41 +418,7 @@ async function loadPendingRequests() {
             return;
         }
 
-    container.innerHTML = snap.docs.map(doc => {
-    const s = doc.data();
-    const slots = s.preferredSlots || [];
-    const isRescheduledByTutor = s.rescheduledBy === 'tutor';
 
-    return `
-        <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
-            <b style="color:var(--primary-blue); font-size:1rem;">Request to: ${s.personName}</b>
-            <p style="font-size:0.75rem; color:#444; margin-bottom:4px;"><b>Mode:</b> ${s.mode.toUpperCase()}</p>
-            
-            <p style="font-size:0.75rem; color:${s.status === 'rejected' ? 'red' : '#003057'}; margin-bottom:8px; font-weight:bold;">
-            const statusColor = s.status === 'rejected' || s.status === 'withdrawn' ? 'red' : '#003057';
-            const statusText = s.status === 'withdrawn' ? '⚠️ WITHDRAWN: ' + (s.withdrawReason || '') : 
-                  s.status === 'rejected' ? '❌ Declined: ' + (s.rejectionReason || '') : 
-                  isRescheduledByTutor ? '⚠️ TUTOR PROPOSED A NEW TIME' : '⏳ Waiting for tutor...';
-            </p>
-
-            <div style="background:#fcfcfc; border:1px solid #f0f0f0; padding:10px; border-radius:8px;">
-                <span style="font-size:0.7rem; font-weight:700; color:#000; display:block; margin-bottom:5px;">
-                    ${isRescheduledByTutor ? 'TUTOR\'S NEW SLOT:' : 'YOUR PROPOSED TIMES:'}
-                </span>
-                ${slots.map(t => `<div style="font-size:0.75rem; color:#000;">• ${new Date(t).toLocaleString()}</div>`).join('')}
-            </div>
-
-            ${isRescheduledByTutor ? `
-                <div style="display:flex; gap:5px; margin-top:10px;">
-                    <button onclick="studentFinalizeSession('${doc.id}', 'approved')" style="flex:1; background:green; color:white; border:none; padding:8px; border-radius:8px; cursor:pointer;">Accept New Time</button>
-                    <button onclick="studentFinalizeSession('${doc.id}', 'rejected')" style="flex:1; background:#f4f4f4; border:1px solid #ddd; padding:8px; border-radius:8px; cursor:pointer;">Decline</button>
-                </div>
-            ` : `
-                <button onclick="cancelBooking('${doc.id}')" style="width:100%; margin-top:12px; background:var(--primary-blue); border:none; padding:8px; border-radius:8px; font-size:0.75rem; cursor:pointer; color:white;">Withdraw Request</button>
-            `}
-        </div>
-    `;
-}).join('');
         } catch (err) {
     console.error(err); // <--- Add this line!
     container.innerHTML = `<div style="color:red; text-align:center;">Error loading. Check Console.</div>`;
