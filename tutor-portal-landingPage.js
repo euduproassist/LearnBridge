@@ -21,7 +21,10 @@ const reqPageSize = 10;
 let allRequests = [];
 let targetRequestId = null; 
 
-
+let currentAgendaTab = 'upcoming';
+let agendaCurrentPage = 1;
+const agendaPageSize = 10;
+let allAgendaSessions = [];
 
 // Check if user is logged in
 onAuthStateChanged(auth, async (user) => {
@@ -132,6 +135,40 @@ document.getElementById('sendTicketBtn').onclick = async () => {
         alert("Failed to send ticket.");
     }
 };
+
+// Open Agenda
+document.getElementById('openAgendaBtn').onclick = () => {
+    document.getElementById('agendaModal').style.display = 'flex';
+    fetchAgenda();
+};
+
+document.getElementById('closeAgendaBtn').onclick = () => {
+    document.getElementById('agendaModal').style.display = 'none';
+};
+
+// Tab Switching for Agenda
+document.getElementById('tabUpcoming').onclick = function() {
+    updateAgendaTabs('upcoming', this);
+};
+document.getElementById('tabWithdrawn').onclick = function() {
+    updateAgendaTabs('withdrawn', this);
+};
+document.getElementById('tabCompleted').onclick = function() {
+    updateAgendaTabs('completed', this);
+};
+
+function updateAgendaTabs(tab, btn) {
+    currentAgendaTab = tab;
+    ['tabUpcoming', 'tabWithdrawn', 'tabCompleted'].forEach(id => {
+        document.getElementById(id).style.background = '#f4f4f4';
+        document.getElementById(id).style.borderBottom = 'none';
+    });
+    btn.style.background = 'white';
+    btn.style.borderBottom = '3px solid #003057';
+    agendaCurrentPage = 1;
+    renderAgenda();
+}
+
 
 async function loadTicketHistory() {
     const historyDiv = document.getElementById('ticketHistory');
@@ -1026,6 +1063,131 @@ window.tutorReschedule = (sessionId) => {
         }
     };
 };
+
+async function fetchAgenda() {
+    const user = auth.currentUser;
+    // We fetch all approved, completed, or withdrawn sessions for this tutor
+    const q = query(collection(db, 'sessions'), where('personId', '==', user.uid));
+    
+    onSnapshot(q, (snapshot) => {
+        allAgendaSessions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderAgenda();
+    });
+}
+
+function renderAgenda() {
+    const container = document.getElementById('agendaListArea');
+    let filtered = [];
+
+    if (currentAgendaTab === 'upcoming') {
+        filtered = allAgendaSessions.filter(s => s.status === 'approved')
+            .sort((a, b) => new Date(a.datetime) - new Date(b.datetime)); // Soonest first
+    } else if (currentAgendaTab === 'withdrawn') {
+        filtered = allAgendaSessions.filter(s => s.status === 'withdrawn');
+    } else {
+        filtered = allAgendaSessions.filter(s => s.status === 'completed');
+    }
+
+    const start = (agendaCurrentPage - 1) * agendaPageSize;
+    const paginated = filtered.slice(start, start + agendaPageSize);
+    
+    // Header for Table
+    let html = `<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                <thead><tr style="background:#003057; color:white;">
+                <th style="padding:10px; border:1px solid #ddd;">Student</th>
+                <th style="padding:10px; border:1px solid #ddd;">Topic</th>
+                <th style="padding:10px; border:1px solid #ddd;">Type/Location</th>
+                <th style="padding:10px; border:1px solid #ddd;">Time Info</th>
+                <th style="padding:10px; border:1px solid #ddd;">Actions</th>
+                </tr></thead><tbody>`;
+
+    paginated.forEach(s => {
+        const dateStr = s.datetime ? new Date(s.datetime).toLocaleString() : 'N/A';
+        const typeDisplay = s.mode === 'Online' ? `Online (${s.meetingLink || 'No link'})` : `In-Person (${s.venue || 'No venue'})`;
+
+        html += `<tr style="color:black; border-bottom:1px solid #eee;">
+            <td style="padding:10px; border:1px solid #ddd;">${s.studentName}</td>
+            <td style="padding:10px; border:1px solid #ddd;">${s.topic}</td>
+            <td style="padding:10px; border:1px solid #ddd;">${typeDisplay}</td>`;
+
+        if (currentAgendaTab === 'upcoming') {
+            html += `<td style="padding:10px; border:1px solid #ddd;">${dateStr}</td>
+                <td style="padding:10px; border:1px solid #ddd;">
+                    <button onclick="startSession('${s.id}')" style="background:black; color:white; padding:5px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">Start</button>
+                    ${s.mode === 'Online' ? `<button onclick="openLinkModal('${s.id}', '${s.studentId}')" style="background:white; border:1px solid black; padding:5px; border-radius:4px; width:100%; margin-bottom:5px;">Upload Link</button>` : ''}
+                    <button onclick="tutorReschedule('${s.id}')" style="background:grey; color:white; border:none; padding:5px; border-radius:4px; width:100%; margin-bottom:5px;">Reschedule</button>
+                    <button onclick="withdrawSession('${s.id}')" style="background:none; color:grey; border:none; font-size:0.7rem; cursor:pointer;">Withdraw</button>
+                </td>`;
+        } else if (currentAgendaTab === 'withdrawn') {
+            html += `<td style="padding:10px; border:1px solid #ddd;">Was: ${dateStr}</td>
+                <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic;">Reason: ${s.withdrawReason || 'N/A'}</td>`;
+        } else {
+            html += `<td style="padding:10px; border:1px solid #ddd;">Started: ${s.actualStart}<br>Finished: ${s.actualEnd}</td>
+                <td style="padding:10px; border:1px solid #ddd; font-weight:bold;">Duration: ${s.duration || '--'}</td>`;
+        }
+        html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = paginated.length === 0 ? `<p style="text-align:center; padding:20px; color:grey;">No sessions found.</p>` : html;
+    document.getElementById('agendaPageInfo').textContent = `Page ${agendaCurrentPage} of ${Math.ceil(filtered.length / agendaPageSize) || 1}`;
+}
+
+// Logic for Start/Finish
+window.startSession = async (id) => {
+    const startTime = new Date().toLocaleTimeString();
+    if(confirm("Start lesson now? Duration will begin tracking.")){
+        const btn = event.target;
+        btn.textContent = "Finish";
+        btn.style.background = "#003057";
+        btn.onclick = () => finishSession(id, startTime);
+    }
+};
+
+async function finishSession(id, startTime) {
+    const endTime = new Date().toLocaleTimeString();
+    const duration = "Calculated at end"; // Logic for duration can be added here
+    try {
+        await updateDoc(doc(db, 'sessions', id), {
+            status: 'completed',
+            actualStart: startTime,
+            actualEnd: endTime,
+            duration: duration
+        });
+        alert("Session moved to History/Completed.");
+    } catch (e) { alert("Error saving session"); }
+}
+
+window.withdrawSession = async (id) => {
+    const reason = prompt("Enter reason for withdrawing this session:");
+    if (!reason) return;
+    try {
+        await updateDoc(doc(db, 'sessions', id), { status: 'withdrawn', withdrawReason: reason });
+        alert("Session Withdrawn.");
+    } catch (e) { alert("Error."); }
+};
+
+window.openLinkModal = (id, studentId) => {
+    document.getElementById('linkModal').style.display = 'flex';
+    document.getElementById('sendLinkBtn').onclick = async () => {
+        const link = document.getElementById('meetingLinkInput').value;
+        if(!link) return;
+        
+        await updateDoc(doc(db, 'sessions', id), { meetingLink: link });
+        
+        // Link to Inbox: Send as automated message
+        const threadId = [auth.currentUser.uid, studentId].sort().join('_');
+        await addDoc(collection(db, 'threads', threadId, 'messages'), {
+            senderId: auth.currentUser.uid,
+            text: `Here is the meeting link for our session: ${link}`,
+            timestamp: serverTimestamp()
+        });
+        
+        alert("Link sent to student inbox!");
+        document.getElementById('linkModal').style.display = 'none';
+    };
+};
+
 
 
 
