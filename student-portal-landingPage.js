@@ -272,7 +272,7 @@ async function loadUserRatings() {
 
     try {
         // Query the ratings where studentId matches current user
-        const q = query(collection(db, 'ratings'), where('studentId', '==', user.uid), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'ratings'), where('studentId', '==', user.uid), orderBy('timestamp', 'desc'));
         const snap = await getDocs(q);
         
         let ratings = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
