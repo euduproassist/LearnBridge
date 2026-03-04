@@ -299,7 +299,7 @@ async function loadUserRatings() {
                     </div>
                     <p style="color:#555; font-size:0.8rem; line-height:1.4; font-style:italic;">"${r.comment || 'No comment provided.'}"</p>
                     <div style="text-align:right; margin-top:5px;">
-                        <small style="color:#bbb; font-size:0.7rem;">${new Date(r.createdAt).toLocaleDateString()}</small>
+                        <small style="color:#bbb; font-size:0.7rem;">${new Date(r.timestamp).toLocaleDateString()}</small>
                     </div>
                 </div>
             `;
