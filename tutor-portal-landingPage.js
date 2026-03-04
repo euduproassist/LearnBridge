@@ -1131,10 +1131,7 @@ function renderAgenda() {
         } else if (currentAgendaTab === 'withdrawn') {
             html += `<td style="padding:10px; border:1px solid #ddd;">Was: ${dateStr}</td>
                 <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic;">Reason: ${s.withdrawReason || 'N/A'}</td>`;
-        } else {
-            html += `<td style="padding:10px; border:1px solid #ddd;">Started: ${s.actualStart}<br>Finished: ${s.actualEnd}</td>
-                <td style="padding:10px; border:1px solid #ddd; font-weight:bold;">Duration: ${s.duration || '--'}</td>`;
-        }
+
         html += `</tr>`;
     });
 
