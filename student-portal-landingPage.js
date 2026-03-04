@@ -408,7 +408,7 @@ async function loadPendingRequests() {
     try {
         const q = query(collection(db, 'sessions'), 
             where('studentId', '==', user.uid), 
-            where('status', 'in', ['pending', 'rejected', 'withdrawn']),
+            where('status', 'in', ['pending', 'rejected',]),
             orderBy('timestamp', 'desc'));
         
         const snap = await getDocs(q);
