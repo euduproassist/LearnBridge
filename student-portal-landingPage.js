@@ -408,7 +408,7 @@ async function loadPendingRequests() {
     try {
         const q = query(collection(db, 'sessions'), 
             where('studentId', '==', user.uid), 
-            where('status', 'in', ['pending', 'rejected', 'withdrawn']),
+            where('status', '==', 'pending'),
             orderBy('timestamp', 'desc'));
         
         const snap = await getDocs(q);
@@ -422,10 +422,6 @@ async function loadPendingRequests() {
     const s = doc.data();
     const slots = s.preferredSlots || [];
     const isRescheduledByTutor = s.rescheduledBy === 'tutor';
-    const statusColor = s.status === 'rejected' || s.status === 'withdrawn' ? 'red' : '#003057';
-    const statusText = s.status === 'withdrawn' ? '⚠️ WITHDRAWN: ' + (s.withdrawReason || '') : 
-          s.status === 'rejected' ? '❌ Declined: ' + (s.rejectionReason || '') : 
-          isRescheduledByTutor ? '⚠️ TUTOR PROPOSED A NEW TIME' : '⏳ Waiting for tutor...';
 
     return `
         <div style="background:#fff; border:1px solid #e1e8f5; border-left:5px solid var(--primary-blue); border-radius:12px; padding:15px; margin-bottom:12px;">
