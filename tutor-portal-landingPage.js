@@ -1110,14 +1110,7 @@ function renderAgenda() {
             <td style="padding:10px; border:1px solid #ddd;">${s.topic}</td>
             <td style="padding:10px; border:1px solid #ddd;">${typeDisplay}</td>`;
 
-        if (currentAgendaTab === 'upcoming') {
-            html += `<td style="padding:10px; border:1px solid #ddd;">${dateStr}</td>
-                <td style="padding:10px; border:1px solid #ddd;">
-                    <button onclick="startSession('${s.id}')" style="background:black; color:white; padding:5px; border-radius:4px; cursor:pointer; width:100%; margin-bottom:5px;">Start</button>
-                    ${s.mode === 'Online' ? `<button onclick="openLinkModal('${s.id}', '${s.studentId}')" style="background:white; border:1px solid black; padding:5px; border-radius:4px; width:100%; margin-bottom:5px;">Upload Link</button>` : ''}
-                    <button onclick="tutorReschedule('${s.id}')" style="background:grey; color:white; border:none; padding:5px; border-radius:4px; width:100%; margin-bottom:5px;">Reschedule</button>
-                    <button onclick="withdrawSession('${s.id}')" style="background:#d32f2f; color:white; border:none; padding:5px; border-radius:4px; width: 100%; cursor:pointer; font-size:0.85rem;">Withdraw</button>
-                </td>`;
+
         } else if (currentAgendaTab === 'withdrawn') {
             html += `<td style="padding:10px; border:1px solid #ddd;">Was: ${dateStr}</td>
                 <td style="padding:10px; border:1px solid #ddd; color:red; font-style:italic;">Reason: ${s.withdrawReason || 'N/A'}</td>`;
