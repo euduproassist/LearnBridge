@@ -90,3 +90,102 @@ Because the roles are dynamic, you can sell this same codebase to a 10-student c
 ​Organize the chaos (The WhatsApp/Email fragmentation problem).
 
 ​Validate the requests (The missing document/admin workload problem).
+
+
+
+
+
+
+
+​1. Academic Support (The "Learning" Query)
+
+​Who it goes to: 
+Tutors or Lecturers
+
+​Purpose: 
+Subject-specific help, booking a 1-on-1 session, or clarification on a specific module.
+
+​Requirement: 
+Option to select the specific subject from a dropdown.
+
+
+
+​2. Exam & Assessment Admin (The "Schedule" Query)
+
+​Who it goes to: 
+Exam Officer or Registrar.
+
+​Purpose: 
+Requesting timetables, querying exam venues, or reporting a clash in test dates.
+
+​Requirement: 
+Mandatory upload of "Proof of Registration" if they are querying their eligibility.
+
+
+
+​4. Academic Advising & Pathing (The "Future" Query)
+
+​Who it goes to: 
+Academic Head or Principal.
+
+​Purpose: 
+Changing subjects, checking APS/credit requirements for graduation, or "Bachelor/Diploma" pass upgrades.
+
+​Requirement: 
+Option to upload previous "Statement of Results."
+
+
+
+
+​5. Records & Certificates (The "Paperwork" Query)
+
+​Who it goes to: 
+Admin/Front Desk.
+
+​Purpose: 
+Requesting a Proof of Registration (PoR) letter, a transcript of results, or a student ID card replacement.
+
+​Requirement: 
+Upload of ID Copy for verification.
+
+
+
+
+​6. Technical Support (The "Portal" Query)
+
+​Who it goes to: 
+You (The System Admin) or the College IT.
+
+​Purpose: 
+Problems logging into the portal, forgotten passwords, or "App not working."
+
+​Requirement: 
+Screenshot of the error message.
+
+
+
+
+​7. General Campus Inquiry (The "Everything Else" Query)
+
+​Who it goes to: 
+General Reception.
+
+​Purpose: 
+Lost and found, health and safety, or any issue that doesn't fit the categories above.
+
+
+
+
+
+​Strategic "Chameleon" Tip for Your Pitch
+​When you show this to the Principal, tell them:
+
+​"These 7 categories cover every reason a student currently stands in your hallway. If you don't have a 'Finance Officer,' we simply route those queries to your email. If you don't have 'Tutors,' we toggle that option off. The platform fits your staff structure, not the other way around."
+
+​Why this number (7) is the "Sweet Spot":
+
+​Mobile UX: 
+7 options fit perfectly on a single mobile screen without the student needing to scroll too much.
+
+​Staff Clarity: 
+It’s enough to ensure the "Finance" guy doesn't get "Subject" questions, but not so many that the staff gets confused about their roles.
