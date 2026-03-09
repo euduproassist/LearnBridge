@@ -1,3 +1,42 @@
+export const firebaseConfig = {
+  apiKey: "AIzaSyAtq1kO91XSiO2JjMllCHQkACrFXmtiNd8",
+  authDomain: "eduproassist-flowdesk.firebaseapp.com",
+  projectId: "eduproassist-flowdesk",
+  storageBucket: "eduproassist-flowdesk.firebasestorage.app",
+  messagingSenderId: "865072351441",
+  appId: "1:865072351441:web:19f92fd8613fd97fea1df0",
+  measurementId: "G-HTWDQC4RV3"
+};
+
+
+
+
+
+
+<script type="module">
+  // Import the functions
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+  
+  // Import your config from the other file
+  import { firebaseConfig } from "./firebase-config.js";
+
+  // Initialize
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+
+  console.log("FlowDesk is connected to Firebase!");
+</script>
+
+
+
+
+
+
+
+
 <script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
