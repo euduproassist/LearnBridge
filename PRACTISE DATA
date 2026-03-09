@@ -1,3 +1,155 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtq1kO91XSiO2JjMllCHQkACrFXmtiNd8",
+  authDomain: "eduproassist-flowdesk.firebaseapp.com",
+  projectId: "eduproassist-flowdesk",
+  storageBucket: "eduproassist-flowdesk.firebasestorage.app",
+  messagingSenderId: "865072351441",
+  appId: "1:865072351441:web:19f92fd8613fd97fea1df0",
+  measurementId: "G-HTWDQC4RV3"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sign Up | FlowDesk</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-box">
+    <h2>FlowDesk Signup 🎓</h2>
+    <input type="email" id="email" placeholder="Institutional Email">
+    <input type="text" id="idNumber" placeholder="Student/Staff/Admin Number">
+    <input type="text" id="department" placeholder="Department">
+    <input type="password" id="password" placeholder="Password">
+    <button id="signupBtn">Sign Up</button>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+    import { collection, query, where, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+    document.getElementById('signupBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const idNumber = document.getElementById('idNumber').value.trim();
+      const password = document.getElementById('password').value;
+      const department = document.getElementById('department').value.trim();
+
+      // Gatekeeper: Check whitelist
+      const roles = ['students', 'staff', 'admins'];
+      let matchedRole = null;
+
+      for (let col of roles) {
+        const q = query(collection(db, col), where('email', '==', email), where('idNumber', '==', idNumber));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          matchedRole = col === 'students' ? 'student' : snap.docs[0].data().role;
+          break;
+        }
+      }
+
+      if (!matchedRole) return alert("Access Denied: Record not found in registry.");
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, 'users', cred.user.uid), { email, role: matchedRole, department, idNumber });
+        await sendEmailVerification(cred.user);
+        alert("Success! Check your email to verify your account.");
+      } catch (e) { alert(e.message); }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Login | FlowDesk</title>
+</head>
+<body>
+  <div class="login-box">
+    <h2>FlowDesk Login 🎓</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        await cred.user.reload();
+        if (!cred.user.emailVerified) return alert("Please verify your email first.");
+
+        const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+        const role = userDoc.data().role;
+
+        const routes = {
+          'student': 'student-portal.html',
+          'academic-support': 'academic-support.html',
+          'exam-admin': 'exam-admin.html',
+          'academic-pathing': 'academic-pathing.html',
+          'records-certificates': 'records.html',
+          'technical-support': 'tech-support.html',
+          'general-inquiry': 'reception.html'
+        };
+        window.location.href = routes[role] || 'student-portal.html';
+      } catch (e) { alert("Login failed: " + e.message); }
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const firebaseConfig = {
   apiKey: "AIzaSyAtq1kO91XSiO2JjMllCHQkACrFXmtiNd8",
   authDomain: "eduproassist-flowdesk.firebaseapp.com",
