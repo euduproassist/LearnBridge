@@ -1,3 +1,87 @@
+<form id="signupForm">
+  <input type="email" id="email" placeholder="Institutional Email" required>
+  <input type="text" id="idNumber" placeholder="Student/Staff/Admin Number" required>
+  <input type="password" id="password" placeholder="Password" required>
+  <select id="role">
+    <option value="student">Student</option>
+    <option value="academic-support">Academic Support</option>
+    <option value="exam-admin">Exam Admin</option>
+    <option value="academic-pathing">Academic Pathing</option>
+    <option value="records-certificates">Records & Certificates</option>
+    <option value="technical-support">Technical Support</option>
+    <option value="general-inquiry">General Inquiry</option>
+  </select>
+  <input type="text" id="department" placeholder="Department" required>
+  <button type="submit">Sign Up</button>
+</form>
+
+
+
+
+
+
+
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+const db = getFirestore();
+const auth = getAuth();
+
+async function handleSignUp(email, idNumber, role, department, password) {
+  // 1. Determine collection (students, staff, or admin based on your logic)
+  const collectionName = role === 'student' ? 'students' : 'staff'; 
+  
+  // 2. The "Whitelist" Check
+  const q = query(collection(db, collectionName), 
+            where("email", "==", email), 
+            where("idNumber", "==", idNumber));
+  
+  const snapshot = await getDocs(q);
+  
+  if (snapshot.empty) {
+    alert("Access Denied: Your credentials do not match our official records.");
+    return;
+  }
+
+  // 3. Create Account & Send Verification
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await sendEmailVerification(userCredential.user);
+  
+  alert("Verification email sent! Please check your inbox before logging in.");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+async function handleLogin(email, password) {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
+
+  if (!user.emailVerified) {
+    alert("Please verify your email address before accessing the portal.");
+    auth.signOut(); // Block access
+    return;
+  }
+  
+  // If verified, proceed to their specific Role Portal
+  window.location.href = "dashboard.html";
+}
+
+
+
+
+
+
+
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
